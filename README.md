@@ -2,8 +2,8 @@
 
 KStack is an explicitly invoked review-to-implementation toolkit for Codex and
 Claude Code. It is a narrow, host-native derivative of ideas explored by
-[gstack](https://github.com/garrytan/gstack), built for complex repositories
-where the normal agent must remain in control.
+[gstack](https://github.com/garrytan/gstack), created by Garry Tan, and is built
+for complex repositories where the normal agent must remain in control.
 
 KStack does not replace `HOME`, `CODEX_HOME`, agent permissions, project rules,
 or toolchain configuration. It does not run automatically. Each capability is

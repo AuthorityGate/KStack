@@ -1,59 +1,111 @@
-# Per-item ledger: memory maturity
+# Per-item ledger: Memory maturity
 
 **Thread:** `memory-maturity-2026-08-26`
-**Status:** living item-level evidence
-**Round-1 design digest:** `adc1d1e877e756e5e66b698fc50330c689ebdc18713e2c94fa95e8a2243fce24`
-**Round-1 scores:** Codex 46; Opus 60; combined 46
+**Created:** 2026-08-27
+**Status:** `DESIGN_SLICES_CODEX_CLOSED`
+**Closure review route:** Codex-only
+**Closure rule:** a new exact digest is closed only at Codex >=93 with zero
+failed checks, security findings, material dissent, and unresolved questions
 
-`VALIDATED` applies only to one named mechanism on one frozen digest and never
-authorizes implementation, ingestion, synchronization, deletion, model
-installation, or an external write. A result on one row cannot clear another.
+## Locked owner state
 
-## Owner-decision blockers
+- `MEM-Q-OPTION-001` is `LOCKED_WITH_BINDING_AMENDMENT`.
+- The owner approved the composed architecture with one binding amendment:
+  every local-model runtime and workload is excluded, not optional or deferred,
+  and absent from every slice. Reintroduction requires a new explicit owner
+  decision and a new review.
+- The owner decision is complete and no owner action remains. The earlier
+  objective is historical input only; wherever it conflicts with the bound
+  owner record, the owner record controls and the objective text has no
+  operative effect.
+- Git/GitHub remains authoritative for approved, versioned KStack artifacts.
+  Jira remains authoritative for scoped ticket, workflow, and release records.
+- KStack's local Memory fabric is derived and non-authoritative. KStack owns
+  repository isolation, deletion and non-resurrection, citations, and the
+  mandatory deterministic exact/BM25 retrieval path.
+- The selected external work contributes bounded non-model patterns only.
+  It does not import an external product's authority, runtime, or policy.
 
-| Item | Status | Existing evidence | Required next action |
-|---|---|---|---|
-| O1 memory process and caller identity | `OWNER-DECISION-REQUIRED` | Opus failed checks 1-2, SF-1/SF-8, dissent 3, Q1-Q2; Codex authorization findings. | Owner chooses the protected per-user daemon and authenticated OS-peer plus scoped broker-capability topology. Recommendation: yes. |
-| O2 source-admission approval granularity | `OWNER-DECISION-REQUIRED` | Codex failed checks 2-3, SEC-03, Q1-Q2; Opus failed check 11 and Q9. | Owner chooses versioned repository-level Git/GitHub and Jira scope policy approval versus per-object/snapshot approval. Recommendation: scoped policy approval. |
-| O3 deletion claim and source-system removal | `OWNER-DECISION-REQUIRED` | Codex deletion/tombstone/Jira findings; Opus deletion, live-source, backup, and overclaim findings. | Owner chooses `DERIVED_DATA_PURGED` for KStack-reachable copies and reserves `DELETED` for separately authorized evidenced source removal. Recommendation: yes. |
+## Bound canonical records
 
-## Technical item ledger
+| Record | SHA-256 | Purpose |
+|---|---|---|
+| `memory-maturity-2026-08-26-option-selection.md` | `8611a99bddd92392a142b431d7693b3faa0a0d1e0328ea955f229cf133a208cf` | Final owner-amended option-selection brief |
+| `memory-maturity-2026-08-26-option-selection-owner-record.md` | `c74d350ab4fa3ea912aa09a35963800d73bba63b4942ae466a4ef677726e2dfe` | Exact owner answer and binding amendment |
+| `memory-maturity-2026-08-26-source-ledger.md` | `baf70e2cde3f82ff17a34c97599797875d73a07eea3bdc6fa2685a6016374676` | Immutable source revisions, paths, and license evidence |
+| `../objectives/memory-maturity-2026-08-26.md` | `f5dd6eccb9452efbd5b93e35c61f60dbb5119dce743d7133ad2f84d47a38b8a9` | Historical objective input; superseded by the owner record on every conflict |
 
-| Item | Status | Round-1 defect | Smallest next action |
-|---|---|---|---|
-| T1 service topology and caller anchor | `OPEN-CONFIRMED-BUG` | Resident/per-call process, authenticated caller, cache/lease ownership, startup failure, and identity-negative fixtures are undefined. | Isolate after O1. |
-| T2 canonical repository namespace | `OPEN-CONFIRMED-BUG` | Remote/local repository identity and rename/transfer/fork/clone/rewrite behavior are undefined. | Isolate canonical namespace lifecycle. |
-| T3 canonical representations and citations | `OPEN-CONFIRMED-BUG` | Original/normalized/redacted bytes, encoding/newlines, digest domains, chunk coordinates, and citation oracle are undefined. | Isolate byte and digest contract. |
-| T4 source admission | `OPEN-CONFIRMED-BUG` | Source identity/digest does not prove approved Git or Jira governance scope. | Isolate after O2. |
-| T5 authorization matrix | `OPEN-CONFIRMED-BUG` | Search counts, locators, excerpts, history, bodies, ingest, sync, grants, deletion, and keys lack field-level permission separation. | Isolate role/operation/field authorization. |
-| T6 safe M1 sequencing | `OPEN-CONFIRMED-BUG` | M1 can persist sensitive copies before retention, encryption, tombstone, purge, and rollback controls. | Isolate minimum safe persistence gate. |
-| T7 anti-rollback tombstones | `OPEN-CONFIRMED-BUG` | Tombstone authority, durable location, integrity, selectors, replication order, undelete, and stale restore behavior are undefined. | Isolate after O3 boundary is locked. |
-| T8 truthful deletion terminal states | `OPEN-CONFIRMED-BUG` | Reachable/out-of-scope surfaces, legal hold, deadlines, partial completion, backup limits, and source evidence are incomplete. | Isolate after O3. |
-| T9 storage surfaces and key lifecycle | `OPEN-CONFIRMED-BUG` | Pages/WAL/temp/swap/dumps/chunks/indexes/caches/replicas/backups and rotation/recovery fencing are incomplete. | Isolate protected-surface and dual-key protocol. |
-| T10 namespace-local physical storage | `VALIDATED-CODEX-ONLY` | Frozen digest `d5de043ceccf2c06ab71d68536350ca3292ce993562cc2691967789a20274adf`; Codex 94 clean in `memory-maturity-2026-08-26-t10-codex1-review12` (119,246 ms), zero failed checks/security/dissent/questions. | Closed for design under the owner's Codex-only routing; implementation/conformance and named production dependencies remain future work. |
-| T11 retained read and redaction path | `OPEN-CONFIRMED-BUG` | Live-source reads/rebuild/reingest can bypass retained redaction and tombstones. | Isolate authorized retained-byte path. |
-| T12 authenticated privacy-safe receipts | `OPEN-CONFIRMED-BUG` | Plain SHA-256 is neither producer authentication nor safe for low-entropy values. | Isolate keyed/domain-separated receipt and anti-rollback anchor. |
-| T13 retrieval authorization and exact lane | `OPEN-CONFIRMED-BUG` | Authorization occurs too late; count/timing/rank can leak, exact hits are unbounded, semantic rank bound is undeclared. | Isolate pre-candidate authorization, noninterference, exact bounds, and semantic ceiling. |
-| T14 closed unknown-field semantics | `VALIDATED` | Frozen digest `f359720953cf118d966c8a2d1e574a6b2331f4081f9f39a3e6b942eba132b131`; Codex 95 clean in `memory-maturity-2026-08-26-t14-codex10` (25,021 ms); Opus 88 clean in `memory-maturity-2026-08-26-t14-opus6` (261,766 ms). | Closed for design only; implementation/conformance evidence remains future work. |
-| T15 lexical implementation and evidence | `VALIDATED-CODEX-ONLY` | Frozen digest `9a049d9b59f0e9dcdab3f298d708af220b66bb2548051fe7129e0c3b4af9816b`; Codex 95 clean in `memory-maturity-2026-08-26-t15-codex1-review1` (55,727 ms), zero failed checks/security/dissent/questions. | Closed for design under the owner's Codex-only routing; implementation/benchmark evidence remains future work. |
-| T16 citations after ancestor removal | `OPEN-CONFIRMED-BUG` | Supersession/citation behavior can resurrect bytes or silently lose continuity after stale/expired/tombstoned/purged ancestors. | Isolate safe continuity marker and unavailable-citation state. |
-| T17 remote synchronization | `OPEN-CONFIRMED-BUG` | Generic `sync-remote` lacks peer identity, authorization, ordering, ambiguity, reconciliation, tests, and rollback. | Keep unavailable; design as a new independent slice. |
-| T18 Jira non-resurrection | `OPEN-CONFIRMED-BUG` | Unchanged or later Jira revisions can reintroduce locally deleted fields; historical bytes may be unreproducible. | Isolate after O2/O3. |
+## Slice closure ledger
 
-## Preserved authority boundaries
+`VALIDATED-DESIGN-ONLY` means that Codex approved the exact design digest at
+the required confidence and all four closure counters were zero. It does not
+mean that the design was implemented, exercised, deployed, or production
+qualified.
 
-- Git/GitHub remains authoritative for versioned KStack artifacts.
-- Jira remains authoritative for approved ticket, workflow, and release records.
-- The local catalog, PGlite/BM25, embeddings, caches, summaries, and Ollama
-  output are derived and disposable. Ollama owns no authoritative memory.
-- Optional semantic/model output cannot decide trust, satisfy citations, grant
-  authority, suppress exact identifiers/security terms, or trigger a release.
-- Remote synchronization stays unavailable until T17 independently closes.
+| Item | Scope | Final SHA-256 | Final Codex | Failed / security / dissent / questions | Status |
+|---|---|---|---:|---:|---|
+| Option selection | Authority, component selection, evidence, and binding owner amendment | `8611a99bddd92392a142b431d7693b3faa0a0d1e0328ea955f229cf133a208cf` | 96 | 0 / 0 / 0 / 0 | `VALIDATED-DESIGN-ONLY` |
+| Slice 1 | Authority and citation envelope | `6a444beb3302428fc0fd824c3df88eeae653f65e35b6b7177845812f1d85f8d4` | 95 | 0 / 0 / 0 / 0 | `VALIDATED-DESIGN-ONLY` |
+| Slice 2 | Deterministic exact/BM25 retrieval and cache contract | `9b8e303f8a7cbe1a2c7adac7b22e79f8e9aea5131b448175ab7dda499c2d206d` | 97 | 0 / 0 / 0 / 0 | `VALIDATED-DESIGN-ONLY` |
+| Slice 3 | GitHub/Jira ingestion and reconciliation | `41f46d0159f84975403c5829cb7f014a8f93647b700cf65562a9e19d1206b16b` | 99 | 0 / 0 / 0 / 0 | `VALIDATED-DESIGN-ONLY` |
+| Slice 4 | Encryption, key lifecycle, deletion, and non-resurrection | `7e652550ff287d834235a5a1ae83082b711fd4509aa1046d86b3b4a40e8b3207` | 97 | 0 / 0 / 0 / 0 | `VALIDATED-DESIGN-ONLY` |
+| Slice 5 | Sync, audit chain, compaction, and portable Git objects | `58c2bbce85413aa264d4557306e965f3afcde9165cf504318c34c4b62958b8de` | 97 | 0 / 0 / 0 / 0 | `VALIDATED-DESIGN-ONLY` |
+
+## Exact review history
+
+Security counts below are finding counts, with severities retained where they
+were reported. Durations are provider wall-clock durations. The ignored review
+artifacts are evidence only and are not candidates for staging or publication.
+
+| Review | Exact digest | Codex | Duration | Failed checks | Security findings | Material dissent | Unresolved questions | Outcome |
+|---|---|---:|---:|---:|---:|---:|---:|---|
+| Option R1, pre-amendment | `d7409a26971352bf51b0ff8cf7e82fb91267ab364d7f354343cb8a1938de0231` | 89 | 54,411 ms | 0 | 0 | 0 | 0 | clean score below closure threshold; owner amendment followed |
+| Option R2, binding owner amendment | `f4afa3f50b532d4cbeaca6c34ccb66cd59da05b27c645d154dc7448eaa0330e3` | 90 | 38,722 ms | 0 | 0 | 0 | 0 | concrete reproducibility work remained |
+| Option R3 | `1ba2ed397bf81d8154b8a1cc99cee1fe63b77ef421c9d459fd99ea08d7b8bd65` | 92 | 52,930 ms | 1 | 0 | 0 | 0 | complete source binding required |
+| Option R4 | `8611a99bddd92392a142b431d7693b3faa0a0d1e0328ea955f229cf133a208cf` | 96 | 13,024 ms | 0 | 0 | 0 | 0 | `APPROVE`; option closed |
+| Slice 1 R1 | `95bb9f4c48ddb8be639d5ab9416620bcabd2038995985c1f9a0c191f242b4b18` | 91 | 55,274 ms | 8 | 3 (1 high, 2 medium) | 2 | 4 | targeted fixes only |
+| Slice 1 R2 | `efae6c4c40c8f592d65ccc1fd791516b68f5fed052290839fc81ae757a0d935c` | 91 | 31,002 ms | 3 | 1 medium | 1 | 3 | schema/vector, Jira-value, and rollback-disposition fixes required |
+| Slice 1 R3 | `6a444beb3302428fc0fd824c3df88eeae653f65e35b6b7177845812f1d85f8d4` | 95 | 29,731 ms | 0 | 0 | 0 | 0 | `APPROVE`; Slice 1 closed |
+| Slice 2 R1 | `3dbfb68aeee8bc754a05b058a4cd7d77bc5f53df9e87ec6bc669401617387c6f` | 90 | 110,474 ms | 11 | 3 (2 high, 1 medium) | 0 | 0 | targeted fixes only |
+| Slice 2 R2 | `55e9752fc652ed5bc9a1c9e0953ab8f71481362a034c2e3622eac6335f9191b1` | 92 | 78,829 ms | 1 | 0 | 1 | 0 | regex-needle cap/behavior and boundary fixtures remained |
+| Slice 2 R3 | `9b8e303f8a7cbe1a2c7adac7b22e79f8e9aea5131b448175ab7dda499c2d206d` | 97 | 8,032 ms | 0 | 0 | 0 | 0 | `APPROVE`; Slice 2 closed |
+| Slice 3 R1 | `aabcf4cb4ca6af404f601b59f5c4f750656931c252a9029e83bc64f471a1c797` | 90 | 64,860 ms | 6 | 4 (2 high, 2 medium) | 2 | 5 | targeted fixes only |
+| Slice 3 R2 | `148d0483b4c567f100d26360c908e8bac6fcc1d471a158c001e08618a4cbfd0d` | 98 | 56,283 ms | 5 | 4 (2 high, 1 medium, 1 low) | 2 | 0 | score did not override nonzero closure counters |
+| Slice 3 R3 | `41f46d0159f84975403c5829cb7f014a8f93647b700cf65562a9e19d1206b16b` | 99 | 8,459.682 ms | 0 | 0 | 0 | 0 | `APPROVE`; Slice 3 closed |
+| Slice 4 R1 | `a0ba8e3240099e9b0928f9a7450220033ea3881d0dbec32791327fe64c56036b` | 98 | 114,024.569 ms | 12 | 6 (1 critical, 3 high, 2 medium) | 4 | 8 | score did not override nonzero closure counters |
+| Slice 4 R2 | `7e652550ff287d834235a5a1ae83082b711fd4509aa1046d86b3b4a40e8b3207` | 97 | 18,026.587 ms | 0 | 0 | 0 | 0 | `APPROVE`; Slice 4 closed |
+| Slice 5 R1 | `25b5a3855ea85286dcc0dfe99ac71e9407a0030ae040ed267876291738d47e7c` | 98 | 108,959.796 ms | 9 | 8 (1 critical, 4 high, 3 medium) | 4 | 8 | score did not override nonzero closure counters |
+| Slice 5 R2 | `58c2bbce85413aa264d4557306e965f3afcde9165cf504318c34c4b62958b8de` | 97 | 5,471.855 ms | 0 | 0 | 0 | 0 | `APPROVE`; Slice 5 closed |
+
+The exact sum of the 17 retained provider durations is **848,514.489 ms**. A
+separate 99 ms pre-review launch failure before Option Round 1 is not a review
+round and is excluded from that sum.
+
+## Preserved closure boundaries
+
+- Every slice is a bite-sized design contract and retains the closure of the
+  preceding slices. Later slices do not reopen earlier authority decisions.
+- Only the Codex option-selection and Slice 1-5 artifacts listed above supply
+  closure evidence. Older ignored experiments, including other reviewer
+  routes, are superseded and supply no score, authority, or closure here.
+- No local-model runtime, model, embedding, vector retrieval, semantic
+  reranking, query expansion, hardware qualification, or model-download work
+  exists in the selected architecture.
+- The selected gstack/gbrain contribution is limited to the exact MIT-bound
+  sources and non-model patterns in the source ledger. It retains Garry Tan's
+  attribution boundary and requires re-pin/re-hash, retained notice, identified
+  adaptations, and independent KStack tests before implementation reuse.
+- No implementation, test execution, connector enablement, external action,
+  deployment, commit, push, publication, or production/user-data readiness is
+  authorized or claimed by these design reviews.
+- Implementation must supply the named schemas, adapters, fixtures, crash and
+  rollback tests, OS-specific durability checks, provider qualification, and
+  fail-closed evidence before any implementation-level or production claim.
 
 ## Maintenance rule
 
-Every improvement brief reads this ledger, binds the Round-1 objective/reviews,
-and names exactly one row. At Codex 84-92 only concrete defects may change.
-Current owner routing is Codex direct only: do not dispatch Opus. A same-digest
-Codex result at the active threshold with zero failed checks, security findings,
-material dissent, or unresolved required questions closes the design row.
+Do not rewrite a locked decision artifact merely to add bookkeeping. Append a
+new canonical record with its own digest. Any implementation deviation,
+authority change, source-revision change, or proposed model-dependent path
+requires a new exact digest and the applicable owner/review gates. Any excluded
+local-model path can return only through a new explicit owner decision.

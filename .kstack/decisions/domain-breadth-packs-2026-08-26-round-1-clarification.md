@@ -1,6 +1,6 @@
 # Round 1 clarification: domain breadth packs
 
-Status: AWAITING_OWNER_CONFIRMATION
+Status: LOCKED
 
 - Thread: `domain-breadth-packs-2026-08-26`
 - Invocation: `78b4c947-1515-413f-b26a-6eecd3558bb9`
@@ -37,10 +37,17 @@ confidence, host-portability, memory, or Ollama design.
 - **Question:** Must pack selection, required-pack waiver/policy weakening, and
   catalog activation use authenticated out-of-band attestations while ordinary
   repository collaborators remain in the threat model?
-- **Owner answer:** Unknown.
-- **Disposition:** `UNRESOLVED`.
-- **Consequence:** round two remains blocked. An unknown answer cannot select
-  the authority boundary or be converted into an agent inference.
+- **Owner answer:** Yes. Pack selection, required-pack waiver or policy
+  weakening, and catalog activation require authenticated out-of-band
+  principals and attestations. Required-pack waivers and policy weakening also
+  require approval from an independent second party. Ordinary repository
+  collaborators remain inside the threat model and cannot satisfy these
+  requirements through repository-controlled assertions alone.
+- **Disposition:** `RESOLVED`.
+- **Consequence:** D1 and D3 may specify the exact fail-closed identity,
+  attestation, freshness, separation-of-duty, and verification contracts. This
+  answer does not select a vendor, credential mechanism, or implementation and
+  does not authorize an activation, waiver, or policy change.
 
 ### Q2 - independent evaluation and deliberate gridlock
 
@@ -66,9 +73,11 @@ confidence, host-portability, memory, or Ollama design.
 
 ## Unresolved items
 
-- Q1 remains unresolved and prevents `ROUND_ONE_CLARIFICATION_LOCKED`.
+- None. All round-one owner questions are resolved.
 
 ## Confirmation
 
-Final owner confirmation is pending. This draft must not be treated as locked,
-used to start round two, or used to authorize implementation.
+The owner answered Q1 `Yes` on 2026-08-27 after receiving the full question,
+recommendation, consequences, blocked scope, and `Yes`/`No`/`Comment` choices.
+This record is locked for subsequent item-level design. It authorizes neither
+implementation nor external mutation.
