@@ -1,0 +1,32 @@
+{
+  "name": "kstack",
+  "version": "0.1.0+codex.20260812133549",
+  "description": "Explicit objective, design, interrogation, implementation, and QC workflows for Codex and Claude Code.",
+  "author": {
+    "name": "AuthorityGate"
+  },
+  "hooks": "./hooks/hooks.json",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "KStack",
+    "shortDescription": "Cooperative design, implementation, and QC workflows.",
+    "longDescription": "KStack challenges objectives, reviews unfamiliar environments and designs with independent reviewers, interrogates plan changes, enforces post-implementation QC, and offers explicit local PGLite memory with a manually synchronized private body.",
+    "developerName": "AuthorityGate",
+    "category": "Productivity",
+    "capabilities": [
+      "objective-review",
+      "design-review",
+      "design-gate",
+      "code-review",
+      "implementation",
+      "implementation-interrogation",
+      "post-implementation-qc",
+      "blinded-planning-lens-evaluation",
+      "explicit-memory",
+      "offline-jira-ticket-drafting",
+      "bounded-safety-hooks",
+      "virtual-engineering-panels"
+    ],
+    "defaultPrompt": "Use $kstack-init to configure KStack for this repository."
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "3b676e66-e664-4c51-a53e-500d010d8907",
+  "designDigest": "3369eeb735317a640c82b08a0bf29f3c7a5c83b2c67915eb56cb5c862781855f",
+  "rawOutputSha256": "aa30935af65f88bb477d03a52189d0072f33f974f9927838c2fabbb38db1df8e",
+  "review": {
+    "decision": "approve",
+    "confidence": 98,
+    "failedChecks": [],
+    "securityFindings": [],
+    "materialDissent": [],
+    "recommendation": "Implement the exact reviewed design. The fresh current-tree test run passes all 9 test files, and the complete call-site inventory confirms both consumers handle the nullable marker age safely.",
+    "strongestObjection": "None unresolved.",
+    "unresolvedQuestions": []
+  }
+}

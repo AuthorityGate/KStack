@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "role": "fable",
+  "status": "complete",
+  "configPath": "/mnt/e/Source/Projects/KStack/.kstack/config.json",
+  "projectRoot": "/mnt/e/Source/Projects/KStack",
+  "promptSha256": "7840e0b2f863e7856638fbe37988b248e6ebd50d1f6b9999e28b4e02b5c4b052",
+  "createdAt": "2026-08-23T19:14:11.370Z",
+  "exitCode": 0,
+  "signal": null,
+  "startedAt": "2026-08-23T19:14:11.370Z",
+  "durationMs": 423369,
+  "directiveFile": "/mnt/e/Source/Projects/KStack/.kstack/qc/effort-policy-fable-round-15b/fable.md",
+  "directiveSha256": "44e91a58c75ca927873b409b924463dba69e6e48e3e0e18e0fb18263cbbaebc2",
+  "configurationSha256": "fa0597a6d44eeb2cb86914173ea525dc3164d205e4d52a70faf0598bc293fdbe"
+}

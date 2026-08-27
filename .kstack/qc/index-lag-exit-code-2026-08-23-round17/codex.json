@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "abbb31c3-38d1-4285-8b21-7c25bc4e70a7",
+  "designDigest": "2bdb587425c6443981fdfee79131724b1c11c8f3dbbc693d36a8dbbf60daafb7",
+  "rawOutputSha256": "8b2af8d0d8a1aa2c5461d75b338b6b8c8a99a07cc34bc659ecd4cc532626e696",
+  "review": {
+    "decision": "approve",
+    "confidence": 97,
+    "failedChecks": [],
+    "securityFindings": [],
+    "materialDissent": [],
+    "recommendation": "Approve the exact design. The corrected alias search is synthetically validated, repository-wide consumer checks found no affected in-repo caller, the dedicated exit-code paths are documented and tested, and the full suite passes. Communicate exit code 20 and the new audit reason as compatibility-visible changes in release notes.",
+    "strongestObjection": "Repository-local searches cannot rule out an out-of-repo consumer that branches specifically on exit code 2 or parses the former audit-reason string; such a consumer would require updating, although generic nonzero handling remains compatible.",
+    "unresolvedQuestions": [
+      "Do any out-of-repo consumers compare the Jira CLI exit status specifically to 2 or parse the changed marker-age audit reason?"
+    ]
+  }
+}

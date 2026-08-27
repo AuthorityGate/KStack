@@ -1,0 +1,6 @@
+interface:
+  display_name: "KStack Init"
+  short_description: "Configure KStack through a guided conversation"
+  default_prompt: "Use $kstack-init to configure KStack for this environment."
+policy:
+  allow_implicit_invocation: false

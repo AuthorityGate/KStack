@@ -1,0 +1,15 @@
+{
+  "name": "kstack",
+  "description": "Local KStack plugin marketplace.",
+  "owner": {
+    "name": "AuthorityGate"
+  },
+  "plugins": [
+    {
+      "name": "kstack",
+      "source": "./plugins/kstack",
+      "description": "KStack workflows with bounded safety hooks",
+      "version": "0.1.0"
+    }
+  ]
+}

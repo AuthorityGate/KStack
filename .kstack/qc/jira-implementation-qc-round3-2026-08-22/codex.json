@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "b0d7e9ce-c934-4b1f-bf19-959aea5e2d93",
+  "designDigest": "ff2fb20480d1ebd33d0b3afd7880efca79be45798b7e841074bea5ebb25a4dd4",
+  "rawOutputSha256": "20ba47656d2d7ddf5a6cf79391da35d3fd3297ff10433f266c7f28cfdcd69a8b",
+  "review": {
+    "decision": "revise",
+    "confidence": 74,
+    "failedChecks": [
+      "Observed: recovery of a matching `posted:false`/`aborted-before-post` sidecar returns the draft to `approved`, but `unresolvedSearchEvidence()` still treats the folded `stale-holder-outcome` as pending evidence. Consequently `status` reports a mandatory verify and a subsequent submit is gated, contradicting §4.5's requirement that this case require no mandatory verification.",
+      "Observed: when the release rename claims a successor lock and restoration succeeds, `releaseDraftLock()` returns exit 18 without writing an orphan sidecar. This violates the authoritative 17/18 contract that dirty residue details are persisted in a sidecar and the §4.9 claim that displacement enters sidecar/janitor detection.",
+      "The supplied heartbeat test creates its queue beneath `os.tmpdir()`, so it does not establish `futimes` visibility on the repository's `/mnt/e` filesystem. No supplied test verifies directory-fsync effectiveness there.",
+      "The packet does not contain the imported `kstack-config.mjs` or `kstack-provider-runner.mjs`, the new `kstack-jira/SKILL.md`, or the `.gitignore`/configuration changes. Therefore load-time schema enforcement, shared-redactor behavior, the draft-only skill boundary, and queue ignore coverage cannot be independently verified from this packet.",
+      "Pinned Jira endpoints and cursor pagination are exercised only through mocks; no real Jira Cloud smoke-test evidence is supplied."
+    ],
+    "securityFindings": [],
+    "materialDissent": [
+      "The implementation is not yet an exact match for the specified aborted-before-POST marker lifecycle.",
+      "The release path's exit-18 behavior contradicts the design's durable sidecar contract.",
+      "The assertion that every relevant file is included is objectively inconsistent with the implementation's load-bearing imports and the omitted `kstack-jira` skill/configuration artifacts.",
+      "The supplied five pipeline-skill diffs do not themselves weaken the QC/design/implementation gates; the remaining skill-boundary concern is verification of the omitted sibling Jira skill."
+    ],
+    "recommendation": "Exclude definitively matched `aborted-before-post` evidence from unresolved search markers or append an explicit covering audit entry; make every restored release mis-claim obey the documented exit/sidecar semantics; add tests for both cases. Run the filesystem checks against `/mnt/e`, perform the real Jira endpoint smoke tests, and provide the omitted load-bearing files for packet-only QC. Round 1 and round 2 remediations represented in the supplied code and tests appear correctly implemented.",
+    "strongestObjection": "A documented definitive no-POST recovery is still treated as unresolved duplicate evidence, while a separate release-race path emits exit 18 without the sidecar that exit 18 requires; together these show the concurrency/evidence contract is not implemented exactly.",
+    "unresolvedQuestions": [
+      "Does directory `fsync` provide effective durability on the actual `/mnt/e` queue filesystem?",
+      "Does `futimes(fd)` reliably update path-visible mtime on `/mnt/e`, rather than only on the temporary filesystem used by the test?",
+      "Is NFS-hosted queue storage supported, and if so, has the link-succeeded/reply-lost self-recognition path been tested empirically?",
+      "Have the createmeta, mypermissions, issue-security-scheme, and POST `/rest/api/3/search/jql` response and pagination shapes been smoke-tested against a real Jira Cloud tenant?",
+      "Do the omitted configuration and Jira-skill files enforce all schema, ignore, and draft-only integration requirements claimed by the design?"
+    ]
+  }
+}

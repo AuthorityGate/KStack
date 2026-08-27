@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "role": "fable",
+  "status": "timeout",
+  "configPath": "/mnt/e/Source/Projects/KStack/.kstack/config.json",
+  "projectRoot": "/mnt/e/Source/Projects/KStack",
+  "promptSha256": "2dc9ae2fd73f9d6795ead791713f7d30b51acba567aafb8c7573f0d2a0456165",
+  "createdAt": "2026-08-23T19:02:24.428Z",
+  "exitCode": 143,
+  "signal": null,
+  "startedAt": "2026-08-23T19:02:24.428Z",
+  "durationMs": 600391,
+  "directiveFile": null,
+  "directiveSha256": null,
+  "configurationSha256": "fa0597a6d44eeb2cb86914173ea525dc3164d205e4d52a70faf0598bc293fdbe"
+}

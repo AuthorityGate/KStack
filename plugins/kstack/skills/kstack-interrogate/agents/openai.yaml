@@ -1,0 +1,6 @@
+interface:
+  display_name: "KStack Interrogation"
+  short_description: "Challenge implementation plan changes safely"
+  default_prompt: "Use $kstack-interrogate to classify this proposed plan change before implementation."
+policy:
+  allow_implicit_invocation: false

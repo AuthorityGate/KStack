@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "39e4e68c-8736-46e0-bc2b-bb6d9e04e80b",
+  "designDigest": "a5e8b78d7ac72b308c4ed4591a94b3fc70f6577abb43725d6f07551da44f459f",
+  "rawOutputSha256": "b2a67bcf7c736279138cdd79b847dc537fcb809b478550bd650e5bb999c915fd",
+  "review": {
+    "decision": "revise",
+    "confidence": 87,
+    "failedChecks": [
+      "The claimed definitive consumer survey searches only the literal `kstack-jira`. Because `package.json` exposes a `jira` script alias, repository consumers could invoke `npm run jira`, another package-manager alias, or an indirect wrapper and branch on its status without containing that literal. The packet therefore does not yet establish that no in-repository consumer expects exit 2."
+    ],
+    "securityFindings": [],
+    "materialDissent": [
+      "I disagree that no broader repository search could change the consumer-compatibility conclusion; alias and indirect invocation paths remain unverified."
+    ],
+    "recommendation": "Survey executable scripts, workflow/configuration files, and package-script references for direct or indirect invocation of the `jira` alias and subsequent exit-status handling. If none branch on the former exit 2, approve; the vestigial `unavailable` field is optional cleanup and not blocking.",
+    "strongestObjection": "Observed: the supplied grep is file-type-independent but matches only `kstack-jira`, while an alternate `jira` entry point is present in `package.json`. Inference: a consumer using that alias could be missed, so the exit-2-to-20 blast-radius claim remains incompletely verified.",
+    "unresolvedQuestions": [
+      "Do any executable files or workflow configurations invoke the `jira` package-script alias or another indirect wrapper and interpret its numeric exit status?"
+    ]
+  }
+}

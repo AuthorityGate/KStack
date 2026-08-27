@@ -1,0 +1,22 @@
+{
+  "name": "kstack",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:termination-native": "node plugins/kstack/native/reflexion-termination-native/build-native.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:memory-gate": "node tests/reflexion-memory-gate-harness.mjs",
+    "validate:config": "node plugins/kstack/scripts/kstack-config.mjs validate .kstack/config.json",
+    "panel": "node plugins/kstack/scripts/kstack-panel.mjs",
+    "lens-trial": "node plugins/kstack/scripts/kstack-planning-lens-trial.mjs",
+    "safety:status": "node plugins/kstack/scripts/kstack-safety-admin.mjs status",
+    "safety:activate": "node plugins/kstack/scripts/kstack-safety-admin.mjs activate",
+    "safety:disable": "node plugins/kstack/scripts/kstack-safety-admin.mjs disable",
+    "safety:rollback": "node plugins/kstack/scripts/kstack-safety-admin.mjs rollback",
+    "jira": "node plugins/kstack/scripts/kstack-jira.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

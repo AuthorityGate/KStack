@@ -1,0 +1,512 @@
+import assert from 'node:assert/strict';
+import { builtinModules } from 'node:module';
+import { spawnSync } from 'node:child_process';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { runBoundedResolverBatch, runResolverConformance } from '../plugins/kstack/scripts/reflexion-architecture/resolver-client.mjs';
+
+const SUPPORTED_SUFFIXES = new Set(['.mjs', '.js', '.cjs']);
+const BUILTINS = new Set(builtinModules.flatMap((name) => [name, `node:${name}`]));
+const AMBIENT_CAPABILITIES = Object.freeze([
+  'Buffer', 'Function', 'Reflect', 'TextDecoder', 'TextEncoder', 'URL', 'WebAssembly',
+  '__dirname', '__filename', 'clearInterval', 'clearTimeout', 'console', 'eval', 'fetch',
+  'globalThis', 'module', 'performance', 'process', 'require', 'setInterval', 'setTimeout',
+  'structuredClone'
+]);
+const IMPORT_MANIFEST = new Map([
+  ['kstack-checkpoint.mjs', ['node:crypto']],
+  ['kstack-citation-admin.mjs', ['node:fs','node:path','node:url','./kstack-provider-runner.mjs','./kstack-review-schema.mjs','./kstack-citation-runtime.mjs','./kstack-dual-review.mjs']],
+  ['kstack-citation-grounding.mjs', ['node:crypto']],
+  ['kstack-citation-native.mjs', ['node:crypto','node:fs','node:os','node:path','node:url','node:worker_threads','node:child_process','./kstack-citation-state.mjs','node:module']],
+  ['kstack-citation-runtime.mjs', ['node:crypto','node:fs','node:os','node:path','node:child_process','node:child_process','node:worker_threads','./kstack-citation-state.mjs','./kstack-citation-native.mjs','./kstack-citation-grounding.mjs']],
+  ['kstack-citation-state.mjs', ['node:crypto','node:fs','node:path']],
+  ['kstack-config.mjs', ['node:fs','node:path','node:url','./kstack-provider-runner.mjs']],
+  ['kstack-design-gate.mjs', ['node:fs','node:path','node:url','./kstack-config.mjs','./kstack-review-schema.mjs','./kstack-citation-grounding.mjs']],
+  ['kstack-dual-review.mjs', ['node:crypto','node:fs','node:path','node:url','./kstack-config.mjs','./kstack-provider-runner.mjs','./kstack-review-schema.mjs','./kstack-citation-grounding.mjs','./kstack-citation-state.mjs','./kstack-citation-runtime.mjs']],
+  ['kstack-git-askpass.mjs', ['node:net']],
+  ['kstack-install-health.mjs', ['node:crypto','node:fs','node:os','node:path','node:child_process','node:url']],
+  ['kstack-invoke-role.mjs', ['node:crypto','node:fs','node:path','node:url','./kstack-config.mjs','./kstack-provider-runner.mjs']],
+  ['kstack-jira.mjs', ['node:crypto','node:fs','node:fs/promises','node:os','node:path','node:readline/promises','node:url','./kstack-config.mjs','./kstack-provider-runner.mjs']],
+  ['kstack-memory.mjs', ['node:crypto','node:fs','node:os','node:path','node:child_process','node:url','@electric-sql/pglite','./kstack-config.mjs','./kstack-review-schema.mjs']],
+  ['kstack-panel-core.mjs', ['node:crypto','node:fs','node:path','./kstack-safety-matchers.mjs']],
+  ['kstack-panel-personas.mjs', ['node:fs','node:path','node:url','./kstack-panel-core.mjs']],
+  ['kstack-panel.mjs', ['node:crypto','node:fs','node:path','node:child_process','node:url','./kstack-config.mjs','./kstack-safety-matchers.mjs','./kstack-provider-runner.mjs','./kstack-panel-core.mjs','./kstack-panel-personas.mjs']],
+  ['kstack-planning-lens-core.mjs', ['node:crypto','node:fs','node:path','./kstack-safety-matchers.mjs']],
+  ['kstack-planning-lens-trial.mjs', ['node:fs','node:path','node:url','./kstack-config.mjs','./kstack-planning-lens-core.mjs']],
+  ['kstack-provider-runner.mjs', ['node:fs','node:child_process','./kstack-safety-matchers.mjs','./kstack-safety-matchers.mjs']],
+  ['kstack-reflexion.mjs', ['node:crypto','node:fs','node:os','node:path','node:child_process','node:url','./kstack-config.mjs','./kstack-memory.mjs','./reflexion/retrieval-core.mjs','./reflexion/corpus-io.mjs','./reflexion/prompt-assembler.mjs','./reflexion/unavailable-sentinel.mjs','./reflexion-architecture/resolver-client.mjs']],
+  ['kstack-review-schema.mjs', ['node:crypto']],
+  ['kstack-safety-admin.mjs', ['node:crypto','node:fs','node:path','node:url','./kstack-safety-hook.mjs','./kstack-safety-executor.mjs']],
+  ['kstack-safety-broker.mjs', ['node:crypto','node:fs','node:path','node:child_process','./kstack-safety-matchers.mjs','./kstack-safety-executor.mjs']],
+  ['kstack-safety-executor.mjs', ['node:fs','node:os','node:path','node:child_process','node:url','./kstack-safety-matchers.mjs']],
+  ['kstack-safety-hook.mjs', ['node:fs','node:crypto','node:path','node:url','./kstack-safety-matchers.mjs']],
+  ['kstack-safety-matchers.mjs', []],
+  ['kstack-safety-worker.mjs', ['node:crypto','node:fs','node:fs/promises','node:net','node:os','node:path','node:child_process','node:url']],
+  ['reflexion-architecture/entry-probe.mjs', []],
+  ['reflexion-architecture/resolver-client.mjs', ['node:child_process','node:crypto','node:fs','node:os','node:path','node:url']],
+  ['reflexion-architecture/resolver-driver.mjs', ['./entry-probe.mjs','./unicode-oracle.mjs']],
+  ['reflexion-architecture/unicode-oracle.mjs', ['node:crypto','../reflexion/normalization.mjs']],
+  ['reflexion/corpus-boundary.mjs', ['./normalization.mjs']],
+  ['reflexion/corpus-io.mjs', ['node:crypto','node:fs','node:path','./corpus-boundary.mjs']],
+  ['reflexion/normalization.mjs', []],
+  ['reflexion/prompt-assembler.mjs', []],
+  ['reflexion/retrieval-core.mjs', ['./normalization.mjs','./normalization.mjs']],
+  ['reflexion/termination-contract.mjs', ['node:crypto']],
+  ['reflexion/termination-native.mjs', ['node:child_process','node:util']],
+  ['reflexion/termination-schema.mjs', ['node:crypto','./termination-contract.mjs']],
+  ['reflexion/termination-supervisor.mjs', ['node:crypto','./termination-contract.mjs','./termination-schema.mjs']],
+  ['reflexion/unavailable-sentinel.mjs', ['node:fs','node:path','node:url']]
+]);
+const CAPABILITY_TOKEN_MANIFEST = new Map([
+  ['kstack-checkpoint.mjs', {Buffer:13,crypto:5,require:1,structuredClone:7}],
+  ['kstack-citation-admin.mjs', {Buffer:1,fileURLToPath:2,fs:12,path:16,process:9}],
+  ['kstack-citation-grounding.mjs', {Buffer:25,TextDecoder:1,crypto:3}],
+  ['kstack-citation-native.mjs', {Buffer:29,URL:1,Worker:2,clearTimeout:2,crypto:7,fileURLToPath:2,fs:76,importedCreateRequire:2,module:1,os:4,path:39,process:17,setTimeout:2,spawn:2,structuredClone:1}],
+  ['kstack-citation-runtime.mjs', {Buffer:15,URL:2,Worker:2,clearTimeout:2,crypto:13,fs:133,os:6,path:47,process:14,require:1,setTimeout:2,spawn:3,spawnSync:3,structuredClone:1}],
+  ['kstack-citation-state.mjs', {Buffer:23,TextDecoder:3,crypto:7,fs:7,path:7,process:1,structuredClone:3}],
+  ['kstack-config.mjs', {Buffer:1,URL:2,console:5,fetch:2,fileURLToPath:2,fs:8,path:41,process:12}],
+  ['kstack-design-gate.mjs', {console:1,fileURLToPath:2,fs:8,path:13,process:7}],
+  ['kstack-dual-review.mjs', {Buffer:2,console:2,crypto:5,fileURLToPath:2,fs:22,path:26,process:10,structuredClone:1}],
+  ['kstack-git-askpass.mjs', {Buffer:1,net:3,process:9,setTimeout:1}],
+  ['kstack-install-health.mjs', {Buffer:14,crypto:6,fs:44,os:4,path:78,pathToFileURL:2,process:16,spawnSync:3}],
+  ['kstack-invoke-role.mjs', {console:2,crypto:3,fileURLToPath:2,fs:11,path:12,process:6,structuredClone:1}],
+  ['kstack-jira.mjs', {Buffer:6,TextDecoder:1,URL:1,clearInterval:4,crypto:9,fetch:2,fileURLToPath:2,fs:15,fsp:32,globalThis:1,os:3,path:41,process:24,readline:3,require:3,setInterval:1,setTimeout:1}],
+  ['kstack-memory.mjs', {PGlite:2,TextDecoder:1,console:1,crypto:3,fetch:5,fileURLToPath:2,fs:29,os:3,path:50,process:7,spawnSync:4}],
+  ['kstack-panel-core.mjs', {Buffer:8,TextDecoder:1,crypto:3,fs:10,path:7}],
+  ['kstack-panel-personas.mjs', {Buffer:1,fileURLToPath:2,fs:10,path:11,require:1}],
+  ['kstack-panel.mjs', {Buffer:10,TextDecoder:1,clearTimeout:1,crypto:5,fileURLToPath:2,fs:33,path:40,process:11,setTimeout:2,spawn:2,structuredClone:1}],
+  ['kstack-planning-lens-core.mjs', {TextDecoder:1,URL:1,crypto:8,fs:42,path:84}],
+  ['kstack-planning-lens-trial.mjs', {fileURLToPath:2,fs:5,path:10,process:8}],
+  ['kstack-provider-runner.mjs', {Buffer:1,clearTimeout:4,fs:21,process:1,setTimeout:4,spawn:4}],
+  ['kstack-reflexion.mjs', {Buffer:7,crypto:5,fileURLToPath:4,fs:38,os:3,path:23,process:39,spawnSync:2}],
+  ['kstack-review-schema.mjs', {crypto:3}],
+  ['kstack-safety-admin.mjs', {Buffer:1,TextDecoder:2,crypto:7,fileURLToPath:3,fs:37,path:19,process:8}],
+  ['kstack-safety-broker.mjs', {Buffer:10,clearTimeout:1,crypto:12,fs:14,path:11,performance:4,process:2,setTimeout:1,spawnSync:2,structuredClone:3}],
+  ['kstack-safety-executor.mjs', {Buffer:3,TextDecoder:2,URL:1,clearTimeout:2,fileURLToPath:2,fs:3,os:3,path:11,process:10,setTimeout:1,spawn:3}],
+  ['kstack-safety-hook.mjs', {Buffer:5,TextDecoder:3,crypto:4,fileURLToPath:2,fs:14,path:21,process:13}],
+  ['kstack-safety-matchers.mjs', {Buffer:2,TextDecoder:1}],
+  ['kstack-safety-worker.mjs', {Buffer:10,TextDecoder:2,URL:2,clearTimeout:2,crypto:4,fileURLToPath:2,fs:9,fsp:37,net:3,os:3,path:31,process:18,setTimeout:1,spawn:3,spawnSync:3}],
+  ['reflexion-architecture/entry-probe.mjs', {}],
+  ['reflexion-architecture/resolver-client.mjs', {Buffer:6,TextDecoder:1,URL:2,clearTimeout:3,crypto:4,fs:18,module:3,os:3,path:28,pathToFileURL:9,process:2,setTimeout:3,spawn:2}],
+  ['reflexion-architecture/resolver-driver.mjs', {Buffer:2,TextDecoder:1,URL:2,module:1,process:9}],
+  ['reflexion-architecture/unicode-oracle.mjs', {Buffer:1,crypto:4,process:5}],
+  ['reflexion/corpus-boundary.mjs', {Buffer:2,TextDecoder:1}],
+  ['reflexion/corpus-io.mjs', {Buffer:2,TextDecoder:2,crypto:4,fs:48,path:18,process:6}],
+  ['reflexion/normalization.mjs', {}],
+  ['reflexion/prompt-assembler.mjs', {}],
+  ['reflexion/retrieval-core.mjs', {Buffer:2}],
+  ['reflexion/termination-contract.mjs', {crypto:3,process:5}],
+  ['reflexion/termination-native.mjs', {execFile:2,promisify:2}],
+  ['reflexion/termination-schema.mjs', {Buffer:8,TextDecoder:1,crypto:5,performance:3,require:1}],
+  ['reflexion/termination-supervisor.mjs', {Buffer:3,crypto:5}],
+  ['reflexion/unavailable-sentinel.mjs', {fileURLToPath:3,fs:19,path:14,process:19}]
+]);
+const IMPORT_META_MANIFEST = new Map([
+  ['kstack-citation-admin.mjs',1], ['kstack-citation-native.mjs',3], ['kstack-citation-runtime.mjs',2],
+  ['kstack-config.mjs',1], ['kstack-design-gate.mjs',1], ['kstack-dual-review.mjs',1],
+  ['kstack-invoke-role.mjs',1], ['kstack-jira.mjs',1], ['kstack-memory.mjs',1],
+  ['kstack-panel-personas.mjs',1], ['kstack-panel.mjs',1],
+  ['kstack-planning-lens-trial.mjs',1],
+  ['kstack-safety-admin.mjs',2], ['kstack-safety-executor.mjs',1], ['kstack-safety-hook.mjs',1], ['kstack-safety-worker.mjs',1],
+  ['kstack-reflexion.mjs',3], ['reflexion-architecture/entry-probe.mjs',1],
+  ['reflexion-architecture/resolver-driver.mjs',9], ['reflexion/unavailable-sentinel.mjs',2]
+]);
+const CAPABILITY_USE_SITE_MANIFEST = new Map([
+  ['kstack-checkpoint.mjs','0eef20f6d93771a692bc76b7e541419bc93607d7ac4cbf6d72e8996ba67f9ff3'],
+  ['kstack-citation-admin.mjs','3db5d7b38f27d9261dc256bc8c76144648372a138c0d300c5c8ad056fe23e864'],
+  ['kstack-citation-grounding.mjs','97b828d143b208d13a733c295281abc21329310b961f06ac8e354787317f050e'],
+  ['kstack-citation-native.mjs','75d36fcdb896cc6d69517b1fa5db8b6b3cfcd05424bb8a81d6408fc2867a7ed0'],
+  ['kstack-citation-runtime.mjs','1139e542e11a3fba3b2a594eb0743d569dc2593c086c1247f230771a84e57002'],
+  ['kstack-citation-state.mjs','83d1767b4a23a20e877506282f2f66a5462b00a29514d6d49fc9b0b0dad8a425'],
+  ['kstack-config.mjs','809c677105aed9c31518be4ce110b0a5fefa895763aed074f5dad4d9bef56f48'],
+  ['kstack-design-gate.mjs','bb4d6829b587281b157b39ab78141f2160914cbd89e0e000cb5887f6cf2a0e9d'],
+  ['kstack-dual-review.mjs','aef18e52087b8220a83f7d77a9b4e084012755efe54cf5213717706a2f3957cc'],
+  ['kstack-git-askpass.mjs','7b5922e73f1602b6d4733de19183e9af8a3802eda2228682db6b1f040ea452c1'],
+  ['kstack-install-health.mjs','665932d30b0a5397eb8de2346efa779854fa4d6aca5929928adffb625108fc04'],
+  ['kstack-invoke-role.mjs','342c2d0574e022c7626cac5cd7a1f98626c5ba9b5a8bd528ef4278978958dd5c'],
+  ['kstack-jira.mjs','8349f9020acfb00d4bdd6c060942c5c0c9c8308713fa24687e8341a25b311882'],
+  ['kstack-memory.mjs','3d36b318b72871e1788c45099e20a84d3f10d88b8bd5f6a8122920836a4583f0'],
+  ['kstack-panel-core.mjs','70e28a6f0cc2eb189bedda4eeba2ed779a5f2302238bd154764f88b9fb5ba95f'],
+  ['kstack-panel-personas.mjs','09294ecd511185cf918fce23c9fdfc08a8c1e3dafe4076ab5b194d821ae4e6a0'],
+  ['kstack-panel.mjs','6d7d179979b441cad021d92df9b49f23a6e21f631424b4c74013aecf43f7cb53'],
+  ['kstack-planning-lens-core.mjs','297cd35c5abb5bc9e21078e1316aed20be9e6f4cff414fa5de5efaeec27bd333'],
+  ['kstack-planning-lens-trial.mjs','b14429ad5380e8f385046fac08e57c2e440a3cc42aef8f8651d6c2f08ae254d9'],
+  ['kstack-provider-runner.mjs','0d8805a919cd3503ab9b21fdef9d158d06ecd92bd533134decbc49521cf86142'],
+  ['kstack-reflexion.mjs','090089c41936e0c59a0e5dd321804160268249f83322078674b9409aeab4bcfb'],
+  ['kstack-review-schema.mjs','82f5389b474cd47307c6143cf5c23f6f4efe2af280e223f5f713d2ba1943db28'],
+  ['kstack-safety-admin.mjs','b2a915f8ba48aef9bf1d78e0b663e7ab5aab883a931a42b1c4508441748a8eea'],
+  ['kstack-safety-broker.mjs','a0165ffd4d805f8c02d5a5c1f00c4a64cb524467cb71afbb03cc5cb844f0a801'],
+  ['kstack-safety-executor.mjs','0ffcae6d5b10d2adffdafebb74b210de5e3578dae37c3df131c07206a3a78965'],
+  ['kstack-safety-hook.mjs','e1cddeee840343101dea292ea98fcac1d6c0801beee6418c5339330e2a10fd0e'],
+  ['kstack-safety-matchers.mjs','feb15348d15233501879ffba394d5ccdfce1d2e66266b177b89b7e2c0077f230'],
+  ['kstack-safety-worker.mjs','cf8b45c097085937a210cca7e150b63ddfdc15a11a01809263495decde6c9712'],
+  ['reflexion-architecture/entry-probe.mjs','4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945'],
+  ['reflexion-architecture/resolver-client.mjs','ac7ce04d7cb705e98f4899317ad17102b80fbfa076fbad14272b89b6f9764b11'],
+  ['reflexion-architecture/resolver-driver.mjs','cedebf4cff0eea222f600b030d7067b941e0446fff631a6e628c660ae10a8591'],
+  ['reflexion-architecture/unicode-oracle.mjs','6c4f3d47ccf3175c246b60441a3fa40c8974a0130827c1578a81a96d3375fa94'],
+  ['reflexion/corpus-boundary.mjs','d3d568bed9f4d6727220cb6a47da1343139534a9b62cc8fc9124bb48ed665c10'],
+  ['reflexion/corpus-io.mjs','de2e20b00ebf25d5514cdd5ed7deae57ef9cd1cbf0bbe31b1d007cb5bab31dee'],
+  ['reflexion/normalization.mjs','4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945'],
+  ['reflexion/prompt-assembler.mjs','4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945'],
+  ['reflexion/retrieval-core.mjs','0925a08bdd7815926a0f7be99a51a8ff20239b827d8c59217f9557c7d11a1368'],
+  ['reflexion/termination-contract.mjs','a72f0135058a9cae48b59d854e5baf1a80b93509c94fc831d64884bfb22c4cf3'],
+  ['reflexion/termination-native.mjs','e8d7f85b264f657d9b915c638b02761a9900fac5c3723867e3c953213cde12de'],
+  ['reflexion/termination-schema.mjs','0917a3cf1fa06d24b06b9293ab4d9b1484b350911db74e81b54f56c3d9d67a57'],
+  ['reflexion/termination-supervisor.mjs','dc9f0d14f3082733fa4eeb5626a0d422e60cbd3a3aeabe4cebd0e10502ca30c7'],
+  ['reflexion/unavailable-sentinel.mjs','3cbc815515dc126d6132537bdb178c78c95de8b8bad9cea8a3c59c684e680dd1']
+]);
+
+function gateError(code, detail = '') { const error = new Error(`${code}${detail ? `: ${detail}` : ''}`); error.code = code; return error; }
+
+export function parseArchitectureJson(bytes, { maximumBytes = 1_048_576, maximumDepth = 64, maximumNodes = 100_000 } = {}) {
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength > maximumBytes) throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID');
+  let text;
+  try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); } catch { throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID'); }
+  let index = 0;
+  let nodes = 0;
+  const whitespace = () => { while (/\s/u.test(text[index] ?? '')) index += 1; };
+  const string = () => {
+    const start = index;
+    if (text[index++] !== '"') throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID');
+    while (index < text.length) {
+      if (text[index] === '"') { index += 1; try { return JSON.parse(text.slice(start, index)); } catch { throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID'); } }
+      if (text[index] === '\\') index += 2; else index += 1;
+    }
+    throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID');
+  };
+  const value = (depth) => {
+    nodes += 1;
+    if (depth > maximumDepth || nodes > maximumNodes) throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID');
+    whitespace();
+    if (text[index] === '"') { string(); return; }
+    if (text[index] === '{') {
+      index += 1; whitespace(); const keys = new Set();
+      if (text[index] === '}') { index += 1; return; }
+      for (;;) {
+        whitespace(); const key = string();
+        if (keys.has(key)) throw gateError('KSTACK_ARCHITECTURE_JSON_DUPLICATE_KEY');
+        keys.add(key); whitespace(); if (text[index++] !== ':') throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID');
+        value(depth + 1); whitespace();
+        if (text[index] === '}') { index += 1; return; }
+        if (text[index++] !== ',') throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID');
+      }
+    }
+    if (text[index] === '[') {
+      index += 1; whitespace(); if (text[index] === ']') { index += 1; return; }
+      for (;;) { value(depth + 1); whitespace(); if (text[index] === ']') { index += 1; return; } if (text[index++] !== ',') throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID'); }
+    }
+    const match = /^(?:true|false|null|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?)/u.exec(text.slice(index));
+    if (!match) throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID');
+    index += match[0].length;
+  };
+  value(0); whitespace(); if (index !== text.length) throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID');
+  try { return JSON.parse(text); } catch { throw gateError('KSTACK_ARCHITECTURE_JSON_INVALID'); }
+}
+
+function syntaxTokens(source) {
+  const tokens = [];
+  let index = source.charCodeAt(0) === 0xfeff ? 1 : 0;
+  if (source.startsWith('#!', index)) { const newline = source.indexOf('\n', index); index = newline < 0 ? source.length : newline + 1; }
+  let brace = 0; let paren = 0; let bracket = 0;
+  while (index < source.length) {
+    const char = source[index]; const next = source[index + 1];
+    if (/\s/u.test(char)) { index += 1; continue; }
+    if (char === '/' && next === '/') { index = source.indexOf('\n', index + 2); if (index < 0) break; continue; }
+    if (char === '/' && next === '*') { index = source.indexOf('*/', index + 2); if (index < 0) throw gateError('KSTACK_ARCHITECTURE_SOURCE_SYNTAX'); index += 2; continue; }
+    if (char === '"' || char === "'" || char === '`') {
+      const quote = char; index += 1;
+      while (index < source.length) { if (source[index] === '\\') index += 2; else if (source[index++] === quote) break; }
+      continue;
+    }
+    if (/[A-Za-z_$]/u.test(char)) {
+      const start = index++; while (/[A-Za-z0-9_$]/u.test(source[index] ?? '')) index += 1;
+      tokens.push({ value: source.slice(start, index), brace, paren, bracket }); continue;
+    }
+    tokens.push({ value: char, brace, paren, bracket });
+    if (char === '{') brace += 1; else if (char === '}') brace -= 1;
+    else if (char === '(') paren += 1; else if (char === ')') paren -= 1;
+    else if (char === '[') bracket += 1; else if (char === ']') bracket -= 1;
+    if (brace < 0 || paren < 0 || bracket < 0) throw gateError('KSTACK_ARCHITECTURE_SOURCE_SYNTAX');
+    index += 1;
+  }
+  return tokens;
+}
+
+function hasAmbiguousModuleSyntax(source) {
+  const tokens = syntaxTokens(source);
+  const top = tokens.filter((token) => token.brace === 0 && token.paren === 0 && token.bracket === 0);
+  for (let index = 0; index < top.length; index += 1) {
+    const token = top[index].value;
+    if (token === 'export' || token === 'await') return true;
+    if (token === 'import' && top[index + 1]?.value !== '(') return true;
+    if (token === 'import' && top[index + 1]?.value === '.' && top[index + 2]?.value === 'meta') return true;
+    if (['const', 'let', 'class'].includes(token) && ['require','module','exports','__dirname','__filename'].includes(top[index + 1]?.value)) return true;
+  }
+  return false;
+}
+
+function nearestPackageType(filename) {
+  let directory = path.dirname(filename);
+  for (;;) {
+    const candidate = path.join(directory, 'package.json');
+    if (fs.existsSync(candidate)) {
+      const stat = fs.lstatSync(candidate);
+      if (!stat.isFile() || stat.isSymbolicLink()) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_METADATA');
+      const parsed = parseArchitectureJson(fs.readFileSync(candidate));
+      return parsed.type === 'module' || parsed.type === 'commonjs' ? parsed.type : null;
+    }
+    const parent = path.dirname(directory);
+    if (parent === directory || path.basename(directory) === 'node_modules') return null;
+    directory = parent;
+  }
+}
+
+export function classifyParseGoal(filename, source) {
+  const suffix = path.extname(filename);
+  if (suffix === '.mjs') return 'module';
+  if (suffix === '.cjs') return 'commonjs-wrapper';
+  if (suffix !== '.js') throw gateError('KSTACK_ARCHITECTURE_SOURCE_SUFFIX');
+  const type = nearestPackageType(filename);
+  if (type === 'module') return 'module';
+  if (type === 'commonjs') return 'commonjs-wrapper';
+  return hasAmbiguousModuleSyntax(source) ? 'module' : 'commonjs-wrapper';
+}
+
+export function validateParseGoal(filename, source, goal = classifyParseGoal(filename, source)) {
+  if (goal === 'commonjs-wrapper') {
+    try { Function('exports', 'require', 'module', '__filename', '__dirname', source); }
+    catch { throw gateError('KSTACK_ARCHITECTURE_SOURCE_SYNTAX'); }
+    return goal;
+  }
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-module-parse-'));
+  const target = path.join(directory, 'source.mjs');
+  try {
+    fs.writeFileSync(target, source);
+    const result = spawnSync(process.execPath, ['--check', target], { encoding: 'utf8', timeout: 5_000, maxBuffer: 65_536, shell: false, env: {} });
+    if (result.status !== 0 || result.signal !== null || result.error) throw gateError('KSTACK_ARCHITECTURE_SOURCE_SYNTAX');
+  } finally { fs.rmSync(directory, { recursive: true, force: true }); }
+  return goal;
+}
+
+export function selectPackageMapEntry(map, requestKey) {
+  if (requestKey.endsWith('/')) return null;
+  if (Object.hasOwn(map, requestKey) && !requestKey.includes('*')) return Object.freeze({ key: requestKey, capture: null, value: map[requestKey] });
+  const patterns = Object.keys(map).filter((key) => (key.match(/\*/gu) ?? []).length === 1).sort((left, right) => {
+    const leftIndex = left.indexOf('*'); const rightIndex = right.indexOf('*');
+    return rightIndex - leftIndex || right.length - left.length;
+  });
+  for (const key of patterns) {
+    const star = key.indexOf('*'); const base = key.slice(0, star); const trailer = key.slice(star + 1);
+    if (!requestKey.startsWith(base) || requestKey === base || (trailer && (!requestKey.endsWith(trailer) || requestKey.length < key.length))) continue;
+    const capture = requestKey.slice(base.length, requestKey.length - trailer.length);
+    if (capture.length > 0) return Object.freeze({ key, capture, value: map[key] });
+  }
+  return null;
+}
+
+export function walkInactivePackageMap(map, requestKey, kind = 'exports') {
+  let selected;
+  if (kind === 'exports' && (typeof map === 'string' || Array.isArray(map) || map === null)) {
+    if (requestKey !== '.') throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP');
+    selected = Object.freeze({ key: '.', capture: null, value: map });
+  } else {
+    if (map === null || typeof map !== 'object' || Array.isArray(map)) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP');
+    if (kind === 'exports') {
+      const keys = Object.keys(map);
+      const hasSubpathKeys = keys.some((key) => key.startsWith('.'));
+      const hasConditionKeys = keys.some((key) => !key.startsWith('.'));
+      if (hasSubpathKeys && hasConditionKeys) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP');
+      if (hasConditionKeys) {
+        if (requestKey !== '.') throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP');
+        selected = Object.freeze({ key: '.', capture: null, value: map });
+      }
+    }
+    selected ??= selectPackageMapEntry(map, requestKey);
+  }
+  if (!selected) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP');
+  const leaves = [];
+  const visit = (value, depth = 0) => {
+    if (depth > 64) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP');
+    if (value === null) { leaves.push(null); return; }
+    if (typeof value === 'string') {
+      const substituted = selected.capture === null ? value : value.split('*').join(selected.capture);
+      if (kind === 'exports' ? !substituted.startsWith('./') : (path.isAbsolute(substituted) || /^[a-z]+:/iu.test(substituted))) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP');
+      if (substituted.split(/[\\/]/u).includes('..')) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP');
+      leaves.push(substituted); return;
+    }
+    if (Array.isArray(value)) { if (value.length === 0 || value.length > 256) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP'); for (const item of value) visit(item, depth + 1); return; }
+    if (typeof value === 'object') { const entries = Object.values(value); if (entries.length === 0 || entries.length > 256) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP'); for (const item of entries) visit(item, depth + 1); return; }
+    throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP');
+  };
+  visit(selected.value);
+  const distinct = [...new Set(leaves)];
+  if (distinct.length !== 1 || distinct[0] === null) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_MAP_AMBIGUOUS');
+  return Object.freeze({ selectedKey: selected.key, leaf: distinct[0], leaves: Object.freeze(leaves) });
+}
+
+function productionFiles(scriptsRoot) {
+  const seen = new Set();
+  const visit = (directory) => {
+    const real = fs.realpathSync.native(directory);
+    if (seen.has(real)) throw gateError('KSTACK_ARCHITECTURE_DIRECTORY_CYCLE');
+    seen.add(real);
+    const files = [];
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const target = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) throw gateError('KSTACK_ARCHITECTURE_SOURCE_SYMLINK');
+      if (entry.isDirectory()) files.push(...visit(target));
+      else if (!entry.isFile() || !SUPPORTED_SUFFIXES.has(path.extname(entry.name))) throw gateError('KSTACK_ARCHITECTURE_SOURCE_SUFFIX');
+      else files.push(fs.realpathSync.native(target));
+    }
+    return files;
+  };
+  return visit(scriptsRoot).sort();
+}
+
+function repositoryProductionCensus(repoRoot, scriptsRoot) {
+  const excludedNames = new Set(['.git', '.kstack', 'node_modules', 'vendor', 'tests', 'fixtures', 'generated', 'dist', 'build']);
+  const visit = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const target = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (excludedNames.has(entry.name) || target === path.join(repoRoot, 'plugins/kstack/native')) continue;
+        visit(target); continue;
+      }
+      if (entry.isSymbolicLink()) continue;
+      if (entry.isFile() && SUPPORTED_SUFFIXES.has(path.extname(entry.name))
+          && target !== scriptsRoot && !target.startsWith(`${scriptsRoot}${path.sep}`)) throw gateError('KSTACK_ARCHITECTURE_PRODUCTION_OUTSIDE_ROOT', path.relative(repoRoot, target));
+    }
+  };
+  visit(repoRoot);
+}
+
+export function staticSpecifiers(source) {
+  const results = [];
+  const expression = /(?:^|\n)\s*(?:import\s+(?:[^;'"`]*?\s+from\s+)?|export\s+(?:\*|\{[^}]*\})\s+from\s+)(['"])([^'"\r\n]+)\1/gu;
+  for (const match of source.matchAll(expression)) results.push(match[2]);
+  return results;
+}
+
+export function capabilityTokenInventory(source) {
+  const externalBindings = new Set();
+  const expression = /(?:^|\n)\s*import\s+([^;'"`]+?)\s+from\s+(['"])([^'"\r\n]+)\2/gu;
+  for (const match of source.matchAll(expression)) {
+    const clause = match[1].trim(); const specifier = match[3];
+    if (specifier.startsWith('.')) continue;
+    const defaultBinding = /^([A-Za-z_$][A-Za-z0-9_$]*)/u.exec(clause);
+    if (defaultBinding) externalBindings.add(defaultBinding[1]);
+    const namespaceBinding = /\*\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*)/u.exec(clause);
+    if (namespaceBinding) externalBindings.add(namespaceBinding[1]);
+    const named = /\{([\s\S]*)\}/u.exec(clause);
+    if (named) for (const item of named[1].split(',')) {
+      const parts = item.trim().split(/\s+as\s+/u);
+      if (parts[0]) externalBindings.add(parts[1] ?? parts[0]);
+    }
+  }
+  const names = [...new Set([...externalBindings, ...AMBIENT_CAPABILITIES])].sort();
+  return Object.fromEntries(names.map((name) => [name, (source.match(new RegExp(`\\b${name}\\b`, 'gu')) ?? []).length]).filter(([, count]) => count > 0));
+}
+
+export function capabilityUseSiteDigest(source) {
+  const names = Object.keys(capabilityTokenInventory(source));
+  const rows = [];
+  for (const [lineIndex, line] of source.split('\n').entries()) {
+    for (const name of names) {
+      const count = (line.match(new RegExp(`\\b${name}\\b`, 'gu')) ?? []).length;
+      for (let occurrence = 0; occurrence < count; occurrence += 1) rows.push([name, lineIndex + 1, occurrence, line]);
+    }
+  }
+  return crypto.createHash('sha256').update(JSON.stringify(rows)).digest('hex');
+}
+
+function checkCapabilityManifest(scriptsRoot, files) {
+  assert.deepEqual(files.map((file) => path.relative(scriptsRoot, file)), [...IMPORT_MANIFEST.keys()]);
+  assert.deepEqual([...CAPABILITY_TOKEN_MANIFEST.keys()], [...IMPORT_MANIFEST.keys()]);
+  assert.deepEqual([...CAPABILITY_USE_SITE_MANIFEST.keys()], [...IMPORT_MANIFEST.keys()]);
+  for (const file of files) {
+    const relative = path.relative(scriptsRoot, file); const source = fs.readFileSync(file, 'utf8');
+    assert.deepEqual(staticSpecifiers(source), IMPORT_MANIFEST.get(relative), `capability import drift in ${relative}`);
+    assert.deepEqual(capabilityTokenInventory(source), CAPABILITY_TOKEN_MANIFEST.get(relative), `capability token drift in ${relative}`);
+    assert.equal(capabilityUseSiteDigest(source), CAPABILITY_USE_SITE_MANIFEST.get(relative), `capability use-site drift in ${relative}`);
+    assert.equal((source.match(/import\.meta/gu) ?? []).length, IMPORT_META_MANIFEST.get(relative) ?? 0, `import.meta drift in ${relative}`);
+    assert.doesNotMatch(source, /\bimport\s*\(/u, `dynamic import in ${relative}`);
+    assert.doesNotMatch(source, /\bimport\s+[^;]+\s+(?:with|assert)\s*\{/u, `import attributes in ${relative}`);
+    assert.doesNotMatch(source, /\b(?:eval|Function)\s*\(/u, `dynamic execution in ${relative}`);
+    assert.doesNotMatch(source, /\bWebAssembly\b/u, `WebAssembly capability in ${relative}`);
+  }
+  const exactHighRiskRows = [
+    ['kstack-provider-runner.mjs', /\bspawn\(/gu, 2], ['kstack-memory.mjs', /\bspawnSync\(/gu, 3],
+    ['kstack-safety-broker.mjs', /\bspawnSync\(/gu, 1],
+    ['kstack-safety-executor.mjs', /\bspawn\(/gu, 1],
+    ['kstack-safety-worker.mjs', /\bspawn\(/gu, 1], ['kstack-safety-worker.mjs', /\bspawnSync\(/gu, 2],
+    ['kstack-install-health.mjs', /\bspawnSync\(/gu, 2],
+    ['kstack-panel.mjs', /\bspawn\(/gu, 1],
+    ['kstack-citation-native.mjs', /\bspawn\(/gu, 1], ['kstack-citation-native.mjs', /new Worker\(/gu, 1],
+    ['kstack-citation-runtime.mjs', /\bspawn\(/gu, 2], ['kstack-citation-runtime.mjs', /\bspawnSync\(/gu, 2], ['kstack-citation-runtime.mjs', /new Worker\(/gu, 1],
+    ['kstack-reflexion.mjs', /\bspawnSync\(/gu, 1], ['reflexion-architecture/resolver-client.mjs', /\bspawn\(/gu, 1],
+    ['reflexion/termination-native.mjs', /\bexecFileAsync\(/gu, 1],
+    ['reflexion-architecture/resolver-driver.mjs', /import\.meta\.resolve\(/gu, 8], ['kstack-jira.mjs', /globalThis\.fetch/gu, 1]
+  ];
+  for (const [relative, expression, count] of exactHighRiskRows) assert.equal((fs.readFileSync(path.join(scriptsRoot, relative), 'utf8').match(expression) ?? []).length, count, `capability use drift in ${relative}`);
+}
+
+function checkMetadata(repoRoot, scriptsRoot, files) {
+  const rootPackage = parseArchitectureJson(fs.readFileSync(path.join(repoRoot, 'package.json')));
+  const pluginPackage = parseArchitectureJson(fs.readFileSync(path.join(repoRoot, 'plugins/kstack/package.json')));
+  const pluginManifest = parseArchitectureJson(fs.readFileSync(path.join(repoRoot, 'plugins/kstack/.codex-plugin/plugin.json')));
+  assert.equal(rootPackage.scripts.test, 'node --test tests/*.test.mjs');
+  assert.equal(rootPackage.scripts['test:memory-gate'], 'node tests/reflexion-memory-gate-harness.mjs');
+  assert.equal(rootPackage.scripts['build:termination-native'], 'node plugins/kstack/native/reflexion-termination-native/build-native.mjs');
+  const terminationNativeBuilder = path.join(repoRoot, 'plugins/kstack/native/reflexion-termination-native/build-native.mjs');
+  const terminationNativeBuilderStat = fs.lstatSync(terminationNativeBuilder);
+  assert.equal(terminationNativeBuilderStat.isFile() && !terminationNativeBuilderStat.isSymbolicLink(), true);
+  assert.equal(fs.realpathSync.native(terminationNativeBuilder), terminationNativeBuilder);
+  for (const [name, script] of Object.entries(rootPackage.scripts)) {
+    if (name === 'test' || name === 'test:memory-gate' || name === 'build:termination-native') continue;
+    const match = /^node ([A-Za-z0-9_./-]+)(?: [A-Za-z0-9_./:-]+)*$/u.exec(script);
+    if (!match) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_SCRIPT');
+    const target = fs.realpathSync.native(path.join(repoRoot, match[1]));
+    if (!files.includes(target)) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_SCRIPT');
+  }
+  for (const metadata of [rootPackage, pluginPackage]) for (const key of ['main','bin','exports','imports']) if (Object.hasOwn(metadata, key)) throw gateError('KSTACK_ARCHITECTURE_LAUNCH_METADATA');
+  assert.deepEqual(Object.keys(pluginManifest), ['name','version','description','author','hooks','skills','interface']);
+  assert.deepEqual(Object.keys(pluginManifest.interface), ['displayName','shortDescription','longDescription','developerName','category','capabilities','defaultPrompt']);
+  if (typeof pluginManifest.skills !== 'string') throw gateError('KSTACK_ARCHITECTURE_PLUGIN_MANIFEST');
+  if (pluginManifest.hooks !== './hooks/hooks.json') throw gateError('KSTACK_ARCHITECTURE_PLUGIN_MANIFEST');
+  void scriptsRoot;
+}
+
+export async function validateProductionArchitecture(repoRoot) {
+  const scriptsRoot = fs.realpathSync.native(path.join(repoRoot, 'plugins/kstack/scripts'));
+  const files = productionFiles(scriptsRoot);
+  repositoryProductionCensus(repoRoot, scriptsRoot);
+  checkCapabilityManifest(scriptsRoot, files);
+  checkMetadata(repoRoot, scriptsRoot, files);
+  const requests = [];
+  for (const file of files) {
+    const source = new TextDecoder('utf-8', { fatal: true }).decode(fs.readFileSync(file));
+    validateParseGoal(file, source);
+    if (classifyParseGoal(file, source) === 'module') for (const specifier of staticSpecifiers(source)) requests.push({ specifier, parentURL: pathToFileURL(file).href });
+  }
+  const driverPath = path.join(scriptsRoot, 'reflexion-architecture/resolver-driver.mjs');
+  const conformance = await runResolverConformance(driverPath);
+  const graph = await runBoundedResolverBatch({ driverPath, requests });
+  const sortedRequests = requests.sort((left, right) => Buffer.compare(Buffer.from(left.parentURL), Buffer.from(right.parentURL)) || Buffer.compare(Buffer.from(left.specifier), Buffer.from(right.specifier)))
+    .filter((item, index, array) => index === 0 || item.parentURL !== array[index - 1].parentURL || item.specifier !== array[index - 1].specifier);
+  for (let index = 0; index < graph.responses.length; index += 1) {
+    const response = graph.responses[index]; const request = sortedRequests[index];
+    if (!response.ok) throw gateError('KSTACK_ARCHITECTURE_RESOLUTION', `${response.failureKind}/${response.errorCode}`);
+    if (BUILTINS.has(response.url)) continue;
+    let target;
+    try { target = fs.realpathSync.native(new URL(response.url)); } catch { throw gateError('KSTACK_ARCHITECTURE_RESOLUTION_TARGET'); }
+    const stat = fs.lstatSync(target);
+    if (!stat.isFile() || stat.isSymbolicLink() || !SUPPORTED_SUFFIXES.has(path.extname(target))) throw gateError('KSTACK_ARCHITECTURE_RESOLUTION_TARGET');
+    if (target.includes(`${path.sep}node_modules${path.sep}`)) continue;
+    if (!target.startsWith(`${scriptsRoot}${path.sep}`)) throw gateError('KSTACK_ARCHITECTURE_LOCAL_CONTAINMENT');
+    void request;
+  }
+  return Object.freeze({ fileCount: files.length, edgeCount: graph.responses.length, conformance });
+}

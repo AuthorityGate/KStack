@@ -1,0 +1,34 @@
+title = "KStack Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Synthetic AWS-access-key-shaped sanitize() test fixture"
+targetRules = ["generic-api-key"]
+regexes = ['''^AKIA1234567890ABCDEF$''']
+
+[[allowlists]]
+description = "Synthetic GitHub-token-shaped authenticated-push test fixture"
+targetRules = ["generic-api-key"]
+regexes = ['''^ghp_1234567890abcdefghijklmnop$''']
+
+[[allowlists]]
+description = "Synthetic GitHub-token-shaped credential-rotation replacement fixture"
+targetRules = ["generic-api-key"]
+regexes = ['''^ghp_replaced1234567890abcdefghijklmnop$''']
+
+[[allowlists]]
+description = "Synthetic GitHub-token-shaped rejected-credential expected fixture"
+targetRules = ["generic-api-key"]
+regexes = ['''^ghp_expected1234567890abcdefghijklmnop$''']
+
+[[allowlists]]
+description = "Synthetic GitHub-token-shaped rejected-credential input fixture"
+targetRules = ["generic-api-key"]
+regexes = ['''^ghp_rotated1234567890abcdefghijklmnop$''']
+
+[[allowlists]]
+description = "Synthetic GitHub-token-shaped validated credential-rotation fixture"
+targetRules = ["generic-api-key"]
+regexes = ['''^ghp_validated1234567890abcdefghijklmnop$''']

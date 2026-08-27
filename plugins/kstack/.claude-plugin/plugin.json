@@ -1,0 +1,8 @@
+{
+  "name": "kstack",
+  "version": "0.1.0",
+  "description": "KStack workflows with bounded per-host and per-action safety hooks.",
+  "author": {
+    "name": "AuthorityGate"
+  }
+}

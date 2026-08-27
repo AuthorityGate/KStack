@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "f6f33483-f343-4d45-a62d-d41b19ef19c4",
+  "designDigest": "b57050fbbbc1942af897434bc96c11929047d20ec55544c6e7bccc3fb8009404",
+  "rawOutputSha256": "dd477d012555ba7d06bfe7f23b599fe57f6a3c147f1ad31c120cbaf65fdced3c",
+  "review": {
+    "decision": "revise",
+    "confidence": 91,
+    "failedChecks": [
+      "The missing-timestamp test now expects exit 20, but a marker with no timestamp is not demonstrably younger than the 30-second floor. It can remain blocked indefinitely, contradicting the defined meaning that exit 20 applies solely while waiting for index lag.",
+      "The built-in help text does not state that poll exhaustion and search failure remain exit 2, although the requirements call for both documentation locations to identify those prior unavailable cases.",
+      "Submit's index-lag coverage asserts exit 20 and unchanged attempt count, but does not assert the resulting draft state or index-lag audit event as requested."
+    ],
+    "securityFindings": [
+      {
+        "id": "QC-INDEX-LAG-SEMANTICS",
+        "severity": "low",
+        "summary": "Malformed marker timestamps are classified as temporary index lag, potentially giving automation a misleading retryable signal indefinitely on a duplicate-detection gate."
+      }
+    ],
+    "materialDissent": [
+      "The ternary selection is correct for the documented reachable gate results and preserves duplicate exit 6 and generic state exit 2, but the design's treatment of missing timestamps expands exit 20 beyond the owner-approved case.",
+      "The implementation otherwise remains narrowly scoped: exit inventory, reason tagging, three call sites, tests, and documentation changed without altering polling, duplicate detection, or age-floor logic."
+    ],
+    "recommendation": "Fix the missing-timestamp classification so it remains exit 2 unless the marker is provably younger than the floor; expand built-in help to name poll exhaustion and search failure as exit 2; and strengthen submit coverage with a state or audit assertion. Then rerun the full test suite.",
+    "strongestObjection": "Exit 20 is defined as a temporary wait-for-index condition, but the changed missing-timestamp test assigns it to malformed evidence whose age cannot be calculated and may never become eligible, making the public exit-code contract inaccurate.",
+    "unresolvedQuestions": [
+      "Should an unresolved marker with a missing or invalid timestamp be treated as generic state/search unavailability at exit 2, or is the owner explicitly approving it as exit 20 despite the documented temporary-wait semantics?"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "420c0567-61ae-4aa5-ae3d-729ebb693945",
+  "designDigest": "0f5f755defa1c24f4b14aa860fb5bcd3e916159dfd4f0dbaf93f48861aa1f5f6",
+  "rawOutputSha256": "4f3f311344e7b4d8358e8674b8e2091a45a29f0898e82952701f672496ab901f",
+  "review": {
+    "decision": "revise",
+    "confidence": 84,
+    "failedChecks": [
+      "The supplied consumer-search evidence is not file-type-independent or comprehensive: the command uses explicit --include filters and omits relevant types such as .mjs, .sh, .yml, .yaml, .mts, .tsx, and extensionless scripts. It also searches only for \"kstack-jira\", so it cannot detect wrappers that branch on exit code 2 without containing that literal."
+    ],
+    "securityFindings": [],
+    "materialDissent": [
+      "Observed: the reason-label change affects only the successful zero-match search with unmeasurable marker age; poll exhaustion and search failure retain SEARCH_UNAVAILABLE, and gateExitCode still maps all three cases to exit 2 except INDEX_LAG. Inference: this is a telemetry-only correction with no exit-code behavior change.",
+      "The claim that the broader grep is now genuinely comprehensive is not supported by the quoted command, despite the likely low risk of an undiscovered consumer."
+    ],
+    "recommendation": "Retain the code and documentation changes, but rerun an unfiltered recursive consumer search across all repository files, then inspect possible wrappers and numeric exit-code handling independently of the \"kstack-jira\" literal. Approve if that produces no consumers. No new functional scope or security defect is evident in the supplied diff.",
+    "strongestObjection": "Review requirement (2) is unmet because the purported file-type-independent grep remains file-type-filtered and cannot substantiate the comprehensive no-consumer claim.",
+    "unresolvedQuestions": [
+      "Does an unfiltered repository-wide search, including extensionless and omitted file types, reveal any direct or indirect consumer that branches on Jira CLI exit code 2?"
+    ]
+  }
+}

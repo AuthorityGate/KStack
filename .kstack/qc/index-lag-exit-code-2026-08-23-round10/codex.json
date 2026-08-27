@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "df13554e-e42d-459d-b5fd-0d370ff84b2e",
+  "designDigest": "27dcf176749c456e5d6a9a0a9fc6e7c25472e21c8dee8d4721de93ee0a181141",
+  "rawOutputSha256": "dfb9e741561370d1470b1ad6074b50b62821ea6ac5f195acdb56f85ca17c88a5",
+  "review": {
+    "decision": "revise",
+    "confidence": 58,
+    "failedChecks": [
+      "Packet completeness failed: the cumulative diff is not supplied; the packet only refers to brief-round9.md, which cannot be inspected under the packet-only rule.",
+      "Consumer inventory reconciliation failed: the packet reports 89 matching files, 87 archival files, and 11 remaining files; 87 plus 11 equals 98, and the enumerated live references appear to cover 12 distinct files.",
+      "Package-alias coverage is not demonstrated by the disclosed command: searching literally for \"kstack-jira\" does not establish that no caller uses \"npm run jira\". The packet asserts this separately but supplies neither the query nor its inventory."
+    ],
+    "securityFindings": [],
+    "materialDissent": [
+      "I dissent from the packet's conclusion that the downstream-consumer objection is fully resolved because the reported inventory is internally contradictory and the alias-search evidence is incomplete.",
+      "I cannot independently review the exact design when its cumulative diff is incorporated only by reference rather than included in the supplied packet."
+    ],
+    "recommendation": "Revise the packet to embed the complete cumulative diff and corrected audit evidence. Include the raw commands or equivalent reproducible search descriptions for both direct script invocations and package-script invocations, reconcile the total/archival/live counts, and enumerate every unique live match exactly once.",
+    "strongestObjection": "The central new evidence is arithmetically inconsistent—89 total matches cannot contain 87 archival plus 11 live files—so its claimed completeness cannot be verified from this packet.",
+    "unresolvedQuestions": [
+      "What are the corrected counts and complete unique inventory for the reported 89 matching files?",
+      "What repository-wide search specifically covered invocations such as \"npm run jira\", including shell, workflow, JavaScript, and cross-platform script forms?",
+      "What is the exact cumulative diff being approved in this round?"
+    ]
+  }
+}

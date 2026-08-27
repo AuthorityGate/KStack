@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "role": "opus",
+  "status": "complete",
+  "configPath": "/mnt/e/Source/Projects/KStack/.kstack/config.json",
+  "projectRoot": "/mnt/e/Source/Projects/KStack",
+  "promptSha256": "4031d30eeb6cb3887880dea7b135cf04dac06ba47e5ae875e1081e131c577f97",
+  "createdAt": "2026-08-23T07:51:29.378Z",
+  "exitCode": 0,
+  "signal": null,
+  "startedAt": "2026-08-23T07:51:29.379Z",
+  "durationMs": 120786,
+  "directiveFile": "/mnt/e/Source/Projects/KStack/.kstack/qc/index-lag-exit-code-2026-08-23/reflector/opus.md",
+  "directiveSha256": "a1a84a1aeb8678e02ecb2417cfb16116896b34b0efee211d1a50e9faf8e374b7",
+  "configurationSha256": "c1c00a864dd8aecd38258b53d2047d8d01f98433d7246f07554a56db75beba74"
+}

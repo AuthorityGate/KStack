@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "dbfc9a40-90a9-4d68-a890-3614f3941769",
+  "designDigest": "40589b5e071524b92b989005473ee0619682185348a685115a4fdc6077b30d3b",
+  "rawOutputSha256": "565ec95c96028a4d83e1300ca81c0bbf6ba780a3d7febc71fad54798c6eb3dd2",
+  "review": {
+    "decision": "approve",
+    "confidence": 99,
+    "failedChecks": [],
+    "securityFindings": [],
+    "materialDissent": [],
+    "recommendation": "Approve the exact design. The supplied evidence closes the persisted audit-reason compatibility question, confirms the retry-verification wait remains exit 2 with test coverage, and establishes that the 30-second floor is pre-existing and outside this addition’s scope. The implementation, documentation, and tests consistently reserve exit 20 for measurable index-lag blocking.",
+    "strongestObjection": "The only residual risk is an out-of-repository consumer that explicitly compares the former exit code to 2; repository searches cannot detect such consumers. This is not a demonstrated defect, and generic nonzero-error handling remains compatible.",
+    "unresolvedQuestions": []
+  }
+}

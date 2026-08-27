@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "contractId": "kstack-install-health-contract-v1",
+  "skills": [
+    { "skillId": "kstack-design", "scripts": [{ "path": "scripts/kstack-design-gate.mjs", "probeId": "design-gate-import-v1" }] },
+    { "skillId": "kstack-design-clarify", "scripts": [] },
+    { "skillId": "kstack-implement", "scripts": [{ "path": "scripts/kstack-reflexion.mjs", "probeId": "reflexion-no-match-v1" }] },
+    { "skillId": "kstack-init", "scripts": [{ "path": "scripts/kstack-config.mjs", "probeId": "config-import-v1" }] },
+    { "skillId": "kstack-interrogate", "scripts": [] },
+    { "skillId": "kstack-jira", "scripts": [{ "path": "scripts/kstack-jira.mjs", "probeId": "jira-import-v1" }] },
+    { "skillId": "kstack-memory", "scripts": [{ "path": "scripts/kstack-config.mjs", "probeId": "config-import-v1" }, { "path": "scripts/kstack-memory.mjs", "probeId": "memory-import-v1" }] },
+    { "skillId": "kstack-objectives", "scripts": [] },
+    { "skillId": "kstack-qc", "scripts": [{ "path": "scripts/kstack-invoke-role.mjs", "probeId": "invoke-role-import-v1" }, { "path": "scripts/kstack-reflexion.mjs", "probeId": "reflexion-no-match-v1" }] },
+    { "skillId": "kstack-review", "scripts": [] }
+  ],
+  "probes": [
+    { "probeId": "config-import-v1", "path": "scripts/kstack-config.mjs", "kind": "esm-import-v1" },
+    { "probeId": "design-gate-import-v1", "path": "scripts/kstack-design-gate.mjs", "kind": "esm-import-v1" },
+    { "probeId": "invoke-role-import-v1", "path": "scripts/kstack-invoke-role.mjs", "kind": "esm-import-v1" },
+    { "probeId": "jira-import-v1", "path": "scripts/kstack-jira.mjs", "kind": "esm-import-v1" },
+    { "probeId": "memory-import-v1", "path": "scripts/kstack-memory.mjs", "kind": "esm-import-v1" },
+    { "probeId": "reflexion-no-match-v1", "path": "scripts/kstack-reflexion.mjs", "kind": "reflexion-no-match-v1" }
+  ]
+}

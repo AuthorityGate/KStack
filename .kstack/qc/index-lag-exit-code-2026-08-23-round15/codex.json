@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "c1cee076-7d5f-4a2a-b5fe-d0296a1bc73f",
+  "designDigest": "3f86db68816ded75438d5ed658d9339c0ba08e7d2247926f0d04522c27da5efe",
+  "rawOutputSha256": "a92f064fd24515fc10a22d4334c95d77c2c2a8b23297df4d9e98b9376d56bc95",
+  "review": {
+    "decision": "revise",
+    "confidence": 92,
+    "failedChecks": [
+      "The claimed repository-wide consumer exclusion is not established. The alias regex misses common valid forms such as `yarn run jira`, `pnpm run jira`, `npm run \"jira\"`, and option-bearing npm invocations. The status co-occurrence scan is limited to `package.json`, `plugins`, and `.github`, omits status idioms such as PowerShell `$LASTEXITCODE` and command-condition/`&&`/`||` handling, and its `spawn\\(Sync\\)?` and `exec\\(File\\|Sync\\)?` alternatives do not match ordinary `spawn`, `spawnSync`, `exec`, `execFile`, or `execSync` tokens as claimed. A consumer outside those directories using a missed alias form could evade all presented searches."
+    ],
+    "securityFindings": [],
+    "materialDissent": [
+      "Observed: the implementation diff and tests consistently reserve exit 20 for measurable index lag while retaining exit 2 for unmeasurable age, poll exhaustion, search failure, and the separate retry wait. Inference: the code change itself appears sound, but the packet's characterization of the consumer evidence as “genuinely conclusive” and covering invocation “in any form” is unsupported."
+    ],
+    "recommendation": "Revise the verification evidence with a truly repository-wide scan covering quoted and `run` forms for npm, yarn, and pnpm, option-bearing invocations, correctly formed process-launch patterns, PowerShell and shell status handling, and directories outside `plugins`/`.github`. Triage every resulting whole-file candidate. No production-code change is currently indicated.",
+    "strongestObjection": "A concrete repository-internal consumer can evade the supplied methodology—for example, a root-level script using `pnpm run jira` or `npm run \"jira\"` and branching on `$LASTEXITCODE`—so the asserted absence of consumers that distinguish exit 2 from 20 remains unverified.",
+    "unresolvedQuestions": [
+      "Does a corrected, repository-wide invocation/status scan covering the missed command forms, process-launch patterns, status idioms, and all directories still produce zero actual consumers that branch on the Jira command's exit status?"
+    ]
+  }
+}

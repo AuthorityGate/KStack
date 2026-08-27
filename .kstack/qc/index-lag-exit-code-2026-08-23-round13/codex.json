@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "9db2ccb2-b993-418b-8469-0d61e8062246",
+  "designDigest": "97495850fcf2817072e79f85d184531fdaa80d305db4655c68cb81fce90beb7d",
+  "rawOutputSha256": "40e55877bb670bb7d030afdc2c6fe22b538368cefbd5d6a88dd65cd8da6c2e34",
+  "review": {
+    "decision": "approve",
+    "confidence": 98,
+    "failedChecks": [],
+    "securityFindings": [],
+    "materialDissent": [],
+    "recommendation": "Approve the exact design. The packet provides passing full-suite evidence, a content hash for the reviewed four-file working-tree diff, direct exit-code and call-site inventories, and documentation-completeness evidence. The implementation consistently reserves exit 20 for measurable index lag while retaining exit 2 for unavailable searches and unmeasurable marker ages.",
+    "strongestObjection": "No substantive objection remains within the supplied packet.",
+    "unresolvedQuestions": []
+  }
+}

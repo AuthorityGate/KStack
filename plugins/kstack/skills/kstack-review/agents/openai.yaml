@@ -1,0 +1,6 @@
+interface:
+  display_name: "KStack Full Review"
+  short_description: "Review a new environment from objectives to readiness"
+  default_prompt: "Use $kstack-review to run the complete environment and design review."
+policy:
+  allow_implicit_invocation: false

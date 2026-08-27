@@ -1,0 +1,584 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOST="all"
+SCOPE="user"
+TARGET=""
+MODE="symlink"
+HEALTH_OVERRIDE_REQUEST=""
+HEALTH_OVERRIDE_APPROVAL=""
+KSTACK_SETUP_ORIGINAL_ARGS=("$@")
+
+usage() {
+  printf '%s\n' "Usage: ./setup [--host codex|claude|all] [--scope user|project] [--target PATH] [--copy] [--health-override-request PATH --health-override-approval PATH]"
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --host) HOST="${2:-}"; shift 2 ;;
+    --host=*) HOST="${1#*=}"; shift ;;
+    --scope) SCOPE="${2:-}"; shift 2 ;;
+    --scope=*) SCOPE="${1#*=}"; shift ;;
+    --target) TARGET="${2:-}"; shift 2 ;;
+    --target=*) TARGET="${1#*=}"; shift ;;
+    --copy) MODE="copy"; shift ;;
+    --health-override-request) HEALTH_OVERRIDE_REQUEST="${2:-}"; shift 2 ;;
+    --health-override-request=*) HEALTH_OVERRIDE_REQUEST="${1#*=}"; shift ;;
+    --health-override-approval) HEALTH_OVERRIDE_APPROVAL="${2:-}"; shift 2 ;;
+    --health-override-approval=*) HEALTH_OVERRIDE_APPROVAL="${1#*=}"; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) printf 'Unknown option: %s\n' "$1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+case "$HOST" in codex|claude|all) ;; *) printf 'Invalid host: %s\n' "$HOST" >&2; exit 2 ;; esac
+case "$SCOPE" in user|project) ;; *) printf 'Invalid scope: %s\n' "$SCOPE" >&2; exit 2 ;; esac
+if { [ -n "$HEALTH_OVERRIDE_REQUEST" ] && [ -z "$HEALTH_OVERRIDE_APPROVAL" ]; } \
+    || { [ -z "$HEALTH_OVERRIDE_REQUEST" ] && [ -n "$HEALTH_OVERRIDE_APPROVAL" ]; }; then
+  printf '%s\n' "Both health override request and approval are required." >&2
+  exit 2
+fi
+
+if KSTACK_NODE_CANDIDATE="$(command -v node)" && [ -n "$KSTACK_NODE_CANDIDATE" ]; then
+  case "$KSTACK_NODE_CANDIDATE" in
+    /*) ;;
+    *) printf '%s\n' KSTACK_REFLEXION_SETUP_NODE_INVALID >&2; builtin exit 1 ;;
+  esac
+else
+  printf '%s\n' KSTACK_REFLEXION_SETUP_NODE_NOT_FOUND >&2
+  builtin exit 1
+fi
+if ! KSTACK_RUNTIME_NODE="$(readlink -f -- "$KSTACK_NODE_CANDIDATE")" \
+    || [ -z "$KSTACK_RUNTIME_NODE" ] || [ ! -f "$KSTACK_RUNTIME_NODE" ] || [ ! -x "$KSTACK_RUNTIME_NODE" ]; then
+  printf '%s\n' KSTACK_REFLEXION_SETUP_NODE_INVALID >&2
+  builtin exit 1
+fi
+readonly KSTACK_RUNTIME_NODE
+
+ROOT="$(cd "$(dirname "$0")" && pwd -P)"
+SOURCE="$ROOT/plugins/kstack/skills"
+declare -A KSTACK_REFLEXION_ROOT_RESULTS=()
+KSTACK_REFLEXION_ANY_ROOT_FAILED=0
+KSTACK_REFLEXION_STRUCTURAL_FAILURE=0
+KSTACK_SHARED_USER_RUNTIME_ROOT=""
+KSTACK_CODEX_CACHE_ROOT=""
+KSTACK_CODEX_MODERN=0
+declare -a KSTACK_HEALTH_ROOT_IDS=()
+declare -a KSTACK_HEALTH_ROOT_PATHS=()
+declare -a KSTACK_HEALTH_ROOT_STATES=()
+declare -a KSTACK_HEALTH_ROOT_ROLES=()
+declare -a KSTACK_HEALTH_SURFACE_IDS=()
+declare -a KSTACK_HEALTH_SURFACE_HOSTS=()
+declare -a KSTACK_HEALTH_SURFACE_PATHS=()
+declare -a KSTACK_HEALTH_SURFACE_ROOTS=()
+declare -a KSTACK_HEALTH_SURFACE_MODES=()
+
+is_windows_drive_checkout() {
+  case "$ROOT" in
+    /mnt/[a-zA-Z]/*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Codex cannot reliably refresh a local marketplace rooted on DrvFS/9p. Emit
+# this before dependency installation or any plugin mutation, then use the
+# Linux-native runtime copy below for user-scoped plugin registration.
+if { [ "$HOST" = "codex" ] || [ "$HOST" = "all" ]; } && is_windows_drive_checkout; then
+  if [ "$SCOPE" = "user" ]; then
+    printf '%s\n' "KSTACK_CODEX_WINDOWS_CHECKOUT_DETECTED: $ROOT"
+    printf '%s\n' "Codex plugin refresh will use a Linux-native staged runtime under ~/.codex/skills; the Windows-drive checkout will not be registered as the marketplace root."
+  else
+    printf '%s\n' "KSTACK_CODEX_WINDOWS_CHECKOUT_DETECTED: $ROOT" >&2
+    printf '%s\n' "Project-scoped setup installs skills only and cannot refresh the Codex plugin from this Windows-drive checkout. Run ./setup --host codex --scope user for a Linux-native staged plugin refresh." >&2
+  fi
+fi
+
+reflexion_main_shell_check() {
+  if [[ ${BASH_SUBSHELL:-0} -ne 0 || ${BASHPID} -ne $$ ]]; then
+    printf '%s\n' KSTACK_REFLEXION_SETUP_MAIN_SHELL_REQUIRED >&2
+    return 125
+  fi
+}
+
+verify_reflexion_runtime_for_root() {
+  reflexion_main_shell_check || return $?
+  if env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+      "$KSTACK_RUNTIME_NODE" "$1/scripts/reflexion/unavailable-sentinel.mjs" \
+      verify-runtime --installed-plugin-root "$1" >/dev/null; then
+    return 0
+  else
+    printf '%s\n' KSTACK_REFLEXION_SETUP_RUNTIME_UNSUPPORTED >&2
+    return 1
+  fi
+}
+
+provision_reflexion_parent_for_root() {
+  reflexion_main_shell_check || return $?
+  if env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+      "$KSTACK_RUNTIME_NODE" "$1/scripts/reflexion/unavailable-sentinel.mjs" \
+      provision-parent --installed-plugin-root "$1" >/dev/null; then
+    return 0
+  else
+    printf '%s\n' KSTACK_REFLEXION_SETUP_PARENT_PROVISION_FAILED >&2
+    return 1
+  fi
+}
+
+invalidate_reflexion_for_root() {
+  reflexion_main_shell_check || return $?
+  if env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+      "$KSTACK_RUNTIME_NODE" "$1/scripts/reflexion/unavailable-sentinel.mjs" \
+      invalidate --installed-plugin-root "$1" >/dev/null; then
+    return 0
+  else
+    printf '%s\n' KSTACK_REFLEXION_SETUP_INVALIDATION_FAILED >&2
+    return 1
+  fi
+}
+
+generate_reflexion_runtime_contract() {
+  reflexion_main_shell_check || return $?
+  env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+    "$KSTACK_RUNTIME_NODE" "$1/scripts/kstack-reflexion.mjs" \
+    runtime-contract-generate --installed-plugin-root "$1"
+}
+
+prepare_reflexion_root() {
+  local installed_root="$1" status
+  reflexion_main_shell_check || return $?
+  if ! installed_root="$(cd "$installed_root" && pwd -P)"; then
+    return 1
+  fi
+  if [[ -n ${KSTACK_REFLEXION_ROOT_RESULTS[$installed_root]+x} ]]; then
+    [[ ${KSTACK_REFLEXION_ROOT_RESULTS[$installed_root]} != hard-failed ]]
+    return
+  fi
+  if verify_reflexion_runtime_for_root "$installed_root"; then :; else
+    status=$?; KSTACK_REFLEXION_ROOT_RESULTS[$installed_root]=hard-failed; return "$status"
+  fi
+  if provision_reflexion_parent_for_root "$installed_root"; then :; else
+    status=$?; KSTACK_REFLEXION_ROOT_RESULTS[$installed_root]=hard-failed; return "$status"
+  fi
+  if invalidate_reflexion_for_root "$installed_root"; then :; else
+    status=$?; KSTACK_REFLEXION_ROOT_RESULTS[$installed_root]=hard-failed; return "$status"
+  fi
+  if generate_reflexion_runtime_contract "$installed_root"; then
+    KSTACK_REFLEXION_ROOT_RESULTS[$installed_root]=admitted
+    return 0
+  else
+    status=$?
+    if [[ $status -eq 73 ]]; then
+      printf '%s\n' KSTACK_REFLEXION_SETUP_INVALIDATION_FAILED >&2
+      KSTACK_REFLEXION_ROOT_RESULTS[$installed_root]=hard-failed
+      return 1
+    fi
+    if invalidate_reflexion_for_root "$installed_root"; then
+      printf '%s\n' KSTACK_REFLEXION_CONTRACT_ABSENT >&2
+      KSTACK_REFLEXION_ROOT_RESULTS[$installed_root]=unavailable
+      return 0
+    else
+      status=$?; KSTACK_REFLEXION_ROOT_RESULTS[$installed_root]=hard-failed; return "$status"
+    fi
+  fi
+}
+
+KSTACK_INSTALL_HEALTH_LOCK_ROOT="$HOME/.kstack/install-health/locks"
+if ! command -v flock >/dev/null 2>&1; then
+  printf '%s\n' KSTACK_POST_DEPLOY_FLOCK_UNAVAILABLE >&2
+  builtin exit 1
+fi
+mkdir -p "$KSTACK_INSTALL_HEALTH_LOCK_ROOT"
+chmod 700 "$HOME/.kstack" "$HOME/.kstack/install-health" "$KSTACK_INSTALL_HEALTH_LOCK_ROOT" 2>/dev/null || true
+KSTACK_INSTALL_HEALTH_LOCK_FILE="$KSTACK_INSTALL_HEALTH_LOCK_ROOT/setup.lock"
+if [[ ${KSTACK_INSTALL_HEALTH_LOCK_CHILD:-} != "$KSTACK_INSTALL_HEALTH_LOCK_FILE" ]]; then
+  # Let flock retain the descriptor while the recursively-invoked setup runs
+  # with it closed. Otherwise every npm/Node/host child inherits the lock and
+  # an orphaned child can starve future setups after this shell has exited.
+  if flock -n -E 200 -o "$KSTACK_INSTALL_HEALTH_LOCK_FILE" \
+      env KSTACK_INSTALL_HEALTH_LOCK_CHILD="$KSTACK_INSTALL_HEALTH_LOCK_FILE" \
+      "$ROOT/setup" "${KSTACK_SETUP_ORIGINAL_ARGS[@]}"; then
+    builtin exit 0
+  else
+    kstack_lock_status=$?
+  fi
+  if [[ $kstack_lock_status -eq 200 ]]; then
+    printf '%s\n' KSTACK_POST_DEPLOY_SETUP_CONCURRENT >&2
+    builtin exit 1
+  fi
+  builtin exit "$kstack_lock_status"
+fi
+if ! KSTACK_FLOCK_EXECUTABLE="$(readlink -f -- "$(command -v flock)")" \
+    || ! KSTACK_LOCK_PARENT_EXECUTABLE="$(readlink -f -- "/proc/$PPID/exe")" \
+    || [[ $KSTACK_LOCK_PARENT_EXECUTABLE != "$KSTACK_FLOCK_EXECUTABLE" ]]; then
+  printf '%s\n' KSTACK_POST_DEPLOY_SETUP_LOCK_GUARD_INVALID >&2
+  builtin exit 1
+fi
+unset KSTACK_INSTALL_HEALTH_LOCK_CHILD
+# One nonblocking same-HOME lock remains held from before the first install
+# mutation through post-deploy F8 output. There is no worker/event ledger.
+
+if [ ! -d "$ROOT/plugins/kstack/node_modules/@electric-sql/pglite" ]; then
+  printf '%s\n' "Installing KStack's locked local-memory runtime..."
+  npm ci --prefix "$ROOT/plugins/kstack" --no-bin-links --omit=dev --ignore-scripts
+fi
+
+if [ "$SCOPE" = "project" ]; then
+  [ -n "$TARGET" ] || TARGET="$(pwd -P)"
+  TARGET="$(cd "$TARGET" && pwd -P)"
+fi
+
+register_health_root() {
+  local root_id="$1" root_path="$2" state="$3" role="$4" index
+  root_path="$(cd "$root_path" && pwd -P)"
+  for index in "${!KSTACK_HEALTH_ROOT_PATHS[@]}"; do
+    if [ "${KSTACK_HEALTH_ROOT_PATHS[$index]}" = "$root_path" ]; then
+      KSTACK_HEALTH_ROOT_STATES[$index]="$state"
+      if [ "${KSTACK_HEALTH_ROOT_ROLES[$index]}" != "$role" ]; then
+        KSTACK_HEALTH_ROOT_ROLES[$index]="provisioning-and-execution"
+      fi
+      return
+    fi
+  done
+  KSTACK_HEALTH_ROOT_IDS+=("$root_id")
+  KSTACK_HEALTH_ROOT_PATHS+=("$root_path")
+  KSTACK_HEALTH_ROOT_STATES+=("$state")
+  KSTACK_HEALTH_ROOT_ROLES+=("$role")
+}
+
+register_health_surface() {
+  KSTACK_HEALTH_SURFACE_IDS+=("$1")
+  KSTACK_HEALTH_SURFACE_HOSTS+=("$2")
+  KSTACK_HEALTH_SURFACE_PATHS+=("$3")
+  KSTACK_HEALTH_SURFACE_ROOTS+=("$4")
+  KSTACK_HEALTH_SURFACE_MODES+=("$5")
+}
+
+install_one() {
+  local src="$1" dst_root="$2" runtime_root="${3:-}" name dst backup
+  name="$(basename "$src")"
+  dst="$dst_root/$name"
+  mkdir -p "$dst_root"
+
+  if [ -L "$dst" ]; then
+    if [ "$(readlink -f "$dst")" = "$(readlink -f "$src")" ]; then
+      printf 'already installed: %s\n' "$dst"
+      return
+    fi
+    backup="$dst.backup.$(date +%Y%m%d%H%M%S)"
+    mv "$dst" "$backup"
+    printf 'preserved existing link: %s\n' "$backup"
+  elif [ -e "$dst" ]; then
+    backup="$dst.backup.$(date +%Y%m%d%H%M%S)"
+    mv "$dst" "$backup"
+    printf 'preserved existing install: %s\n' "$backup"
+  fi
+
+  if [ "$MODE" = "copy" ]; then
+    cp -R "$src" "$dst"
+    env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+      "$KSTACK_RUNTIME_NODE" -e 'const fs = require("node:fs"); const [file, root] = process.argv.slice(1); const text = fs.readFileSync(file, "utf8"); fs.writeFileSync(file, text.split("${CLAUDE_PLUGIN_ROOT}").join(root).split("../../scripts/").join(`${root}/scripts/`).split("<kstack-plugin-root>/scripts/").join(`${root}/scripts/`));' \
+      "$dst/SKILL.md" "$runtime_root"
+  else
+    ln -s "$src" "$dst"
+  fi
+  printf 'installed: %s\n' "$dst"
+}
+
+install_runtime() {
+  local dst_root="$1" include_plugin="${2:-0}" runtime_root="$dst_root/.kstack-runtime" backup
+  if [ -e "$runtime_root" ] || [ -L "$runtime_root" ]; then
+    backup="$runtime_root.backup.$(date +%Y%m%d%H%M%S)"
+    mv "$runtime_root" "$backup"
+    printf 'preserved existing runtime: %s\n' "$backup"
+  fi
+  mkdir -p "$runtime_root"
+  cp -R "$ROOT/plugins/kstack/scripts" "$runtime_root/scripts"
+  cp -R "$ROOT/plugins/kstack/hooks" "$runtime_root/hooks"
+  cp -R "$ROOT/plugins/kstack/personas" "$runtime_root/personas"
+  cp -R "$ROOT/plugins/kstack/native" "$runtime_root/native"
+  cp -R "$ROOT/plugins/kstack/vendor" "$runtime_root/vendor"
+  cp -R "$ROOT/plugins/kstack/node_modules" "$runtime_root/node_modules"
+  cp "$ROOT/plugins/kstack/package.json" "$ROOT/plugins/kstack/package-lock.json" "$ROOT/plugins/kstack/.npmrc" "$runtime_root/"
+  cp "$ROOT/plugins/kstack/install-health-contract-v1.json" \
+    "$ROOT/plugins/kstack/install-health-audit-manifest-v1.json" \
+    "$ROOT/plugins/kstack/install-health-authority-registry-v1.json" "$runtime_root/"
+  mkdir -p "$runtime_root/.codex-plugin"
+  cp "$ROOT/plugins/kstack/.codex-plugin/plugin.json" "$runtime_root/.codex-plugin/plugin.json"
+  mkdir -p "$runtime_root/.claude-plugin"
+  cp "$ROOT/plugins/kstack/.claude-plugin/plugin.json" "$runtime_root/.claude-plugin/plugin.json"
+  if [ "$include_plugin" = "1" ]; then
+    cp -R "$ROOT/plugins/kstack/skills" "$runtime_root/skills"
+    cp -R "$ROOT/plugins/kstack/references" "$runtime_root/references"
+    mkdir -p "$runtime_root/.agents/plugins"
+    env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+      "$KSTACK_RUNTIME_NODE" -e 'const fs = require("node:fs"); const [source, destination] = process.argv.slice(1); const marketplace = JSON.parse(fs.readFileSync(source, "utf8")); for (const plugin of marketplace.plugins) if (plugin.name === "kstack") plugin.source = { source: "local", path: "./" }; fs.writeFileSync(destination, `${JSON.stringify(marketplace, null, 2)}\n`);' \
+      "$ROOT/.agents/plugins/marketplace.json" "$runtime_root/.agents/plugins/marketplace.json"
+    env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+      "$KSTACK_RUNTIME_NODE" -e 'const fs = require("node:fs"); const path = require("node:path"); const [manifestPath, home] = process.argv.slice(1); const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8")); if (manifest.name !== "kstack" || typeof manifest.version !== "string" || !manifest.version) process.exit(1); const base = manifest.version.split("+", 1)[0]; const format = (millis) => new Date(millis).toISOString().replace(/\D/gu, "").slice(0, 17); let millis = Date.now(); let version; do { version = `${base}+codex.${format(millis)}`; millis += 1; } while (fs.existsSync(path.join(home, ".codex", "plugins", "cache", "kstack", "kstack", version))); manifest.version = version; fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`); process.stdout.write(`${version}\n`);' \
+      "$runtime_root/.codex-plugin/plugin.json" "$HOME" \
+      | while IFS= read -r kstack_runtime_version; do printf 'stamped Codex plugin version: %s\n' "$kstack_runtime_version"; done
+    chmod -R go-w "$runtime_root"
+    env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+      "$KSTACK_RUNTIME_NODE" -e 'const fs = require("node:fs"); const path = require("node:path"); const root = process.argv[1]; const prefix = ".kstack-runtime.backup."; const backups = fs.readdirSync(root).filter((name) => name.startsWith(prefix)).sort().reverse(); for (const name of backups.slice(2)) fs.rmSync(path.join(root, name), { recursive: true, force: false });' \
+      "$dst_root"
+  fi
+  env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+    "$KSTACK_RUNTIME_NODE" -e 'const fs = require("node:fs"); const path = require("node:path"); const root = process.argv[1]; const manifest = JSON.parse(fs.readFileSync(path.join(root, "install-health-audit-manifest-v1.json"), "utf8")); for (const entry of manifest.entries) { const target = path.join(root, entry.path); if (fs.existsSync(target)) fs.chmodSync(target, entry.executable ? 0o755 : 0o644); }' \
+    "$runtime_root"
+  printf 'installed runtime: %s\n' "$runtime_root"
+}
+
+codex_marketplace_root() {
+  local listing
+  listing="$(codex plugin marketplace list --json 2>/dev/null)" || return 1
+  env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+    "$KSTACK_RUNTIME_NODE" -e 'const listing = JSON.parse(process.argv[1]); const item = listing.marketplaces.find((entry) => entry.name === "kstack"); if (item?.root) process.stdout.write(item.root);' \
+    "$listing"
+}
+
+codex_plugin_installed() {
+  local listing
+  listing="$(codex plugin list --json 2>/dev/null)" || return 1
+  env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+    "$KSTACK_RUNTIME_NODE" -e 'const listing = JSON.parse(process.argv[1]); const item = listing.installed.find((entry) => entry.pluginId === "kstack@kstack" && entry.installed === true); process.stdout.write(item ? "1" : "0");' \
+    "$listing"
+}
+
+confirm_codex_plugin_cache() {
+  local runtime_root="$1" cache_root
+  if ! cache_root="$(env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+      "$KSTACK_RUNTIME_NODE" -e '
+const fs = require("node:fs");
+const path = require("node:path");
+const [runtimeArgument, home] = process.argv.slice(1);
+try {
+  const runtimeRoot = fs.realpathSync.native(runtimeArgument);
+  const manifest = JSON.parse(fs.readFileSync(path.join(runtimeRoot, ".codex-plugin", "plugin.json"), "utf8"));
+  if (manifest.name !== "kstack" || typeof manifest.version !== "string" || !manifest.version) process.exit(1);
+  const expectedCache = path.resolve(home, ".codex", "plugins", "cache", "kstack", "kstack", manifest.version);
+  const cacheRoot = fs.realpathSync.native(expectedCache);
+  if (cacheRoot !== expectedCache || !fs.lstatSync(cacheRoot).isDirectory() || fs.lstatSync(cacheRoot).isSymbolicLink()) process.exit(1);
+  const compare = (relative) => {
+    const source = path.join(runtimeRoot, relative);
+    const cached = path.join(cacheRoot, relative);
+    const sourceStat = fs.lstatSync(source);
+    const cachedStat = fs.lstatSync(cached);
+    if (sourceStat.isSymbolicLink() || cachedStat.isSymbolicLink() || sourceStat.isDirectory() !== cachedStat.isDirectory() || sourceStat.isFile() !== cachedStat.isFile()) process.exit(1);
+    if (sourceStat.isDirectory()) {
+      const sourceNames = fs.readdirSync(source).sort();
+      const cachedNames = fs.readdirSync(cached).sort();
+      if (JSON.stringify(sourceNames) !== JSON.stringify(cachedNames)) process.exit(1);
+      for (const name of sourceNames) compare(path.join(relative, name));
+    } else if (!sourceStat.isFile() || !fs.readFileSync(source).equals(fs.readFileSync(cached))) process.exit(1);
+  };
+  for (const relative of [
+    ".codex-plugin/reflexion-runtime-contract-v1.txt",
+    "install-health-contract-v1.json",
+    "install-health-audit-manifest-v1.json",
+    "install-health-authority-registry-v1.json",
+    "scripts/kstack-reflexion.mjs",
+    "scripts/kstack-config.mjs",
+    "scripts/kstack-memory.mjs",
+    "scripts/kstack-safety-admin.mjs",
+    "scripts/kstack-safety-broker.mjs",
+    "scripts/kstack-safety-hook.mjs",
+    "scripts/kstack-safety-matchers.mjs",
+    "hooks/hooks.json",
+    "scripts/reflexion",
+    "scripts/reflexion-architecture"
+  ]) compare(relative);
+  process.stdout.write(cacheRoot);
+} catch { process.exit(1); }
+' "$runtime_root" "$HOME")"; then
+    printf '%s\n' KSTACK_CODEX_PLUGIN_CACHE_UNCONFIRMED >&2
+    return 1
+  fi
+  KSTACK_CODEX_CACHE_ROOT="$cache_root"
+  printf 'verified Codex plugin cache: %s\n' "$cache_root"
+}
+
+claude_plugin_installed() {
+  local scope="$1" listing
+  listing="$(claude_in_scope "$scope" plugin list --json 2>/dev/null)" || return 1
+  env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+    "$KSTACK_RUNTIME_NODE" -e 'const [bytes, scope] = process.argv.slice(1); const rows = JSON.parse(bytes); process.stdout.write(rows.some((row) => row.id === "kstack@kstack" && row.scope === scope) ? "1" : "0");' \
+    "$listing" "$scope"
+}
+
+claude_in_scope() {
+  local scope="$1"
+  shift
+  if [ "$scope" = "project" ]; then (cd "$TARGET" && claude "$@");
+  else claude "$@"
+  fi
+}
+
+install_claude_plugin() {
+  local marketplace_root="$1" scope="$2" installed
+  if ! command -v claude >/dev/null 2>&1 || ! claude plugin --help >/dev/null 2>&1; then
+    printf '%s\n' "Claude plugin commands are unavailable; safety hooks are not active for Claude." >&2
+    return 0
+  fi
+  installed="$(claude_plugin_installed "$scope")" || return $?
+  if [ "$installed" = "1" ]; then claude_in_scope "$scope" plugin uninstall kstack@kstack --scope "$scope" --yes; fi
+  if claude_in_scope "$scope" plugin marketplace list --json 2>/dev/null \
+      | env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA "$KSTACK_RUNTIME_NODE" -e 'let value=""; process.stdin.setEncoding("utf8"); process.stdin.on("data", (chunk) => value += chunk); process.stdin.on("end", () => process.exit(JSON.parse(value).some((row) => row.name === "kstack") ? 0 : 1));'; then
+    claude_in_scope "$scope" plugin marketplace remove kstack --scope "$scope" || true
+  fi
+  claude_in_scope "$scope" plugin marketplace add "$marketplace_root" --scope "$scope"
+  claude_in_scope "$scope" plugin install kstack@kstack --scope "$scope" --yes
+  printf 'installed Claude safety plugin (%s scope): %s\n' "$scope" "$marketplace_root"
+}
+
+install_codex_plugin_from_runtime() {
+  local runtime_root="$1" marketplace_root plugin_installed
+  plugin_installed="$(codex_plugin_installed)" || return $?
+  marketplace_root="$(codex_marketplace_root)" || return $?
+  if [ -n "$marketplace_root" ] && [ "$marketplace_root" != "$runtime_root" ]; then
+    codex plugin marketplace remove kstack
+    marketplace_root=""
+  fi
+  if [ -z "$marketplace_root" ]; then
+    codex plugin marketplace add "$runtime_root"
+  fi
+  if [ "$plugin_installed" = "1" ]; then
+    codex plugin remove kstack@kstack
+  fi
+  codex plugin add kstack@kstack
+  confirm_codex_plugin_cache "$runtime_root"
+}
+
+install_host() {
+  local host="$1" dst_root skill runtime_root=""
+  if [ "$SCOPE" = "user" ]; then
+    if [ "$host" = "codex" ]; then
+      if command -v codex >/dev/null 2>&1 && codex plugin --help >/dev/null 2>&1; then
+        dst_root="$HOME/.codex/skills"
+        runtime_root="$dst_root/.kstack-runtime"
+        install_runtime "$dst_root" 1
+        prepare_reflexion_root "$runtime_root" || return $?
+        install_codex_plugin_from_runtime "$runtime_root" || return $?
+        KSTACK_CODEX_MODERN=1
+        register_health_root codex-native "$runtime_root" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" provisioning
+        register_health_root codex-cache "$KSTACK_CODEX_CACHE_ROOT" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" execution
+        register_health_surface codex-filesystem codex "$KSTACK_CODEX_CACHE_ROOT/skills" "$KSTACK_CODEX_CACHE_ROOT" plugin
+        KSTACK_SHARED_USER_RUNTIME_ROOT="$runtime_root"
+        return
+      fi
+      dst_root="$HOME/.codex/skills"
+      printf '%s\n' "Codex plugin commands are unavailable; using the legacy user skill directory and leaving Codex safety hooks inactive." >&2
+    else
+      dst_root="$HOME/.claude/skills"
+    fi
+  else
+    if [ "$host" = "codex" ]; then
+      dst_root="$TARGET/.agents/skills"
+    else
+      dst_root="$TARGET/.claude/skills"
+    fi
+  fi
+
+  if [ "$SCOPE" = "user" ] && [ "$host" = "claude" ] && [ "$MODE" = "symlink" ] \
+      && [ -n "$KSTACK_SHARED_USER_RUNTIME_ROOT" ]; then
+    runtime_root="$KSTACK_SHARED_USER_RUNTIME_ROOT"
+    prepare_reflexion_root "$runtime_root" || return $?
+    for skill in "$runtime_root"/skills/kstack-*; do
+      install_one "$skill" "$dst_root" "$runtime_root"
+    done
+    install_claude_plugin "$ROOT" "$SCOPE"
+    register_health_root claude-native "$runtime_root" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" execution
+    register_health_surface claude-filesystem claude "$dst_root" "$runtime_root" symlink
+    return
+  fi
+
+  if [ "$MODE" = "copy" ]; then
+    runtime_root="$dst_root/.kstack-runtime"
+    install_runtime "$dst_root"
+    prepare_reflexion_root "$runtime_root" || return $?
+  else
+    runtime_root="$ROOT/plugins/kstack"
+    prepare_reflexion_root "$ROOT/plugins/kstack" || return $?
+  fi
+
+  for skill in "$SOURCE"/kstack-*; do
+    install_one "$skill" "$dst_root" "$runtime_root"
+  done
+  if [ "$host" = "claude" ]; then
+    install_claude_plugin "$ROOT" "$SCOPE"
+  elif [ "$SCOPE" = "project" ]; then
+    printf '%s\n' "Codex project policy is enrolled; its deny-only host hook requires the enabled user-scoped KStack plugin." >&2
+  fi
+  register_health_root "$host-runtime" "$runtime_root" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" execution
+  register_health_surface "$host-filesystem" "$host" "$dst_root" "$runtime_root" "$MODE"
+}
+
+run_post_deploy_health() {
+  local index status
+  local -a health_args=(
+    --source-root "$ROOT/plugins/kstack"
+    --host "$HOST"
+    --scope "$SCOPE"
+    --mode "$MODE"
+    --changed-state true
+  )
+  for index in "${!KSTACK_HEALTH_ROOT_PATHS[@]}"; do
+    health_args+=(--root "${KSTACK_HEALTH_ROOT_IDS[$index]}" "${KSTACK_HEALTH_ROOT_PATHS[$index]}" "${KSTACK_HEALTH_ROOT_STATES[$index]}" "${KSTACK_HEALTH_ROOT_ROLES[$index]}")
+  done
+  for index in "${!KSTACK_HEALTH_SURFACE_PATHS[@]}"; do
+    health_args+=(--surface "${KSTACK_HEALTH_SURFACE_IDS[$index]}" "${KSTACK_HEALTH_SURFACE_HOSTS[$index]}" "${KSTACK_HEALTH_SURFACE_PATHS[$index]}" "${KSTACK_HEALTH_SURFACE_ROOTS[$index]}" "${KSTACK_HEALTH_SURFACE_MODES[$index]}")
+  done
+  if [[ $KSTACK_CODEX_MODERN -eq 1 ]]; then health_args+=(--modern-codex); fi
+  if [ -n "$HEALTH_OVERRIDE_REQUEST" ]; then
+    health_args+=(--override-request "$HEALTH_OVERRIDE_REQUEST" --override-approval "$HEALTH_OVERRIDE_APPROVAL")
+  fi
+  # TERM at 118 seconds plus at most two seconds of kill grace keeps the
+  # end-to-end health-runner envelope within the promised 120 seconds.
+  if timeout --signal=TERM --kill-after=2s 118s \
+      env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+      "$KSTACK_RUNTIME_NODE" "$ROOT/plugins/kstack/scripts/kstack-install-health.mjs" "${health_args[@]}"; then
+    return 0
+  else
+    status=$?
+  fi
+  if [[ $status -eq 124 || $status -eq 137 ]]; then
+    printf '%s\n' 'KSTACK_POST_DEPLOY_HEALTH_V1 {"activationClaim":"installed-files-paths-lookups-structurally-sound-v1","changedState":true,"code":"KSTACK_POST_DEPLOY_SETUP_BUDGET_EXHAUSTED","exitCode":1,"interactiveActivationTested":false,"overallStatus":"FAILED","schemaVersion":1}'
+    printf '%s\n' 'KSTACK_POST_DEPLOY_MANUAL_RECOVERY_REQUIRED: no automatic rollback ran; inspect the timestamped backups reported by setup, move the active path aside, restore only the intended backup, and rerun setup.' >&2
+    return 1
+  fi
+  return "$status"
+}
+
+if [ "$HOST" = "all" ]; then
+  for kstack_host in codex claude; do
+    if install_host "$kstack_host"; then :; else
+      kstack_status=$?
+      KSTACK_REFLEXION_ANY_ROOT_FAILED=1
+      if [[ $kstack_status -eq 125 ]]; then KSTACK_REFLEXION_STRUCTURAL_FAILURE=1; break; fi
+    fi
+  done
+else
+  if install_host "$HOST"; then :; else
+    kstack_status=$?
+    KSTACK_REFLEXION_ANY_ROOT_FAILED=1
+    if [[ $kstack_status -eq 125 ]]; then KSTACK_REFLEXION_STRUCTURAL_FAILURE=1; fi
+  fi
+fi
+
+if [[ $KSTACK_REFLEXION_ANY_ROOT_FAILED -ne 0 ]]; then
+  printf '%s\n' 'KSTACK_POST_DEPLOY_HEALTH_V1 {"activationClaim":"installed-files-paths-lookups-structurally-sound-v1","changedState":true,"code":"KSTACK_POST_DEPLOY_INSTALL_INCOMPLETE","exitCode":1,"interactiveActivationTested":false,"overallStatus":"FAILED","schemaVersion":1}'
+  printf '%s\n' 'KSTACK_POST_DEPLOY_MANUAL_RECOVERY_REQUIRED: no automatic rollback ran; inspect the timestamped backups reported by setup, move the active path aside, restore only the intended backup, and rerun setup.' >&2
+  builtin exit 1
+fi
+
+if [ "$SCOPE" = "project" ]; then
+  env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+    "$KSTACK_RUNTIME_NODE" "$ROOT/plugins/kstack/scripts/kstack-safety-admin.mjs" \
+    install --project-root "$TARGET" --plugin-root "$ROOT/plugins/kstack"
+fi
+
+if run_post_deploy_health; then :; else
+  kstack_status=$?
+  builtin exit "$kstack_status"
+fi
+
+printf '%s\n' "KStack workflows are explicit-only. Bounded safety hooks are default-on in enrolled projects and disclose unsupported, disabled, and untrusted states. Start with \$kstack-init in Codex or /kstack-init in Claude Code."

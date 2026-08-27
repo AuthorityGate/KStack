@@ -1,0 +1,13 @@
+{
+  "name": "@authoritygate/kstack-plugin-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.4",
+    "node-gyp": "11.4.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

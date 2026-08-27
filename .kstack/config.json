@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "name": "KStack",
+    "roots": ["."]
+  },
+  "workflow": {
+    "objectiveDepth": "deep",
+    "reviewScope": "full",
+    "designLanes": ["product", "ux", "architecture", "data", "security", "operations"],
+    "implementationTransition": "after-design-approval",
+    "materialDecisionRule": "A decision is material when reversing it would change public behavior, architecture, stored data, security, operations, cost, or more than one implementation unit.",
+    "planningLensTrial": {
+      "enabled": false,
+      "objectives": {}
+    },
+    "panel": {
+      "enabled": false,
+      "releaseStage": "local",
+      "capacityProfile": "shipped",
+      "projectPersonaDirectory": ".kstack/personas",
+      "stateDirectory": ".kstack/panels",
+      "paidShadowEnabled": false,
+      "productionEnabled": false,
+      "maxRunUsdMicros": 0,
+      "maxEvaluationUsdMicros": 0,
+      "spendConfirmation": "per-run",
+      "minimumProductionProviderFamilies": 2,
+      "productionPolicyDecisionDigest": null,
+      "singleFamilyOwnerDecisionDigest": null,
+      "capacityPolicyDecisionDigest": null,
+      "panels": {}
+    },
+    "designGate": {
+      "minimumConfidence": 90,
+      "minimumConfidenceRound11Plus": 80,
+      "minimumConfidenceSkillClass": 70,
+      "reviewBudget": {
+        "maxRounds": 20,
+        "maxElapsedMinutes": 120,
+        "onExhausted": "user-decision"
+      },
+      "requiredReviewers": ["codex", "opus"],
+      "requiredChecks": [
+        "objectives-complete",
+        "design-schema-valid",
+        "threat-model-complete",
+        "rollback-defined",
+        "verification-plan-complete",
+        "artifact-secret-scan"
+      ],
+      "requireZeroSecurityFindings": true,
+      "requireZeroMaterialDissent": true
+    },
+    "phaseModels": {
+      "init": ["active"],
+      "objectives": ["active"],
+      "review": ["active"],
+      "design": ["codex", "opus"],
+      "implement": ["codex"],
+      "interrogate": ["opus"],
+      "qc": ["opus"],
+      "interrogationGate": {
+        "minimumConfidence": 93,
+        "maxRedesignRounds": 2
+      },
+      "qcGate": {
+        "minimumConfidence": 95,
+        "maxFixRounds": 3,
+        "requireDualForHighRisk": true
+      }
+    }
+  },
+  "models": {
+    "mode": "preferred",
+    "onUnavailable": "ask",
+    "codex": {
+      "command": "codex",
+      "args": [],
+      "model": null,
+      "reasoningEffort": "high",
+      "timeoutSeconds": 600
+    },
+    "opus": {
+      "command": "claude",
+      "args": [],
+      "model": "opus",
+      "effort": "high",
+      "timeoutSeconds": 600
+    },
+    "fable": {
+      "command": "claude",
+      "args": [],
+      "model": "fable",
+      "effort": "high",
+      "timeoutSeconds": 600
+    }
+  },
+  "authority": {
+    "inspect": "allow",
+    "edit": "allow",
+    "test": "allow",
+    "commit": "ask",
+    "push": "ask",
+    "pullRequest": "ask",
+    "merge": "ask",
+    "deploy": "deny",
+    "deviceInstall": "deny",
+    "destructive": "ask",
+    "externalTicketCreation": "ask"
+  },
+  "jira": {
+    "enabled": false,
+    "siteUrl": null,
+    "projects": [
+      { "key": "KSTK", "issueTypes": ["Task"], "defaultFields": {} }
+    ],
+    "credentialSource": {
+      "type": "env",
+      "emailEnvVar": "JIRA_EMAIL",
+      "tokenEnvVar": "JIRA_API_TOKEN"
+    },
+    "staticLabels": [],
+    "timeoutMs": 15000,
+    "maxAttempts": 3,
+    "approvalTtlMs": 86400000,
+    "dryRun": false,
+    "nodeMinVersion": "20.0.0"
+  },
+  "persistence": {
+    "scope": "project",
+    "crossSession": false,
+    "retainRawModelOutput": true,
+    "redactSecrets": true
+  },
+  "memory": {
+    "enabled": true,
+    "retrieval": "explicit",
+    "contextInjection": "disabled",
+    "engine": "pglite",
+    "bodyDirectory": "/mnt/e/Source/Projects/KStack-memory-body",
+    "indexDirectory": "/home/lr427/.kstack/memory-index/kstack",
+    "remote": "AuthorityGate/kstack-memory",
+    "namespace": "kstack",
+    "trust": "read-write",
+    "sync": "manual",
+    "resultLimit": 8,
+    "tokenBudget": 2000,
+    "authority": {
+      "createRepository": "ask",
+      "clone": "ask",
+      "fetch": "ask",
+      "integrate": "ask",
+      "commit": "ask",
+      "push": "ask",
+      "resolveConflicts": "ask"
+    }
+  },
+  "verification": {
+    "discoverRepositoryCommands": true,
+    "verifyToolchainRuntimeSeparatelyFromTargetCompatibility": true,
+    "requireArtifactIdentity": true,
+    "preserveUserData": true
+  }
+}

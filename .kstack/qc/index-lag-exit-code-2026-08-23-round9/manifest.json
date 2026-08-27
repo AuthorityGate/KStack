@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "status": "dual-complete",
+  "mode": "preferred",
+  "onUnavailable": "ask",
+  "configPath": "/mnt/e/Source/Projects/KStack/.kstack/config.json",
+  "projectRoot": "/mnt/e/Source/Projects/KStack",
+  "invocationId": "2d59fb9c-06df-4e11-b503-d9e8ab6d5ba7",
+  "designDigest": "f25a4f41906eb77bd9b9cb308e8093d8575324a2b2cac5e2c96dcdd8305bb113",
+  "createdAt": "2026-08-23T08:52:53.190Z",
+  "providers": {
+    "codex": {
+      "status": "complete",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-23T08:51:36.641Z",
+      "durationMs": 14821,
+      "rawOutputSha256": "9d05d5b61c047d2f183748351ec15f258390a95bc83081c8b1151dac86f9f322",
+      "envelopeSha256": "fb15637b5e5186af5a55bbbae68b7ec743fd5a8f51be3480c909de3ed22ea70d",
+      "configurationSha256": "214d5af00d3370a67ca6d33f028ade34ab02c45ea076b13ef891fd249f94746d"
+    },
+    "opus": {
+      "status": "complete",
+      "exitCode": 0,
+      "signal": null,
+      "startedAt": "2026-08-23T08:51:36.644Z",
+      "durationMs": 76442,
+      "rawOutputSha256": "515c0984082e19bb966a64047245da024b41ae1f1f35b0d0bdb91d208ad9c8ed",
+      "envelopeSha256": "20d30d4dc7f0f74ff57c7af9487e68a92173200dcc36b7e40c3d4060c11ca76d",
+      "configurationSha256": "c1c00a864dd8aecd38258b53d2047d8d01f98433d7246f07554a56db75beba74"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "role": "fable",
+  "status": "complete",
+  "configPath": "/mnt/e/Source/Projects/KStack/.kstack/config.json",
+  "projectRoot": "/mnt/e/Source/Projects/KStack",
+  "promptSha256": "5eb408c5a1ada994e1df3684c5c4a1420b99778b5266d5c0df2136d14c3ab63a",
+  "createdAt": "2026-08-17T21:16:09.587Z",
+  "exitCode": 0,
+  "signal": null,
+  "startedAt": "2026-08-17T21:16:09.587Z",
+  "durationMs": 495913,
+  "directiveFile": "/mnt/e/Source/Projects/KStack/.kstack/qc/jira-design-fable-round6/fable.md",
+  "directiveSha256": "ffd20617e444389d5b02a8ef650aba8373d563aa69ddce16cad72632944bf230",
+  "configurationSha256": "fa0597a6d44eeb2cb86914173ea525dc3164d205e4d52a70faf0598bc293fdbe"
+}

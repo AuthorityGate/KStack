@@ -1,0 +1,6 @@
+interface:
+  display_name: "KStack Objectives"
+  short_description: "Interrogate objectives, scope, and success criteria"
+  default_prompt: "Use $kstack-objectives to challenge and clarify this objective."
+policy:
+  allow_implicit_invocation: false

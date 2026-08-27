@@ -1,0 +1,24 @@
+{
+  "description": "KStack bounded safety policy: user and project evaluators; no host allow decisions.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/kstack-safety-hook.mjs\" --scope user",
+            "timeout": 2,
+            "statusMessage": "Checking KStack user safety policy"
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/kstack-safety-hook.mjs\" --scope project",
+            "timeout": 2,
+            "statusMessage": "Checking KStack project safety policy"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "2765ccde-d6b3-449d-89eb-b9e90c089ac9",
+  "designDigest": "45ee555a2957ede1c02ca9525309d6c1e064de01840baadb99be089baa20ddd1",
+  "rawOutputSha256": "9202433020db2ce1244b13788c5a923989e90053aa420b4f3e0e01c1f5c4e18d",
+  "review": {
+    "decision": "approve",
+    "confidence": 98,
+    "failedChecks": [],
+    "securityFindings": [],
+    "materialDissent": [],
+    "recommendation": "Pass. Observed evidence shows exit code 20 is collision-free, narrowly assigned only to measurable index-lag blocking, while duplicate detection, search failures, poll exhaustion, unmeasurable timestamps, future timestamps, and the separate retry-verification wait retain their prior codes. Tests cover all three affected commands and relevant boundary cases; the corrected consumer audit accounts for all 89 matches and separately checks package-script invocation forms.",
+    "strongestObjection": "The repository-only audit cannot rule out external installed-plugin wrappers that branch specifically on exit code 2. This is disclosed and is not blocking because the new result remains nonzero and therefore preserves generic failure handling; only an external caller's specialized messaging or recovery branch could change.",
+    "unresolvedQuestions": []
+  }
+}

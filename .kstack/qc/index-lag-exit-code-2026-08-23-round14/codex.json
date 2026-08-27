@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "845c233a-e84c-4785-bc61-6497243139d9",
+  "designDigest": "c621b6a6b690e5b8cd44bbfd88272f08df6a1a4d3b9b5e92b7fb3733694da3ad",
+  "rawOutputSha256": "ac8c6492d57cf2071b94243e8259f0c417ce03618e474146619daba4f4a972e6",
+  "review": {
+    "decision": "revise",
+    "confidence": 92,
+    "failedChecks": [
+      "The claimed repository-wide consumer-completeness check is not conclusive: searching for literal `kstack-jira` cannot detect invocation through the `jira` npm-script alias (for example, `npm run jira`), and piping line-oriented exit-status matches through `grep -i jira` only detects cases where the status idiom and Jira reference occur on the same line."
+    ],
+    "securityFindings": [],
+    "materialDissent": [
+      "The implementation diff and supplied tests support the exit-code behavior, but the packet's conclusion that no repository-internal consumer branches on the old code 2 is stronger than the reproduced search evidence establishes."
+    ],
+    "recommendation": "Revise the evidence, not the production design: add an unfiltered search for invocations of the `jira` npm-script alias and perform a file-level intersection or inspection of Jira-referencing files against exit-status/process-execution idioms so multiline consumers are covered. If those checks find no consumer, approve.",
+    "strongestObjection": "A JavaScript, shell, hook, or CI consumer could invoke `npm run jira` and inspect its status on another line; neither reproduced command would necessarily report it.",
+    "unresolvedQuestions": [
+      "Does a repository-wide search for `npm run jira`, equivalent package-manager alias invocations, and multiline/file-level process-status handling identify any consumer that distinguishes exit code 2 from other nonzero results?"
+    ]
+  }
+}

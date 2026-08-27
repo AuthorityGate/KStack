@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "opus",
+  "invocationId": "420c0567-61ae-4aa5-ae3d-729ebb693945",
+  "designDigest": "0f5f755defa1c24f4b14aa860fb5bcd3e916159dfd4f0dbaf93f48861aa1f5f6",
+  "rawOutputSha256": "af836a99ff7ba871365988315712100d7a9ce59294eb935e9b3add2d02b53f0b",
+  "review": {
+    "decision": "approve",
+    "confidence": 88,
+    "failedChecks": [
+      "Regression coverage for this round's actual change: the gate's `reason` field is a private return value consumed only by `gateExitCode()`, and `gateExitCode()` maps `MARKER_AGE_UNMEASURABLE` and `SEARCH_UNAVAILABLE` to the identical exit 2. No test in the packet asserts the returned label, so the round-6 edit is unobservable and unguarded — a future refactor could revert it to `SEARCH_UNAVAILABLE` with a green suite.",
+      "Consumer-grep comprehensiveness as stated: the grep is still string-literal (`kstack-jira`) and extension-scoped. It would not catch `makefile`/`GNUmakefile` (case), `.bat`/`.cmd`/`.psm1`, `.md`/`.json` hook or command definitions outside the six SKILL.md files that were hand-checked, or any caller that invokes the CLI indirectly (e.g. `npm run jira`) and then branches on `$?`. Residual risk is low, but the packet's word 'comprehensively' overstates what the evidence shows."
+    ],
+    "securityFindings": [],
+    "materialDissent": [
+      "I do not share the framing that motivated this round's change. The packet (and the round-5 Codex finding) calls the mislabeled `reason` 'semantically misleading telemetry'. It is not telemetry: the value is never logged, never serialized into the draft audit, and never returned to a caller — the AUDIT record for this case already, and independently, wrote `marker-age-unmeasurable`. The change is a correct internal-naming cleanup with zero observable effect, not a telemetry defect fix. This does not change my approve, but it means the round-5 'revise' was arguably a style finding rather than a real defect, and the fix's value is maintainability only.",
+      "Label asymmetry remains after this round: the below-floor branch returns `reason: INDEX_LAG` while auditing `marker-younger-than-index-lag-minimum`, whereas the unmeasurable branch returns and audits the same constant. If the goal of this round was label accuracy, that asymmetry is the one remaining instance of it. It is defensible (`INDEX_LAG` is the sentinel `gateExitCode()` keys on) and I would not hold the change for it, but it should be a deliberate decision rather than an oversight."
+    ],
+    "recommendation": "Approve and ship as-is. The three review questions check out against the diff. (1) Scoping is correct: only the `youngestMarkerAge === null` branch in `preMutationDuplicateGate()` changed to `MARKER_AGE_UNMEASURABLE`; the poll-exhaustion and search-failure returns still carry `SEARCH_UNAVAILABLE`, and `gateExitCode()` special-cases only `INDEX_LAG`, so all three continue to yield exit 2 — zero behavior change, confirmed by reading the mapping rather than by the test suite (which cannot distinguish them). (2) The exit-20 contract in `JIRA_QUEUE.md` and the usage string matches the code exactly, including the four exit-2 cases. (3) No scope creep: the diff is confined to the three declared files and adds nothing beyond the one return statement this round. Two cheap, optional follow-ups, neither blocking: add a single direct-unit assertion on the gate's returned `reason` for the three blocked-but-not-duplicate branches so the label cannot silently regress; and consider a small negative tolerance in `youngestMarkerAgeMs()` (clamp ages in roughly -2s..0 to 0) so an NTP/DST step does not reclassify genuine index lag as permanently 'unmeasurable' and drop it from exit 20 to exit 2.",
+    "strongestObjection": "The change this round cannot be verified by the evidence supplied. `npm test` passing proves nothing about it — the packet itself states no test asserts the field, and by construction no test can, because both labels produce identical exit codes and the field never reaches the audit log or stdout. The only evidence that the fix is correct and correctly scoped is reading the diff, which I have done and which supports the claim; but 'tests pass' should not be counted as verification here, and the change ships with no guard against regression.",
+    "unresolvedQuestions": [
+      "The corrected 'Accepted post-ship addition' note in `.kstack/decisions/jira-ticket-queue-final-spec-2026-08-17.md` is asserted to now name all four exit-2 cases, but that file is outside the diff and its text is not reproduced in the packet. I cannot confirm the correction, nor that it matches `JIRA_QUEUE.md` 'exactly' as claimed. Paste the amended paragraph, or accept it on the orchestrating session's word.",
+      "Moving this duplicate-gate case from exit 2 to exit 20 is a breaking change to a documented exit-code contract for any consumer outside this repository (this CLI ships as a plugin). The in-repo grep cannot speak to that. Was the out-of-repo blast radius accepted deliberately in an earlier round, and is there a release note or version bump carrying the change?",
+      "Is the `unavailable: true` property still returned by the blocked gate branches actually read by anyone? It does not appear to be consumed by `unfreezeDraft`, `submitDraft`, or `discardDraft` now that `reason` drives the exit code. If it is vestigial, it is a second stale label of exactly the kind this round set out to remove."
+    ]
+  }
+}

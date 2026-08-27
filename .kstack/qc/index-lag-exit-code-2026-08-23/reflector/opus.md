@@ -1,0 +1,1 @@
+NEVER classify a state whose defining measurement is missing or unparseable under an exit code that promises callers a transient, bounded wait — because a parse-failure sentinel such as age `0` satisfies the "young enough to retry" predicate forever, so callers loop indefinitely against a condition only human repair can clear.

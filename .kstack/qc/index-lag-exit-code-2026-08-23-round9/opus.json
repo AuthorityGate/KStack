@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "opus",
+  "invocationId": "2d59fb9c-06df-4e11-b503-d9e8ab6d5ba7",
+  "designDigest": "f25a4f41906eb77bd9b9cb308e8093d8575324a2b2cac5e2c96dcdd8305bb113",
+  "rawOutputSha256": "515c0984082e19bb966a64047245da024b41ae1f1f35b0d0bdb91d208ad9c8ed",
+  "review": {
+    "decision": "approve",
+    "confidence": 92,
+    "failedChecks": [
+      "Downstream-consumer audit for the new exit code is not evidenced in the packet: the diff updates exactly two surfaces (plugins/kstack/references/JIRA_QUEUE.md and the embedded help string in kstack-jira.mjs), but the spec's own §4 implementation note sets the standard that exit-code changes require verifying no stale/incomplete exit-code enumeration or branch survives anywhere in the repo (--help text, SKILL.md prose, scripts). No grep/inventory evidence is supplied showing that SKILL.md, calling skills, or wrapper scripts that branch on exit 2 were checked against the newly-split 20."
+    ],
+    "securityFindings": [],
+    "materialDissent": [],
+    "recommendation": "Approve the change as designed and implemented; the logic, docs, and tests in this packet are internally consistent and the new test assertions materially strengthen the previously weak exit-inventory check. Before merge, close the one outstanding verification item: run a repo-wide search for consumers and enumerations of the Jira CLI's exit codes (SKILL.md and other prose, calling skills, wrapper/CI scripts, any `=== 2` / `-eq 2` retry branch) and confirm that anything treating 2 as retry-worthy also accepts 20, since the design's stated intent is that 20 carries the same retry semantics as 2 and merely codes it distinctly. Paste that search output as the round-10 evidence rather than re-polling the same packet. Two non-blocking nits worth a line each, no code change required: (1) VERIFICATION_REASON is doing double duty as both an audit-`reason` vocabulary (`marker-younger-than-index-lag-minimum`, `marker-age-unmeasurable`, `search-unavailable`) and a gate control-flow discriminator (`index-lag`, which is never written to an audit entry) — a future \"cleanup\" that unifies those two vocabularies would silently break gateExitCode's mapping, so a one-line comment on the enum or on gateExitCode would be cheap insurance; (2) the strengthened exit-inventory self-test now pins numeric identity only for STATE_ERROR and INDEX_LAG_BLOCKED — the lock/fence codes 16–19 remain set-pinned only and could still be swapped undetected, which is out of scope here but is the same class of gap the audit just fixed.",
+    "strongestObjection": "Splitting one previously-generic failure code into two changes the contract seen by every caller, and the packet contains no evidence that callers were inventoried. Any skill, script, or CI step that currently treats exit 2 as the retry-worthy state-error condition will now see 20 for the index-lag case and may classify it as an unknown/fatal error — the exact opposite of the design's stated \"same retry semantics, distinctly coded\" intent. This is a behavioral regression risk that the passing 57/57 unit suite cannot detect, because every test asserts the CLI's own exit code and none exercises a consumer of it.",
+    "unresolvedQuestions": [
+      "Has a repo-wide search been run for consumers of kstack-jira.mjs's exit status that branch on 2 (retry-worthy state error), and do all of them also accept 20? This is the single concrete item holding confidence below 95: exit 20 is documented in JIRA_QUEUE.md and the embedded help, but the packet shows no SKILL.md diff and no grep evidence covering calling skills or wrapper/CI scripts, while the spec's own implementation note establishes that repo-wide check as the required standard for exit-code changes."
+    ]
+  }
+}

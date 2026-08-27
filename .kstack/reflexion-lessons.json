@@ -1,0 +1,184 @@
+[
+  {
+    "id": "cb622757-f0ba-409b-ba59-bbc5ffa75747",
+    "createdAt": "2026-08-23T03:45:53.881Z",
+    "taskSignature": [
+      "jira",
+      "ticket-queue",
+      "duplicate",
+      "locking"
+    ],
+    "rule": "NEVER let a safety or authorization gate arrive at its permissive branch by fall-through; compute the blocking verdict as the default and require affirmative, validated evidence to override it, so that malformed, missing, or unevaluable state lands in the blocking branch.",
+    "why": "A protective check that fails open is weakest against exactly the corrupted inputs it exists to defend against.",
+    "sourceFailure": "kstack-jira.mjs preMutationDuplicateGate: Date.parse(entry.at) on a malformed/missing timestamp produces NaN; NaN < VERIFY_CLEAR_MIN_AGE_MS evaluates false, so control fell through to the verify-clear (safe-to-POST) branch instead of blocking. Undetected by tests because the age comparison used raw Date.now() instead of the injectable clock used everywhere else in the codebase.",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "95acf076-7ba9-4119-8474-c483403dc44c",
+    "createdAt": "2026-08-23T04:44:58.992Z",
+    "taskSignature": [
+      "jira",
+      "ticket-queue",
+      "duplicate",
+      "resolve"
+    ],
+    "rule": "NEVER let a bulk or blanket \"dismiss all\" resolution path operate across evidence of mixed provenance. Partition candidates by origin and permit blanket dismissal only for externally-derived, inferential matches, requiring evidence the system recorded about its own side-effecting actions to be resolved individually by naming the specific artifact it produced.",
+    "why": "A blanket clear that reaches self-recorded evidence silently disarms every downstream gate that depends on that evidence.",
+    "sourceFailure": "kstack-jira.mjs resolveDraft: the --distinct branch's guard only blocks bulk dismissal from 'unknown' state when there is NO direct evidence; when direct evidence of the queue's own successful POST exists, --distinct dismisses it along with search-derived candidates via queueAudit('duplicate-dismissed', { dismissedKeys: candidates }), silently reopening the double-POST control that submit's pre-send duplicate gate (SEC-R17-3) was built to close.",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "e8143a52-7b4e-4454-b85e-6816924ae269",
+    "createdAt": "2026-08-23T05:07:24.688Z",
+    "taskSignature": [
+      "jira",
+      "ticket-queue",
+      "locking",
+      "recovery"
+    ],
+    "rule": "NEVER add a new event type or a new exit path to a flow whose invariants live in enumerated recognizers or per-path conventions without, in the same change, updating every encoding of that contract -- each list that must now recognize the new case, and each obligation the new path must itself perform -- or collapsing them into one shared helper that no path can bypass.",
+    "why": "A contract duplicated across sites fails silently at exactly the site never told about the new case.",
+    "sourceFailure": "kstack-jira.mjs: (a) reconcileDraft's aborted-before-post recovery writes a new submit-recovered audit event, but unresolvedSearchEvidence()'s enumerated resolving-event set (verify-clear/verify-confirmed/duplicate-acknowledged/duplicate-dismissed) was never updated to recognize it, forcing an unnecessary extra verification poll on a case the spec says should need none; (b) releaseDraftLock's 'release claim displaced another holder and was restored' exit path fails with EXIT.LOCK_FENCED_DIRTY like its three sibling paths, but unlike them does not call writeOrphan() first, losing the residue sidecar the fenced-exit contract depends on.",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "0b9e556b-d959-4e7c-93e0-d036a69824ba",
+    "createdAt": "2026-08-23T07:02:57.905Z",
+    "taskSignature": [
+      "jira",
+      "ticket-queue",
+      "offline",
+      "credential"
+    ],
+    "rule": "NEVER let a shared setup path -- config load, bootstrap, DI construction -- open, read, or parse a resource that only some callers consume; validate and materialize a credential, file, handle, or connection inside the command that actually uses it, at the moment it uses it.",
+    "why": "A precondition placed in the shared path silently becomes a precondition of every caller, including the one deliberately designed to have none.",
+    "sourceFailure": "kstack-config.mjs's validateCredentialFileConfig opens, reads, and JSON.parses the credential file at config-load time inside loadJiraState(), which every Jira command calls including the fully-offline draft command that the design's SS5/SS9 explicitly require to work with no credential available (so it can be reached from a sandboxed/credential-free calling context). This silently coupled an operation with zero preconditions to a resource it never touches, making draft fail closed whenever the credential file is absent, unreadable, or malformed.",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "5e24062f-6424-45f2-b592-ff4751a62b03",
+    "createdAt": "2026-08-23T07:53:43.035Z",
+    "taskSignature": [
+      "jira",
+      "exit-code",
+      "index-lag",
+      "marker-age"
+    ],
+    "rule": "NEVER classify a state whose defining measurement is missing or unparseable under an exit code that promises callers a transient, bounded wait — because a parse-failure sentinel such as age 0 satisfies the \"young enough to retry\" predicate forever, so callers loop indefinitely against a condition only human repair can clear.",
+    "why": "an unmeasurable-age sentinel of 0 always compares as younger than any floor, making a supposedly transient exit code permanently, silently unresolvable",
+    "sourceFailure": "kstack-jira.mjs's EXIT.INDEX_LAG_BLOCKED remediation routed markers with an unparseable/missing timestamp to the new transient-wait exit code because youngestMarkerAgeMs() returns 0 (not Infinity/error) on unparseable Date.parse, and the round-1 diff flipped the pre-existing 'missing timestamp' test's expected exit code to match the new (wrong) behavior instead of catching the regression",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "fd64133c-8b0c-45d9-9eea-cf086772a8c6",
+    "createdAt": "2026-08-25T17:19:33.762Z",
+    "taskSignature": [
+      "credential",
+      "attestation",
+      "q3-boundary"
+    ],
+    "applicabilityPhrases": [],
+    "rule": "NEVER treat a same-UID local credential-disposition attestation as a Q3 security boundary; the subject can forge the claim.",
+    "why": "The attesting actor cannot independently verify credential absence or revocation against itself.",
+    "sourceFailure": "Round 11 replaced verification with a self-produced credential-disposition assertion and combined confidence fell from 62 to 41.",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "ecfe06f3-d309-4207-b936-619b93fd1c9f",
+    "createdAt": "2026-08-25T17:19:34.239Z",
+    "taskSignature": [
+      "matcher",
+      "regexp",
+      "nfa"
+    ],
+    "applicabilityPhrases": [],
+    "rule": "NEVER replace bounded reviewed RegExp matchers with a bespoke NFA without a demonstrated security requirement; the custom engine adds attack surface and correctness risk.",
+    "why": "The existing capped and gated RegExp set is the smaller reviewed security mechanism.",
+    "sourceFailure": "Rounds 12 and 13 introduced a custom NFA compiler and interpreter while combined confidence fell from 41 to 38 and then 30.",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "5479ee6c-895b-4130-b9da-475a483a79d3",
+    "createdAt": "2026-08-25T17:19:34.691Z",
+    "taskSignature": [
+      "git-history",
+      "snapshot",
+      "same-uid"
+    ],
+    "applicabilityPhrases": [],
+    "rule": "NEVER require a private Git snapshot solely to hide reconstructable historical helper bytes from a same-UID actor; reconstruction adds no capability beyond the threat model.",
+    "why": "Credential validity is a separate owner residual-risk fact rather than a capability created by byte recovery.",
+    "sourceFailure": "The round-10 history blocker became snapshot architecture by round 13, but the same-UID actor already had arbitrary code execution and confidence reached 30 before falling to 18.",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "2b2ad487-7a26-4727-94c3-bc31a3c20ef8",
+    "createdAt": "2026-08-25T17:19:35.140Z",
+    "taskSignature": [
+      "launcher",
+      "native-binary",
+      "signing"
+    ],
+    "applicabilityPhrases": [],
+    "rule": "ALWAYS prefer a pinned static environment-scrubber command over per-platform native launchers for the v1 hook vehicle; it minimizes signing and supply-chain surface.",
+    "why": "Native launchers add toolchain, provenance, signing, notarization, distribution, and incident-response obligations.",
+    "sourceFailure": "Rounds 13 and 14 considered native launchers while combined confidence fell from 38 to 30 and then 18, and the simpler static scrubber met the v1 need.",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "d599aabe-c55d-401a-af82-6b770e70f657",
+    "createdAt": "2026-08-25T18:29:59.494Z",
+    "taskSignature": [
+      "capability-analysis",
+      "scope",
+      "static-graph"
+    ],
+    "applicabilityPhrases": [],
+    "rule": "NEVER scope a static-graph/capability-analysis claim to the entire distributed artifact including unrelated third-party dependencies; scope it to the actual safety-relevant module boundary.",
+    "why": "because unrelated dependency capabilities do not establish reachability on the credential/tool-call path",
+    "sourceFailure": "round-12-redo's closed-artifact-universe framework created a self-contradictory preview-cap timing requirement and an unbounded capability-analysis obligation over pglite/node-gyp, dropping confidence from 74 to 66",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "f5e03a0f-3a40-40d2-85e0-b253e2feeab0",
+    "createdAt": "2026-08-25T18:45:18.623Z",
+    "taskSignature": [
+      "safety-boundary",
+      "launch",
+      "spawn",
+      "upgrade"
+    ],
+    "applicabilityPhrases": [],
+    "rule": "NEVER call a bounded safety-module graph complete until its roots, non-ESM launch manifest, retained-process argv and environment, constructor seams, wire grammar, and upgrade selection order are exact and testable.",
+    "why": "because an omitted edge can bypass an otherwise correct narrow import graph",
+    "sourceFailure": "round-12-redo2 narrowed analysis correctly but left hooks launch, Git spawn hardening, constructor injection, response schemas, and pre-refresh upgrade selection incomplete, dropping confidence from 74 to 64",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  },
+  {
+    "id": "8762032b-faaf-4003-a2b9-315515f73972",
+    "createdAt": "2026-08-25T19:04:51.000Z",
+    "taskSignature": [
+      "launcher",
+      "git-config",
+      "manifest",
+      "capability-analysis"
+    ],
+    "applicabilityPhrases": [],
+    "rule": "NEVER call a bounded capability-free artifact exact while its launcher has a CWD/environment fallback, its Git child honors local config/helper execution, or its first-party check is semantic rather than a finite named lint.",
+    "why": "Those residual paths can execute or open content outside the enumerated roots even when roots, argv, schemas, and file names are otherwise explicit.",
+    "sourceFailure": "round-12-redo3 applied ten localized fixes but retained a dot launch fallback, local Git config/helper paths, an undefined content digest, and a semantic protected-path analysis; combined confidence fell from 74 to 43",
+    "occurrences": 1,
+    "promotedToClaudeMd": false
+  }
+]

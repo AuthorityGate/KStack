@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "role": "fable",
+  "status": "complete",
+  "configPath": "/mnt/e/Source/Projects/KStack/.kstack/config.json",
+  "projectRoot": "/mnt/e/Source/Projects/KStack",
+  "promptSha256": "898bc48f82f2cc270b9ecb529ec97d95f9880260efa30576134208edb80e548a",
+  "createdAt": "2026-08-26T04:00:52.563Z",
+  "exitCode": 0,
+  "signal": null,
+  "startedAt": "2026-08-26T04:00:52.563Z",
+  "durationMs": 183132,
+  "directiveFile": "/mnt/e/Source/Projects/KStack/.kstack/qc/citation-grounding-fable-round39/fable.md",
+  "directiveSha256": "7d5c9c1d845a2bcf3f31d793c7175da52a4352cbef8a16ad67078d69d2c607c0",
+  "configurationSha256": "fa0597a6d44eeb2cb86914173ea525dc3164d205e4d52a70faf0598bc293fdbe"
+}

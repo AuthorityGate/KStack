@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "1094a3e2-87f6-434c-a7f5-1d603c87a3fb",
+  "designDigest": "124784b99babc55a5235e2ce81717433bb6d698fb9663ac2ca2893c67a27bed5",
+  "rawOutputSha256": "de30af724db2aebb74ac8305e543d407a641209d015af2a2be200bca62fc1a5e",
+  "review": {
+    "decision": "revise",
+    "confidence": 90,
+    "failedChecks": [
+      "The supplied standalone alias-invocation search does not support the claim that every alias form was audited. Its regex misses the previously identified valid forms `yarn run jira`, `pnpm run jira`, quoted forms such as `npm run \"jira\"`, and option-bearing invocations. The unrestricted `kstack-jira.mjs` scans cannot detect those alias-only consumers."
+    ],
+    "securityFindings": [],
+    "materialDissent": [
+      "I do not accept the packet's conclusion that the round-15 alias-search gap is closed: the displayed command retains the same material omissions, despite the narrative claiming broader coverage."
+    ],
+    "recommendation": "Revise the audit evidence with a repository-wide, known-positive-validated search that demonstrably matches quoted, option-bearing, `run`/`run-script`, npm, yarn, pnpm, and npm-run-all alias invocations; then repeat the whole-file intersection between those matches and status-branching idioms. No production-code change is indicated by the supplied evidence.",
+    "strongestObjection": "The definitive consumer-audit conclusion depends on alias coverage, but the only displayed standalone alias regex still fails known-valid alias forms explicitly identified in round 15.",
+    "unresolvedQuestions": [
+      "Does a correctly validated repository-wide search for all supported package-manager alias syntaxes produce zero live matches?"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "KStack Design"
+  short_description: "Run dual-model product and technical design review"
+  default_prompt: "Use $kstack-design to review this design with Codex and Opus."
+policy:
+  allow_implicit_invocation: false

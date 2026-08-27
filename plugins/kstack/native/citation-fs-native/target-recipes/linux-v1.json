@@ -1,0 +1,8 @@
+{
+  "targetRecipeVersion": "kstack-citation-native-target-recipe-v1",
+  "componentVersion": "1.0.0",
+  "napiVersion": 8,
+  "nodeGypVersion": "11.4.2",
+  "qualificationBudgetEpoch": "d926c9f0cf6f498c8602dd41e98c65a7",
+  "targets": ["linux-x64-gnu", "linux-arm64-gnu"]
+}

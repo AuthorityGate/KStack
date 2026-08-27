@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "role": "fable",
+  "status": "complete",
+  "configPath": "/mnt/e/Source/Projects/KStack/.kstack/config.json",
+  "projectRoot": "/mnt/e/Source/Projects/KStack",
+  "promptSha256": "9473a53e9ec7ab0693dbe1d172afdba1f42fd7167dad74530d01336cec592fd3",
+  "createdAt": "2026-08-17T22:44:41.347Z",
+  "exitCode": 0,
+  "signal": null,
+  "startedAt": "2026-08-17T22:44:41.348Z",
+  "durationMs": 582083,
+  "directiveFile": "/mnt/e/Source/Projects/KStack/.kstack/qc/jira-design-fable-round12-locking/fable.md",
+  "directiveSha256": "91849d8b991ef7b6ce3898b1f324209793cedac7d37da0d2ad07510be8690976",
+  "configurationSha256": "fa0597a6d44eeb2cb86914173ea525dc3164d205e4d52a70faf0598bc293fdbe"
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "opus",
+  "invocationId": "49018ac0-1fed-44c6-b1a4-e89971370be2",
+  "designDigest": "e1c6d2741f8d450a27c34d854f4af6ec625f72fc972a606d5a1a565c21ad230b",
+  "rawOutputSha256": "5d1abc7474bbab9fba5a5841ef4f19902c92f30c36757b68ac255d1386081274",
+  "review": {
+    "decision": "revise",
+    "confidence": 72,
+    "failedChecks": [
+      "Verification evidence is internally inconsistent: the packet reports `npm test` → `tests: 9 / pass: 9`, but the diff context for `tests/jira-queue.test.mjs` alone shows well over nine `test(...)` blocks (and three new ones were added). Either only a subset of the suite ran, or the reported counter is not the total-test counter. The round-2 fix therefore has no trustworthy green-suite evidence behind it.",
+      "No test covers the `runVerification()` half of the round-2 change. The diff alters that function's audit `reason` to distinguish `'marker-age-unmeasurable'` from `'marker-younger-than-index-lag-minimum'`, and adds `markerAgeMeasurable` to the `canClear` conjunction, but every new/changed test exercises only `preMutationDuplicateGate` via `unfreeze`/`submit`/`discard`. The `canClear` tightening is a real behavioural change (an unmeasurable-age marker can no longer be cleared by explicit verify) and is unasserted.",
+      "Negative/future marker age is still classified as retryable index lag. `youngestMarkerAgeMs()` returns a finite number for a marker whose `at` parses to a future instant; `age < minimumMarkerAgeMs` is then true, yielding `reason: 'index-lag'` → exit 20. A draft carrying a far-future timestamp (clock skew or the same hand-corrupted-draft threat model that produced the round-1 defect) would tell callers 'wait and retry' forever — the identical failure class round 1 rejected, reached through a different input. No lower bound (e.g. `age >= 0`) guard exists.",
+      "The exit-20 contract is asserted only for dry-run `submit`; no test covers the live (`--live`) submit path reaching `EXIT.INDEX_LAG_BLOCKED`, even though the docs claim dry-run *can* return 20 (implying live can too)."
+    ],
+    "securityFindings": [
+      {
+        "id": "SF-1",
+        "severity": "medium",
+        "summary": "Indefinite-retry signalling via attacker/corruption-controlled timestamp. Marker `at` values originate from draft audit rows on disk. A future-dated `at` makes age negative → below floor → exit 20 ('transient, retry'), so an automated caller that loops on exit 20 will never escalate to a human. This converts a permanently-stuck draft into an unbounded retry loop against Jira (repeated authenticated searches per retry). The round-2 fix closed the unparseable-timestamp variant but not the out-of-range-timestamp variant of the same integrity gap."
+      },
+      {
+        "id": "SF-2",
+        "severity": "low",
+        "summary": "Exit-code contract widening without independently verified consumer inventory. Exit 2 → 20 for the duplicate-gate case is a public-contract change on a security-adjacent CLI; the claim that no wrapper/skill/CI path branches on exit 2 is implementer self-report only. A missed consumer that treats non-2 as 'unexpected/ignore' could silently swallow a block that previously halted a submit path."
+      }
+    ],
+    "materialDissent": [
+      "I do not accept the packet's framing that round 1's defect class is now closed. It is closed for one input (unparseable/missing `at`) and left open for an adjacent one (future-dated `at`). If the other reviewer marks this `pass` on the grounds that both round-1 critiques were literally satisfied, I dissent: the stated invariant in the packet is 'exit 20 applies solely while waiting for index lag', and a future timestamp violates that invariant just as squarely as a missing one.",
+      "I do not treat the reported `npm test` output as passing evidence for this round. A nine-test result against a suite that visibly contains more than nine tests is not a green run; it is an unexplained measurement. Approving on it would be accepting an unverified claim as verification."
+    ],
+    "recommendation": "Revise, then re-run round 3 on a narrow delta — do not redesign. The core contract change (`Infinity` for no markers / `null` for unmeasurable / finite ms otherwise) is correct and correctly ordered: `preMutationDuplicateGate` guards `youngestMarkerAge === null` *before* the `< minimumMarkerAgeMs` comparison, which is essential because `null < 30000` coerces to true in JS; `Infinity` is unreachable in that function (the early `if (!unresolvedSearchEvidence(draft).length) return { blocked: false }` guarantees a non-empty marker list) and remains benign in `runVerification` (`Infinity >= min` → clearable, pre-existing behaviour, and the `markers.length` guard suppresses the reason field). Scope is clean: no change to duplicate detection, polling, or the 30s floor VALUE — only classification, exit mapping, docs, tests. Required before pass: (1) treat a negative age (future-dated marker) as unmeasurable — fold it into the same `null` return or add an `age >= 0` condition to the index-lag branch — and add a test asserting future-dated marker → exit 2 with `reason: 'marker-age-unmeasurable'`; (2) add direct coverage of `runVerification` for both audit reasons and for the `canClear` tightening under an unmeasurable-age marker; (3) re-run the full suite and report the real total with the command line used, explaining the 9-test figure; (4) have the orchestrating session (not the implementer) run and paste the exit-2 consumer grep, since the exit-code contract is the deliverable. Optional: assert exit 20 on a live submit. Round-1 secondary items are genuinely addressed, not cosmetic — the submit test now asserts draft state, attempt count, and the trailing audit event; both doc sites enumerate poll-exhaustion, search-failure, unmeasurable-age, and submit's retry-verification wait as still exit 2, and narrow exit 20 to the pre-mutation duplicate gate specifically.",
+    "strongestObjection": "The fix repairs the specific input round 1 named rather than the invariant round 1 stated. Both reviewers' actual complaint was 'exit 20 must mean demonstrably-young-and-therefore-retryable'; the implementation now enforces 'parseable', which is strictly weaker. A marker whose `at` parses to a future instant yields a finite negative age, satisfies `youngestMarkerAge < minimumMarkerAgeMs`, and routes to `EXIT.INDEX_LAG_BLOCKED` — a permanently-stuck draft again presented to callers as a transient wait, which is precisely the regression from generic exit 2 that Opus round 1 described. One added condition (`age >= 0`, or returning `null` for negative ages) closes it.",
+    "unresolvedQuestions": [
+      "Why does `npm test` report 9 tests when `tests/jira-queue.test.mjs` visibly contains substantially more than 9 `test(...)` blocks? What exact command was run, and does it cover the whole suite or a single filtered file?",
+      "Does `makeState(fetchImpl, overrides)` actually accept a second `overrides` argument? The new poll-exhaustion test depends on it, and the overrides it passes (`minimumProbes: 2` with `maximumProbes: 1`) are internally contradictory — if overrides are silently ignored, that test could pass for the wrong reason (search simply returning zero matches and hitting a different exit-2 branch) rather than by genuinely exhausting the poll.",
+      "Are there other callers of `youngestMarkerAgeMs()` outside the two shown? The diff is asserted to be complete and cumulative, and only two call sites appear, but the packet cannot demonstrate the absence of a third; a caller still assuming a numeric return would now compare against `null`.",
+      "Is exit 20 documented anywhere else that was not updated — specifically `plugins/kstack/skills/kstack-jira/SKILL.md` or the frozen decision spec `.kstack/decisions/jira-ticket-queue-final-spec-2026-08-17.md`, which the packet does not include in the diff? A public exit-code inventory that still says 'state errors are exit 2' would now be wrong.",
+      "What is the intended caller contract for exit 20 — how long should a caller wait, and how many retries before escalating? Neither doc site states a bound, and without one an automated consumer has no defined exit from the retry loop even in the legitimate index-lag case."
+    ]
+  }
+}

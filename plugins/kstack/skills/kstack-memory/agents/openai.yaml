@@ -1,0 +1,7 @@
+interface:
+  display_name: "KStack Memory"
+  short_description: "Explicit local memory and private body sync"
+  default_prompt: "Use $kstack-memory to configure or query KStack memory explicitly."
+
+policy:
+  allow_implicit_invocation: false

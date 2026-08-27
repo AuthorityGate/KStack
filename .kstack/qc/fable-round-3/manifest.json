@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "role": "fable",
+  "status": "complete",
+  "configPath": "/mnt/e/Source/Projects/KStack/.kstack/config.json",
+  "projectRoot": "/mnt/e/Source/Projects/KStack",
+  "promptSha256": "8dd208964f7f604f848562ac788887adf05e2b251ec3012d1631c176ccc49724",
+  "createdAt": "2026-08-23T05:08:32.213Z",
+  "exitCode": 0,
+  "signal": null,
+  "startedAt": "2026-08-23T05:08:32.213Z",
+  "durationMs": 327359,
+  "directiveFile": "/mnt/e/Source/Projects/KStack/.kstack/qc/fable-round-3/fable.md",
+  "directiveSha256": "c10cfe181dec182502b2db992f9dce1374636071f7d990ff7d55f643d2d9860c",
+  "configurationSha256": "fa0597a6d44eeb2cb86914173ea525dc3164d205e4d52a70faf0598bc293fdbe"
+}

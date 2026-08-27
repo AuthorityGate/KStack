@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "codex",
+  "invocationId": "fb55e96a-6d44-4cfe-b3df-46cd573873ed",
+  "designDigest": "668bad9a29f13eb5c600b6e0342019386f66e1fa7429c28cf982a655a72738e3",
+  "rawOutputSha256": "e7da1f3b4ab36cd1e4dcdf41f91d56c04583ab16760fb402d7be95a3d8d2e330",
+  "review": {
+    "decision": "approve",
+    "confidence": 99,
+    "failedChecks": [],
+    "securityFindings": [],
+    "materialDissent": [],
+    "recommendation": "Approve the exact design. The supplied evidence closes the sole round-18 documentation question, and the implementation, tests, and three prose surfaces consistently define exit code 20 while preserving exit code 2 for other inconclusive paths.",
+    "strongestObjection": "No material objection remains. The only residual limitation is that repository searches cannot identify out-of-repository consumers that explicitly compare the prior exit code to 2; generic nonzero handling remains compatible.",
+    "unresolvedQuestions": []
+  }
+}

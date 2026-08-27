@@ -1,0 +1,6 @@
+interface:
+  display_name: "KStack QC"
+  short_description: "Review implementation before completion"
+  default_prompt: "Use $kstack-qc to review this implementation before declaring it complete."
+policy:
+  allow_implicit_invocation: false

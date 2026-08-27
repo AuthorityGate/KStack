@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "opus",
+  "invocationId": "df13554e-e42d-459d-b5fd-0d370ff84b2e",
+  "designDigest": "27dcf176749c456e5d6a9a0a9fc6e7c25472e21c8dee8d4721de93ee0a181141",
+  "rawOutputSha256": "088026b67a2da7a53d87843d1ef8da752cdde60c8dbd5d58358546a83a52a582",
+  "review": {
+    "decision": "revise",
+    "confidence": 72,
+    "failedChecks": [
+      "Packet completeness: the section titled 'Full cumulative diff' contains no diff. It defers to `brief-round9.md`, a file this reviewer cannot open under the packet-only constraint. The same standard Opus applied in round 9 (narrative claims from prior rounds are not reviewable evidence) applies here — 'identical to round 9' is unverifiable to a reviewer who never saw round 9.",
+      "Evidence/method mismatch: the verdict claims no consumer invokes the script 'directly or through the `npm run jira` package-script alias', but the only search method shown is a literal `grep -rn \"kstack-jira\"`. That pattern cannot match an `npm run jira` / `npm-run-all jira` / Makefile-target invocation, so the alias half of the verdict is asserted rather than evidenced.",
+      "Audit scope is repository-internal only; no statement is made about out-of-repo consumers of a script that ships under `plugins/kstack/` as distributable plugin content."
+    ],
+    "securityFindings": [
+      {
+        "id": "QC10-EXITCODE-MISCLASSIFY",
+        "severity": "low",
+        "summary": "Splitting a condition out of exit 2 into exit 20 is a behavioral contract change for any automation that classifies retryable vs. fatal by exit status. In-repo evidence shows no such classifier, but an external operator wrapper falling through to a default branch could silently treat a fatal Jira condition as non-fatal (or vice versa). No exploitable vulnerability is evident from the supplied material; impact is operational correctness, not privilege or data exposure."
+      },
+      {
+        "id": "QC10-AUDIT-PROVENANCE",
+        "severity": "low",
+        "summary": "The audit is presented as raw grep counts (89 files, 87 archival, 11 live — note these do not sum consistently) with no verbatim command transcript included. The reviewer must trust the summarizer's classification of which hits are 'archival' vs. 'live' rather than verify it, which is the same class of unverifiable-narrative gap this round was convened to close."
+      }
+    ],
+    "materialDissent": [
+      "I do not accept the inference 'no in-repo consumer branches on 2' => 'the new exit code 20 cannot break any existing consumer's retry/fatal classification.' The script is distributed plugin content under `plugins/kstack/scripts/`; a repository-scoped grep bounds only the repository, not the installed-consumer population. The correct claim is 'no in-repo consumer is affected'.",
+      "I dissent from treating this round as evidence-complete. The round's stated purpose was to convert a narrative claim into packet evidence; it did so for direct `kstack-jira` references while introducing a fresh narrative-only claim about the npm alias, and it dropped the diff itself to a file reference. Net packet verifiability did not clearly improve.",
+      "Arithmetic in the audit does not reconcile as written: 89 total with 87 archival leaves 2, but 11 files are then enumerated as 'the remaining' live references. Either the totals or the partition is misstated; as supplied I cannot tell which, and it bears directly on whether the search space was fully triaged."
+    ],
+    "recommendation": "Do not approve on this packet. Two mechanical fixes make this approvable, and neither requires a production-code change (qcFixRound can stay 4): (1) embed the actual cumulative diff inline in the packet — all four files, full hunks — rather than referencing `brief-round9.md`, so the design under review is present in the artifact being reviewed; (2) re-run the consumer audit with a second pattern set that can actually reach the alias path (`npm run jira`, `run jira`, `npm-run-all`, `pnpm jira`, `yarn jira`, plus Makefile/`.sh`/`.ps1`/workflow targets) and paste the verbatim command lines and raw output counts, and reconcile the 89/87/11 partition. Additionally, state explicitly and in one line whether `kstack-jira.mjs` is treated as an internal script or as distributed plugin content with external operators; if the latter, the JIRA_QUEUE.md change should be accompanied by a release-note/compat statement that exit 2 has been narrowed and 20 added, rather than a documentation-only update. Substantively I expect the change to be correct — exit 20 sits outside Node's reserved 1–12 range and outside the shell-reserved 126+ range, and the in-repo audit is directionally convincing — so this is a packet-evidence revision, not a redesign.",
+    "strongestObjection": "The packet asks me to confirm I reviewed \"this evidence and the full diff,\" but the full diff is not in the packet — it is a pointer to `brief-round9.md`, which the packet itself says I cannot read. Round 9's blocking question established the rule that a claim outside the reviewed packet is not evidence; applying that rule consistently, \"production code is identical to round 8/9\" is exactly such a claim, and it is the load-bearing premise for approving without re-reviewing the implementation. I cannot certify readiness to implement a design whose text I have not been shown, regardless of how well-supported the auxiliary consumer audit is.",
+    "unresolvedQuestions": [
+      "Where is the cumulative diff? Supply the full text of the changes to `kstack-jira.mjs`, `tests/jira-queue.test.mjs`, `plugins/kstack/references/JIRA_QUEUE.md`, and the decision doc inline in the packet — this is the single concrete item preventing a >=95 score.",
+      "What search established that nothing invokes the `npm run jira` alias? The disclosed `grep -rn \"kstack-jira\"` cannot match that invocation form; provide the alias-targeted command and its output.",
+      "How does the 89-file total partition into 87 archival + 11 live? As written the counts do not sum, leaving it unclear whether the full hit set was triaged.",
+      "Is `kstack-jira.mjs` consumed only inside this repository, or is it shipped to external operators as installed plugin content? If the latter, what compatibility/release-note treatment does narrowing exit 2 and adding exit 20 receive?",
+      "Which specific failure condition moved from 2 to 20, and what is the documented retry semantics of each after the split? This is not stated in prose anywhere in the packet, so it cannot be checked against the JIRA_QUEUE.md wording that the diff updates."
+    ]
+  }
+}

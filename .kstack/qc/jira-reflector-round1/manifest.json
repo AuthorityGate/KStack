@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "role": "opus",
+  "status": "complete",
+  "configPath": "/mnt/e/Source/Projects/KStack/.kstack/config.json",
+  "projectRoot": "/mnt/e/Source/Projects/KStack",
+  "promptSha256": "9befaf5ad59a3774f4acc9238b9552698a72b6acdfbe8029b3f83e8b20f176cf",
+  "createdAt": "2026-08-23T03:44:05.935Z",
+  "exitCode": 0,
+  "signal": null,
+  "startedAt": "2026-08-23T03:44:05.935Z",
+  "durationMs": 99039,
+  "directiveFile": "/mnt/e/Source/Projects/KStack/.kstack/qc/jira-reflector-round1/opus.md",
+  "directiveSha256": "6049fd3d8a8bd167587b70986d329f9f3ddf0fa11a0a1af9720b19485ddbdfc5",
+  "configurationSha256": "c1c00a864dd8aecd38258b53d2047d8d01f98433d7246f07554a56db75beba74"
+}
