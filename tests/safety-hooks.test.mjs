@@ -19,7 +19,7 @@ import { readActivation } from '../plugins/kstack/scripts/kstack-safety-hook.mjs
 const hex = (value) => value.repeat(64).slice(0, 64);
 const TEST_AUTHORITY = Object.freeze({
   inspect: 'allow', edit: 'allow', test: 'allow', commit: 'ask', push: 'ask', pullRequest: 'ask', merge: 'ask',
-  deploy: 'deny', deviceInstall: 'deny', destructive: 'ask', externalTicketCreation: 'ask'
+  deploy: 'deny', deviceInstall: 'deny', destructive: 'ask', externalTicketCreation: 'ask', jiraAdministration: 'ask'
 });
 
 function request(action = 'provider-pr-create', overrides = {}) {
@@ -724,6 +724,12 @@ test('host hook enforces Claude mediation, Codex deny-only asymmetry, disclosure
   assert.match(claudeCommit.hookSpecificOutput.permissionDecisionReason, /prepare\/execute/u);
   assert.equal((await evaluateSafetyHook({ ...base, prompt_id: 'p', tool_input: { command: 'git rebase main' } })).hookSpecificOutput.permissionDecision, 'deny');
   assert.equal((await evaluateSafetyHook({ ...base, prompt_id: 'p', tool_input: { command: 'git status' } })).hookSpecificOutput, undefined);
+  const jiraAdmin = await evaluateSafetyHook({ ...base, prompt_id: 'p', tool_input: { command: 'node plugins/kstack/scripts/kstack-jira-bootstrap.mjs apply' } });
+  assert.equal(jiraAdmin.hookSpecificOutput.permissionDecision, 'deny');
+  assert.match(jiraAdmin.hookSpecificOutput.permissionDecisionReason, /prepare\/execute/u);
+  const codexJiraAdmin = await evaluateSafetyHook({ ...base, model: 'gpt', turn_id: 'turn', tool_input: { command: 'node plugins/kstack/scripts/kstack-jira-bootstrap.mjs apply' } });
+  assert.equal(codexJiraAdmin.hookSpecificOutput.permissionDecision, 'deny');
+  assert.match(codexJiraAdmin.hookSpecificOutput.permissionDecisionReason, /owner runs the approved host-side command/u);
 
   const codexCommit = await evaluateSafetyHook({ ...base, model: 'gpt', turn_id: 'turn', tool_input: { command: 'git commit -m safe' } });
   assert.equal(codexCommit.hookSpecificOutput, undefined);
@@ -797,7 +803,7 @@ test('activation is idempotent, preserves explicit disablement, and reports cont
   const pluginRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-safety-admin-plugin-'));
   writePolicy(projectRoot);
   const sourceRoot = path.resolve('plugins/kstack');
-  for (const relative of ['hooks/hooks.json', 'scripts/kstack-safety-admin.mjs', 'scripts/kstack-safety-broker.mjs', 'scripts/kstack-safety-executor.mjs', 'scripts/kstack-safety-worker.mjs', 'scripts/kstack-git-askpass.mjs', 'scripts/kstack-safety-hook.mjs', 'scripts/kstack-safety-matchers.mjs']) {
+  for (const relative of ['hooks/hooks.json', 'scripts/kstack-safety-admin.mjs', 'scripts/kstack-safety-broker.mjs', 'scripts/kstack-safety-executor.mjs', 'scripts/kstack-safety-worker.mjs', 'scripts/kstack-git-askpass.mjs', 'scripts/kstack-jira-bootstrap.mjs', 'scripts/kstack-safety-hook.mjs', 'scripts/kstack-safety-matchers.mjs']) {
     fs.mkdirSync(path.dirname(path.join(pluginRoot, relative)), { recursive: true });
     fs.copyFileSync(path.join(sourceRoot, relative), path.join(pluginRoot, relative));
   }

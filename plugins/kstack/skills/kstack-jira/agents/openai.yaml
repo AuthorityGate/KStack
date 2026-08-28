@@ -1,6 +1,6 @@
 interface:
-  display_name: "KStack Jira Drafting"
-  short_description: "Draft an offline Jira queue item"
-  default_prompt: "Use $kstack-jira to draft a local Jira queue item without contacting Jira."
+  display_name: "KStack Jira"
+  short_description: "Draft Jira work or preview delivery onboarding"
+  default_prompt: "Use $kstack-jira to draft Jira work or preview this repository's Jira delivery stack without applying an external mutation."
 policy:
   allow_implicit_invocation: false

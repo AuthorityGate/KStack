@@ -133,11 +133,18 @@ coarser grain than individual claims.
 
 ## Optional Jira drafting
 
-When `jira.enabled` is true and the design produces a concrete follow-up, offer
-the sibling `kstack-jira` extension. It may call only the fully offline `draft`
-command—never `approve`, `submit`, or any Jira network command. Treat
-`authority.externalTicketCreation` as a calling-skill convention, not an
-enforced CLI boundary.
+When `jira.enabled` is true, read `.kstack/jira-delivery-stack.json` before
+offering Jira linkage. Only `existing-validated` and `verified` prove a usable
+delivery mapping. Treat `skipped` as an owner choice and every other state as a
+release-readiness gap. Never infer a backlog from `jira.projects[]` alone.
+
+When the design produces a concrete follow-up and the mapping is validated,
+offer the sibling `kstack-jira` extension. It may call only the fully offline
+`draft` command—never `approve`, `submit`, or another Jira mutation. A design
+may offer an offline `kstack-jira-bootstrap.mjs preview` for missing onboarding,
+but never validate, approve, or apply it. Treat `authority.externalTicketCreation`
+as a calling-skill convention, not an enforced CLI boundary, and never treat it
+as Jira-administration authority.
 
 ## Optional memory ingestion
 

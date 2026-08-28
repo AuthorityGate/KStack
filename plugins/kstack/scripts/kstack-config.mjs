@@ -122,7 +122,8 @@ export const defaultConfig = {
     deploy: "deny",
     deviceInstall: "ask",
     destructive: "ask",
-    externalTicketCreation: "ask"
+    externalTicketCreation: "ask",
+    jiraAdministration: "ask"
   },
   jira: {
     enabled: false,
@@ -466,8 +467,9 @@ export function validateConfig(config, options = {}) {
     }
   }
 
-  for (const key of ['inspect', 'edit', 'test', 'commit', 'push', 'pullRequest', 'merge', 'deploy', 'deviceInstall', 'destructive', 'externalTicketCreation']) {
-    need(allowed.authority.has(config.authority?.[key]), `authority.${key} is invalid`);
+  for (const key of ['inspect', 'edit', 'test', 'commit', 'push', 'pullRequest', 'merge', 'deploy', 'deviceInstall', 'destructive', 'externalTicketCreation', 'jiraAdministration']) {
+    const value = key === 'jiraAdministration' && config.authority?.[key] === undefined ? 'deny' : config.authority?.[key];
+    need(allowed.authority.has(value), `authority.${key} is invalid`);
   }
   validateJiraConfig(config.jira, errors);
   if (config.jira?.credentialSource?.type === 'file' && options.configPath) {

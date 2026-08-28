@@ -7,11 +7,12 @@ import { findOutboundSecret } from './kstack-safety-matchers.mjs';
 
 const INPUT_LIMIT = 8 * 1024;
 const OUTPUT_LIMIT = 4 * 1024;
-const ASK_FAMILIES = new Set(['git-commit', 'git-push', 'git-merge', 'git-destructive', 'git-unsupported', 'provider-pr-create', 'provider-merge', 'external-ticket-create']);
-const AUTHORITY_KEYS = Object.freeze(['inspect', 'edit', 'test', 'commit', 'push', 'pullRequest', 'merge', 'deploy', 'deviceInstall', 'destructive', 'externalTicketCreation']);
+const ASK_FAMILIES = new Set(['git-commit', 'git-push', 'git-merge', 'git-destructive', 'git-unsupported', 'provider-pr-create', 'provider-merge', 'external-ticket-create', 'jira-administration']);
+const AUTHORITY_KEYS = Object.freeze(['inspect', 'edit', 'test', 'commit', 'push', 'pullRequest', 'merge', 'deploy', 'deviceInstall', 'destructive', 'externalTicketCreation', 'jiraAdministration']);
 const FAMILY_AUTHORITY = Object.freeze({
   'git-commit': 'commit', 'git-push': 'push', 'git-merge': 'merge', 'git-destructive': 'destructive',
   'provider-pr-create': 'pullRequest', 'provider-merge': 'merge', 'external-ticket-create': 'externalTicketCreation',
+  'jira-administration': 'jiraAdministration',
   deploy: 'deploy', 'device-install': 'deviceInstall'
 });
 const BROKER_ACTION_FAMILY = Object.freeze({
@@ -20,7 +21,7 @@ const BROKER_ACTION_FAMILY = Object.freeze({
 });
 const SECRET_NAMES = /\b(?:ANTHROPIC_API_KEY|OPENAI_API_KEY|JIRA_API_TOKEN|ATLASSIAN_API_TOKEN|AWS_SECRET_ACCESS_KEY|GITHUB_TOKEN|GH_TOKEN|NPM_TOKEN|PASSWORD|PASSWD|CLIENT_SECRET|ACCESS_TOKEN)\b/iu;
 const SECRET_PATHS = /(?:^|[\s'"=:/\\])(\.env(?:\.[A-Za-z0-9_.-]+)?|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.aws[\\/]credentials|\.config[\\/]gh[\\/]hosts\.yml|\.ssh[\\/](?:id_[A-Za-z0-9_-]+|config)|credentials?\.json)(?:$|[\s'";,/\\])/iu;
-const CONTROL_PATHS = /(?:^|[\s'"=:/\\])(?:\.kstack[\\/](?:config\.json|safety-hooks\.json)|\.claude[\\/](?:settings(?:\.local)?\.json|hooks)|\.codex[\\/](?:config\.toml|hooks)|\.(?:codex|claude)-plugin[\\/](?:plugin|marketplace)\.json|setup|kstack-(?:git-askpass|safety-(?:admin|hook|broker|executor|worker|matchers))\.mjs)(?:$|[\s'";,/\\])/iu;
+const CONTROL_PATHS = /(?:^|[\s'"=:/\\])(?:\.kstack[\\/](?:config\.json|safety-hooks\.json)|\.claude[\\/](?:settings(?:\.local)?\.json|hooks)|\.codex[\\/](?:config\.toml|hooks)|\.(?:codex|claude)-plugin[\\/](?:plugin|marketplace)\.json|setup|kstack-(?:git-askpass|jira-bootstrap|safety-(?:admin|hook|broker|executor|worker|matchers))\.mjs)(?:$|[\s'";,/\\])/iu;
 const DIRECT_BROKER = /(?:^|[\s'"/])kstack-(?:git-askpass|safety-(?:broker|executor|worker))\.mjs(?:$|[\s'";])/iu;
 
 function response(decision, reason, host) {
@@ -90,6 +91,7 @@ export function classifySafetyAction(input) {
   if (/(?:^|[;&|]\s*|\b)rm\s+(?:-[A-Za-z]*r[A-Za-z]*|--recursive)\b/iu.test(text)) return 'git-destructive';
   if (/\bgh\s+pr\s+create\b/iu.test(text)) return 'provider-pr-create';
   if (/\bgh\s+pr\s+merge\b/iu.test(text)) return 'provider-merge';
+  if (/\bkstack-jira-bootstrap\.mjs\s+(?:approve|apply)\b/iu.test(text)) return 'jira-administration';
   if (/\b(?:kstack-jira\.mjs|npm\s+run\s+jira\s+--)\s+submit\b|\b(?:jira|acli)\s+(?:issue|ticket)\s+create\b|\bgh\s+issue\s+create\b/iu.test(text)) return 'external-ticket-create';
   if (/\bgit\b/iu.test(text)) {
     const unsafeOption = /(?:^|\s)(?:-c|--config-env|--paginate|--exec-path|--html-path|--man-path|--info-path|--no-replace-objects|--ext-diff|--textconv|--output)(?:[=\s]|$)/iu.test(text);
@@ -130,8 +132,9 @@ function validatedAuthority(config) {
   if (!config || typeof config !== 'object' || Array.isArray(config) || !config.authority || typeof config.authority !== 'object' || Array.isArray(config.authority)) throw new Error('authority is absent');
   const authority = {};
   for (const key of AUTHORITY_KEYS) {
-    if (!['allow', 'ask', 'deny'].includes(config.authority[key])) throw new Error('authority is invalid');
-    authority[key] = config.authority[key];
+    const value = key === 'jiraAdministration' && config.authority[key] === undefined ? 'deny' : config.authority[key];
+    if (!['allow', 'ask', 'deny'].includes(value)) throw new Error('authority is invalid');
+    authority[key] = value;
   }
   return Object.freeze(authority);
 }
@@ -208,7 +211,9 @@ export async function evaluateSafetyHook(input, { scope = 'user', verifyAttestat
   }
   if (family === 'credential-access') return response('deny', 'KStack policy blocks this action before protected content can reach the tool.', host);
   if (host === 'codex') {
-    if (authorityFor(family, activation) !== 'deny') return response('abstain', 'KStack does not claim forced approval for this ask-tier action on Codex.', host);
+    const authority = authorityFor(family, activation);
+    if (family === 'jira-administration' && authority !== 'allow') return response('deny', 'KStack Jira administration is unavailable on the covered Codex path until the owner runs the approved host-side command.', host);
+    if (authority !== 'deny') return response('abstain', 'KStack does not claim forced approval for this ask-tier action on Codex.', host);
     return response('deny', 'KStack authority policy blocks this action on the covered Codex tool path.', host);
   }
   const authority = authorityFor(family, activation);

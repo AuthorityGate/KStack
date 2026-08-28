@@ -42,6 +42,15 @@ test('invalid external authority is rejected', () => {
   assert.match(validateConfig(config).join('\n'), /authority\.deploy is invalid/);
 });
 
+test('Jira administration is distinct and legacy omission fails closed', () => {
+  const config = structuredClone(defaultConfig);
+  assert.equal(config.authority.jiraAdministration, 'ask');
+  config.authority.jiraAdministration = 'always';
+  assert.match(validateConfig(config).join('\n'), /authority\.jiraAdministration is invalid/);
+  delete config.authority.jiraAdministration;
+  assert.deepEqual(validateConfig(config), []);
+});
+
 test('design threshold accepts 90 and rejects values below the floor', () => {
   const config = structuredClone(defaultConfig);
   config.workflow.designGate.minimumConfidence = 90;
@@ -270,7 +279,7 @@ test('design review process tracks rounds without an elapsed-time window', () =>
   assert.match(processFiles[2], /--round N/);
 });
 
-test('Jira skill integration is enabled-only and its executable surface is offline draft only', () => {
+test('Jira skill keeps mutations host-side while admitting offline preview and read-only recovery', () => {
   const skillsRoot = path.join(root, 'plugins', 'kstack', 'skills');
   const jira = fs.readFileSync(path.join(skillsRoot, 'kstack-jira', 'SKILL.md'), 'utf8');
   const shellBlocks = [...jira.matchAll(/```bash\n([\s\S]*?)```/g)].map((match) => match[1]).join('\n');
@@ -278,6 +287,9 @@ test('Jira skill integration is enabled-only and its executable surface is offli
   assert.doesNotMatch(shellBlocks, /\b(?:approve|submit|reconcile|resolve|discard|doctor|show)\b/);
   assert.match(jira, /jira\.enabled: true/);
   assert.match(jira, /prose-level convention/);
+  assert.match(jira, /preview` or `show`; both\nare offline/);
+  assert.match(jira, /`validate` and `reconcile` are read-only Jira\noperations/);
+  assert.match(jira, /Never invoke `approve`\nor `apply`/);
   for (const name of ['kstack-review', 'kstack-design', 'kstack-implement', 'kstack-qc']) {
     const skill = fs.readFileSync(path.join(skillsRoot, name, 'SKILL.md'), 'utf8');
     assert.match(skill, /When `jira\.enabled` is true/);

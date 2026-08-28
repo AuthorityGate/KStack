@@ -13,6 +13,7 @@ export const SAFETY_CONTROL_FILES = Object.freeze([
   'scripts/kstack-safety-executor.mjs',
   'scripts/kstack-safety-worker.mjs',
   'scripts/kstack-git-askpass.mjs',
+  'scripts/kstack-jira-bootstrap.mjs',
   'scripts/kstack-safety-hook.mjs',
   'scripts/kstack-safety-matchers.mjs'
 ]);

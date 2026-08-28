@@ -21,8 +21,13 @@ Configure KStack without changing the host agent, global memory, or permissions.
    three decisions. Explain the operational consequence of each choice.
 5. Cover every category in `CONFIG.md`, including phase role selection, the
    design/interrogation/QC gates, optional explicit memory, optional Jira Cloud
-   queue configuration, and the `externalTicketCreation` convention. Prefer the
-   active host for init, objectives, and ordinary review; ask which one or two
+   queue configuration, the `externalTicketCreation` convention, and separate
+   Jira-administration authority. For Jira, ask whether the repository should
+   connect an existing delivery stack, preview a new delivery stack, or skip
+   Jira. If a project exists but needs a board/backlog, select the distinct
+   existing-project/new-board path. Discover the repository, branches, CI, and
+   environments before asking. A configured project key is not validation.
+   Prefer the active host for init, objectives, and ordinary review; ask which one or two
    roles should design, implement, interrogate deviations, and perform QC.
    Explain that roles change responsibility and token use, never authority.
    Obtain the design review round limit (`maxRounds`) and explain that every
@@ -58,8 +63,12 @@ Configure KStack without changing the host agent, global memory, or permissions.
    `$kstack-review`, `$kstack-interrogate`, and `$kstack-qc` in Codex; the same
    names with `/` in Claude Code. When memory is enabled, also show
    `$kstack-memory` and `/kstack-memory`. When Jira is enabled, show
-   `$kstack-jira`/`/kstack-jira` for offline drafting and the host-side
-   `kstack-jira.mjs doctor` command; initialization itself never contacts Jira.
+   `$kstack-jira`/`/kstack-jira` for offline drafting, the host-side
+   `kstack-jira.mjs doctor` command, and the selected delivery onboarding state
+   from `.kstack/jira-delivery-stack.json`. Initialization may run
+   `kstack-jira-bootstrap.mjs preview` or `show`, but never `validate`,
+   `approve`, or `apply`; initialization itself never contacts Jira. Explain
+   that approval and apply require the owner to confirm the exact preview hash.
    When citation grounding is advisory, also provision the committed
    `.kstack/fixtures/citation-grounding/exact-reproduction-v1.json` fixture and
    show the host-side `kstack-citation-admin.mjs check-platform`, `smoke`, and

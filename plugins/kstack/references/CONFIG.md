@@ -57,9 +57,12 @@ The initialization conversation must obtain explicit choices for:
    effort, and timeouts. Argument prefixes allow shell-free commands such as
    `node /path/to/provider-cli.mjs`.
 10. Separate authority for inspection, edits, tests, commit, push, pull request,
-   merge, deployment, device installation, destructive actions, and the
-   prose-level `externalTicketCreation` convention. The Jira CLI does not
-   enforce the latter.
+   merge, deployment, device installation, destructive actions, the
+   prose-level `externalTicketCreation` convention, and Jira administration.
+   Legacy configuration without `jiraAdministration` reads as `deny`; new
+   initialization defaults it to `ask`. Ticket creation never implies authority
+   to create or change Jira projects, filters, boards, workflows, components,
+   versions, or repository links.
 11. Persistence scope, cross-session behavior, raw-output retention, and secret
    redaction.
 12. Optional explicit memory: external body and index paths, namespace, trust,
@@ -141,3 +144,13 @@ an installation-wide dry-run switch. Run `kstack-jira.mjs doctor` after
 configuration: the suffix check is only a typo/DNS guard, so doctor verifies
 `/rest/api/3/myself`, smoke-tests createmeta, permissions, and cursor-paginated
 `POST /rest/api/3/search/jql`, and warns about issue-security schemes.
+
+When Jira is considered during initialization, ask whether this repository will
+connect an existing Jira delivery stack, preview a new one, or skip Jira. Treat
+an existing project that needs a new board/backlog as a separate supported
+subcase. Store onboarding evidence in `.kstack/jira-delivery-stack.json`; a
+configured project key is not proof that a project, board, filter, backlog, or
+release mapping exists. New previews default to one Jira Software project, one
+Kanban board/backlog, and one saved filter. Additional Dev or Release boards are
+opt-in. `kstack-init` may invoke only offline `preview` or `show`; it never
+approves or applies Jira mutations.

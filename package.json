@@ -14,7 +14,8 @@
     "safety:activate": "node plugins/kstack/scripts/kstack-safety-admin.mjs activate",
     "safety:disable": "node plugins/kstack/scripts/kstack-safety-admin.mjs disable",
     "safety:rollback": "node plugins/kstack/scripts/kstack-safety-admin.mjs rollback",
-    "jira": "node plugins/kstack/scripts/kstack-jira.mjs"
+    "jira": "node plugins/kstack/scripts/kstack-jira.mjs",
+    "jira:bootstrap": "node plugins/kstack/scripts/kstack-jira-bootstrap.mjs"
   },
   "engines": {
     "node": ">=20"

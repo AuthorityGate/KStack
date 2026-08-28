@@ -1,9 +1,9 @@
 ---
 name: kstack-jira
-description: Draft an offline Jira ticket in KStack's local queue when Jira integration is enabled. This skill never approves, submits, reconciles, resolves, or otherwise contacts Jira.
+description: Draft an offline Jira ticket or preview repository Jira delivery-stack onboarding when Jira integration is enabled. This skill never approves or applies an external Jira mutation.
 ---
 
-# KStack Jira Drafting
+# KStack Jira Drafting and Delivery Onboarding
 
 This is an optional extension used only when `.kstack/config.json` has
 `jira.enabled: true` and a review, design, implementation, or QC workflow has a
@@ -11,7 +11,7 @@ concrete follow-up worth tracking. Ask before drafting when
 `authority.externalTicketCreation` is `ask`; this authority entry is a
 prose-level convention, not a CLI-enforced boundary.
 
-The skill may invoke exactly one Jira queue operation:
+For work-item drafting, the skill may invoke exactly one Jira queue operation:
 
 ```bash
 node <kstack-plugin-root>/scripts/kstack-jira.mjs draft --project KEY --issue-type TYPE --summary TEXT --description TEXT --session-id ID
@@ -22,6 +22,20 @@ node <kstack-plugin-root>/scripts/kstack-jira.mjs draft --project KEY --issue-ty
 the authority setting as an enforced approval gate. The real external-action
 boundary is the host tool-permission prompt; `approve` also requires a TTY and
 tamper-evident payload-hash confirmation.
+
+For repository onboarding, ask whether the user has an existing Jira delivery
+stack, needs a new one, has an existing project that needs a board/backlog, or
+wants to skip Jira. The skill may invoke
+`<kstack-plugin-root>/scripts/kstack-jira-bootstrap.mjs preview` or `show`; both
+are offline. Default a new stack to one Jira Software project and
+one Kanban delivery board/backlog with a saved project-bounded filter. Additional
+Dev or Release boards are opt-in. `validate` and `reconcile` are read-only Jira
+operations and may run when the user requests validation or before escalating an
+incomplete or ambiguous onboarding state. Reconciliation must occur before a
+human is asked how to handle an uncertain apply result. Never invoke `approve`
+or `apply` from this skill. Approval and apply are host-side operations that
+require interactive confirmation of the exact preview hash and separate
+`jiraAdministration` authority.
 
 Jira Cloud is the only v1 target. The hostname rule accepts exactly one tenant
 label plus `.atlassian.net`; it is a typo/DNS-suffix guard, not protection from
