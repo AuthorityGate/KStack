@@ -187,8 +187,8 @@
     {
       "path": "scripts/kstack-jira-bootstrap.mjs",
       "executable": true,
-      "size": 34040,
-      "sha256": "11895d4eaf10bbded4a32eab16ff288b959e544ad2d945cfcee48f75ecbf185b"
+      "size": 37757,
+      "sha256": "33c903f841f835aedd0ccf081a65e22b6b18031b5b690842ea23c64e18824d99"
     },
     {
       "path": "scripts/kstack-jira.mjs",
@@ -439,8 +439,8 @@
     {
       "path": "skills/kstack-init/SKILL.md",
       "executable": false,
-      "size": 5712,
-      "sha256": "ab847360f9002616f947356e97f4bceb8f8f3855dd01572c4c1dbb02cc844087"
+      "size": 6319,
+      "sha256": "66196a705786c326312ee82ac693bc4865371bb1c16e2ddd4bb5c5c90adb96ec"
     },
     {
       "path": "skills/kstack-init/agents/openai.yaml",
@@ -463,8 +463,8 @@
     {
       "path": "skills/kstack-jira/SKILL.md",
       "executable": false,
-      "size": 2500,
-      "sha256": "857b17057e989f5c7d870fab1f955b5712f84de785103d2d8b15dfd4655f609e"
+      "size": 2986,
+      "sha256": "47d5cc23fcc4a738aa92c70c987ec9de16f76dd9e4b9edc86c0df2b1d87f1769"
     },
     {
       "path": "skills/kstack-jira/agents/openai.yaml",

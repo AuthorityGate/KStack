@@ -23,6 +23,16 @@ export const DELIVERY_STATES = Object.freeze(new Set([
 
 const MODES = new Set(['skip', 'existing', 'new', 'existing-add-board']);
 const BOARD_TYPES = new Set(['kanban', 'scrum']);
+const PROJECT_TEMPLATES = Object.freeze({
+  software: Object.freeze({
+    kanban: 'com.pyxis.greenhopper.jira:gh-simplified-kanban-classic',
+    scrum: 'com.pyxis.greenhopper.jira:gh-simplified-scrum-classic'
+  }),
+  business: Object.freeze({
+    kanban: 'com.atlassian.jira-core-project-templates:jira-core-simplified-project-management',
+    scrum: 'com.atlassian.jira-core-project-templates:jira-core-simplified-project-management'
+  })
+});
 const PROJECT_KEY = /^[A-Z][A-Z0-9_]{1,9}$/u;
 const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u;
 const BRANCH = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,254}$/u;
@@ -222,12 +232,14 @@ function normalizeArgs(state, args) {
   const environments = list(args.environments || ['development', 'staging', 'production'], 'environments', (item) => bounded(item, 'environment', 64));
   const boardType = args.boardType || 'kanban';
   if (!BOARD_TYPES.has(boardType)) fail('board type must be kanban or scrum', EXIT.CONFIG_INVALID);
+  const projectType = args.projectType || 'software';
+  if (!Object.hasOwn(PROJECT_TEMPLATES, projectType)) fail('project type must be software or business', EXIT.CONFIG_INVALID);
   const boardName = bounded(args.boardName || `${projectName} Delivery`, 'board name');
   const filterName = bounded(args.filterName || `${projectName} Delivery Filter`, 'filter name');
   const boardId = args.boardId == null ? null : bounded(String(args.boardId), 'board id', 32);
   const filterId = args.filterId == null ? null : bounded(String(args.filterId), 'filter id', 32);
-  if (mode === 'existing' && (!boardId || !filterId)) fail('existing mode requires board-id and filter-id', EXIT.CONFIG_INVALID);
-  return { mode, projectKey, projectName, repository, branches, environments, boardType, boardName, filterName, boardId, filterId };
+  if (mode === 'existing' && (!filterId || (projectType !== 'business' && !boardId))) fail('existing mode requires filter-id and requires board-id for Jira Software', EXIT.CONFIG_INVALID);
+  return { mode, projectKey, projectName, repository, branches, environments, projectType, boardType, boardName, filterName, boardId, filterId };
 }
 
 export function buildDeliveryPlan(state, args = {}) {
@@ -243,13 +255,14 @@ export function buildDeliveryPlan(state, args = {}) {
     project: {
       key: input.projectKey,
       name: input.projectName,
-      type: 'software',
-      template: input.boardType === 'scrum'
-        ? 'com.pyxis.greenhopper.jira:gh-simplified-scrum-classic'
-        : 'com.pyxis.greenhopper.jira:gh-simplified-kanban-classic'
+      type: input.projectType,
+      template: PROJECT_TEMPLATES[input.projectType][input.boardType]
     },
     boards: [{
-      localId: 'primary-delivery', name: input.boardName, type: input.boardType,
+      localId: 'primary-delivery',
+      name: input.projectType === 'business' ? 'Board' : input.boardName,
+      type: input.boardType,
+      provider: input.projectType === 'business' ? 'jira-business-native' : 'jira-software-agile',
       purpose: 'delivery', filter: {
         localId: 'primary-delivery-filter', name: input.filterName,
         jql: `project = ${input.projectKey} ORDER BY Rank ASC`, id: input.filterId
@@ -262,7 +275,7 @@ export function buildDeliveryPlan(state, args = {}) {
       ...(createProject ? [{ id: 'create-project', kind: 'project-create' }] : [{ id: 'verify-project', kind: 'project-verify' }]),
       ...(createBoard ? [
         { id: 'create-primary-filter', kind: 'filter-create' },
-        { id: 'create-primary-board', kind: 'board-create' }
+        { id: input.projectType === 'business' ? 'verify-primary-board' : 'create-primary-board', kind: input.projectType === 'business' ? 'board-verify' : 'board-create' }
       ] : [
         { id: 'verify-primary-filter', kind: 'filter-verify' },
         { id: 'verify-primary-board', kind: 'board-verify' }
@@ -326,12 +339,30 @@ function requireSuccess(result, description, { allow404 = false } = {}) {
   if (result.response.status >= 200 && result.response.status < 300 && result.body) return result.body;
   const status = result.response.status;
   const ambiguous = status >= 500 || status === 408 || status === 429 || (status >= 300 && status < 400);
-  fail(`${description} returned HTTP ${status}`, ambiguous ? EXIT.AMBIGUOUS_HISTORY : EXIT.PREFLIGHT_FAILED, { httpStatus: status, ambiguous });
+  const reported = [
+    ...(Array.isArray(result.body?.errorMessages) ? result.body.errorMessages : []),
+    ...(result.body?.errors && typeof result.body.errors === 'object' && !Array.isArray(result.body.errors)
+      ? Object.entries(result.body.errors).map(([field, message]) => `${field}: ${message}`)
+      : []),
+    ...(typeof result.body?.message === 'string' ? [result.body.message] : [])
+  ];
+  const detail = [...new Set(reported
+    .filter((message) => typeof message === 'string' && message.trim())
+    .map((message) => sanitize(message).replace(/\s+/gu, ' ').trim()))]
+    .join('; ')
+    .slice(0, 1024);
+  fail(`${description} returned HTTP ${status}${detail ? `: ${detail}` : ''}`, ambiguous ? EXIT.AMBIGUOUS_HISTORY : EXIT.PREFLIGHT_FAILED, { httpStatus: status, ambiguous });
 }
 
 async function readProject(state, credentials, key) {
   const result = await jsonResponse(state, credentials, `/rest/api/3/project/${encodeURIComponent(key)}`);
   return requireSuccess(result, 'project read-back', { allow404: true });
+}
+
+async function requireAccessibleProjectType(state, credentials, projectType) {
+  const body = requireSuccess(await jsonResponse(state, credentials, '/rest/api/3/project/type/accessible'), 'project-type preflight');
+  if (!Array.isArray(body) || !body.every((entry) => entry && typeof entry.key === 'string')) fail('project-type preflight returned an unsupported shape', EXIT.PREFLIGHT_FAILED);
+  if (!body.some((entry) => entry.key === projectType)) fail(`project type ${projectType} is not accessible in this Jira tenant`, EXIT.PREFLIGHT_FAILED);
 }
 
 async function verifyProjectBody(project, plan) {
@@ -342,6 +373,7 @@ async function verifyProjectBody(project, plan) {
 async function createProject(state, credentials, plan, accountId) {
   const current = await readProject(state, credentials, plan.project.key);
   if (current) return { adopted: true, resource: await verifyProjectBody(current, plan) };
+  await requireAccessibleProjectType(state, credentials, plan.project.type);
   const payload = {
     key: plan.project.key, name: plan.project.name, projectTypeKey: plan.project.type,
     projectTemplateKey: plan.project.template, leadAccountId: accountId, assigneeType: 'PROJECT_LEAD'
@@ -437,6 +469,19 @@ async function verifyBoard(state, credentials, board) {
   return { id: String(readBack.id), name: readBack.name, type: readBack.type, filterId: String(board.filter.id) };
 }
 
+async function verifyBusinessBoard(state, credentials, projectKey, board) {
+  const issueTypes = requireSuccess(await jsonResponse(state, credentials, `/rest/api/3/project/${encodeURIComponent(projectKey)}/statuses`), 'business-board workflow read-back');
+  if (!Array.isArray(issueTypes)) fail('business-board workflow read-back returned an unsupported shape', EXIT.AMBIGUOUS_HISTORY);
+  const categories = new Set(issueTypes.flatMap((issueType) => Array.isArray(issueType?.statuses)
+    ? issueType.statuses.map((status) => status?.statusCategory?.key).filter((key) => typeof key === 'string')
+    : []));
+  if (!['new', 'indeterminate', 'done'].every((key) => categories.has(key))) fail('business-board workflow does not expose To Do, In Progress, and Done status categories', EXIT.AMBIGUOUS_HISTORY);
+  return {
+    id: `project:${projectKey}:board`, name: board.name, type: board.type,
+    provider: 'jira-business-native', projectKey, statusCategories: ['new', 'indeterminate', 'done']
+  };
+}
+
 function effect(operation, resource, clock, adopted = false) {
   return { operation, outcome: adopted ? 'adopted' : 'created', resource, at: nowIso(clock) };
 }
@@ -469,7 +514,9 @@ async function applyDeliveryStackUnlocked(state, lock) {
     record.updatedAt = nowIso(state.clock);
     await writeDeliveryRecord(state, record, lock);
 
-    const boardResult = await ensureBoard(state, credentials, boardPlan, record.plan.project.key, filterResult.resource.id);
+    const boardResult = record.plan.project.type === 'business'
+      ? { adopted: true, resource: await verifyBusinessBoard(state, credentials, record.plan.project.key, boardPlan) }
+      : await ensureBoard(state, credentials, boardPlan, record.plan.project.key, filterResult.resource.id);
     record.effects.push(effect('primary-board', boardResult.resource, state.clock, boardResult.adopted));
     record.operations[2].state = 'complete';
     record.state = 'verified';
@@ -499,7 +546,9 @@ async function validateExistingDeliveryStackUnlocked(state, lock) {
     const project = await verifyProjectBody(await readProject(state, credentials, record.plan.project.key), record.plan);
     const boardPlan = record.plan.boards[0];
     const filter = await verifyFilter(state, credentials, boardPlan);
-    const board = await verifyBoard(state, credentials, boardPlan);
+    const board = record.plan.project.type === 'business'
+      ? await verifyBusinessBoard(state, credentials, record.plan.project.key, boardPlan)
+      : await verifyBoard(state, credentials, boardPlan);
     record.effects = [
       effect('project', project, state.clock, true),
       effect('primary-filter', filter, state.clock, true),
@@ -543,9 +592,14 @@ async function reconcileDeliveryStackUnlocked(state, lock) {
   const filters = await findFilters(state, credentials, boardPlan);
   if (filters.exact.length > 1 || filters.conflicting.length > 0) fail('Jira filter identity remains ambiguous', EXIT.AMBIGUOUS_HISTORY);
   const filter = filters.exact[0] || null;
-  const boards = await findBoards(state, credentials, boardPlan, record.plan.project.key, filter?.id || null);
-  if (boards.exact.length > 1 || boards.conflicting.length > 0) fail('Jira board identity remains ambiguous', EXIT.AMBIGUOUS_HISTORY);
-  const board = boards.exact[0] || null;
+  let board = null;
+  if (filter && record.plan.project.type === 'business') {
+    board = await verifyBusinessBoard(state, credentials, record.plan.project.key, boardPlan);
+  } else if (record.plan.project.type !== 'business') {
+    const boards = await findBoards(state, credentials, boardPlan, record.plan.project.key, filter?.id || null);
+    if (boards.exact.length > 1 || boards.conflicting.length > 0) fail('Jira board identity remains ambiguous', EXIT.AMBIGUOUS_HISTORY);
+    board = boards.exact[0] || null;
+  }
   record.effects = [effect('project', project, state.clock, true)];
   record.operations[0].state = 'complete';
   if (filter) {
@@ -579,7 +633,7 @@ export async function runBootstrapCommand(state, command, args = {}) {
   }
 }
 
-const HELP = `KStack Jira delivery-stack bootstrap (Jira Cloud)\n\nCommands:\n  preview --mode skip|existing|new|existing-add-board [--project-key KEY] [--project-name NAME] [--repository OWNER/NAME] [--board-name NAME] [--board-type kanban|scrum] [--filter-name NAME] [--board-id ID --filter-id ID] [--branches main,Dev] [--environments development,staging,production]\n  show\n  validate                                    (read-only existing-stack validation)\n  approve --plan-hash SHA256                  (interactive TTY required)\n  apply                                       (interactive TTY approval read-back required)\n  reconcile                                   (read-only ambiguous/interrupted outcome reconciliation)\n\nPreview and show are offline. Validate and reconcile perform Jira reads only. Apply never retries an ambiguous Jira mutation. Project/filter/board deletion is never automatic.`;
+const HELP = `KStack Jira delivery-stack bootstrap (Jira Cloud)\n\nCommands:\n  preview --mode skip|existing|new|existing-add-board [--project-key KEY] [--project-name NAME] [--project-type software|business] [--repository OWNER/NAME] [--board-name NAME] [--board-type kanban|scrum] [--filter-name NAME] [--board-id ID --filter-id ID] [--branches main,Dev] [--environments development,staging,production]\n  show\n  validate                                    (read-only existing-stack validation)\n  approve --plan-hash SHA256                  (interactive TTY required)\n  apply                                       (interactive TTY approval read-back required)\n  reconcile                                   (read-only ambiguous/interrupted outcome reconciliation)\n\nPreview and show are offline. Validate and reconcile perform Jira reads only. Apply never retries an ambiguous Jira mutation. Project/filter/board deletion is never automatic.`;
 
 function parseCli(argv) {
   const [command = 'help', ...rest] = argv;

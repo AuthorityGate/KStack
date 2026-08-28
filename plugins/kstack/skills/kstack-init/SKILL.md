@@ -26,7 +26,15 @@ Configure KStack without changing the host agent, global memory, or permissions.
    connect an existing delivery stack, preview a new delivery stack, or skip
    Jira. If a project exists but needs a board/backlog, select the distinct
    existing-project/new-board path. Discover the repository, branches, CI, and
-   environments before asking. A configured project key is not validation.
+   environments before asking. Ask whether this is an ordinary repository
+   (default: one dedicated Jira project/space), part of a larger program that
+   needs multiple explicitly mapped project/spaces, or a large task that needs
+   separately governed phases. The current bootstrap provisions one
+   project/space per preview; do not claim automatic multi-space orchestration.
+   Ask whether Jira Software or Jira Business is intended. A live apply must
+   preflight accessible project types. Jira Software uses a saved-filter Agile
+   board; Jira Business uses its native Board view and must not receive a Jira
+   Software board POST. A configured project key is not validation.
    Prefer the active host for init, objectives, and ordinary review; ask which one or two
    roles should design, implement, interrogate deviations, and perform QC.
    Explain that roles change responsibility and token use, never authority.

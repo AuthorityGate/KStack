@@ -139,7 +139,7 @@ const CAPABILITY_USE_SITE_MANIFEST = new Map([
   ['kstack-git-askpass.mjs','7b5922e73f1602b6d4733de19183e9af8a3802eda2228682db6b1f040ea452c1'],
   ['kstack-install-health.mjs','665932d30b0a5397eb8de2346efa779854fa4d6aca5929928adffb625108fc04'],
   ['kstack-invoke-role.mjs','342c2d0574e022c7626cac5cd7a1f98626c5ba9b5a8bd528ef4278978958dd5c'],
-  ['kstack-jira-bootstrap.mjs','bcf01dfa8059bf5c3b3dc08dfb4378cc44a05b3746f517bf0fcb8528eeff6c2a'],
+  ['kstack-jira-bootstrap.mjs','364ef4c653504d832cc0624b4c0e6ef1a52ce9a55aac6f30c6c027a298fdd79f'],
   ['kstack-jira.mjs','8349f9020acfb00d4bdd6c060942c5c0c9c8308713fa24687e8341a25b311882'],
   ['kstack-kcrp-byte-benchmark.mjs','b0647889cd68034441e1351894e124d66b92f52a7e74b72c0dd50bde5461a2f8'],
   ['kstack-kcrp-core.mjs','d92cb3a27f925e4fb096c0daf90e4f01615026b864cbc2903bf42a2ad4625afb'],

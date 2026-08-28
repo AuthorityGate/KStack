@@ -50,6 +50,7 @@ function successfulJiraMock(calls) {
     calls.push({ key, authorization: options.headers?.Authorization, body: options.body?.toString('utf8') || null });
     if (key === 'GET /rest/api/3/myself') return Response.json({ accountId: 'account-1', emailAddress: 'bootstrap@example.com' });
     if (key === 'GET /rest/api/3/project/SHOP' && calls.filter((call) => call.key === key).length === 1) return Response.json({}, { status: 404 });
+    if (key === 'GET /rest/api/3/project/type/accessible') return Response.json([{ key: 'software' }, { key: 'business' }]);
     if (key === 'POST /rest/api/3/project') return Response.json({ id: '10001', key: 'SHOP' }, { status: 201 });
     if (key === 'GET /rest/api/3/project/SHOP') return Response.json({ id: '10001', key: 'SHOP', name: 'Shop', projectTypeKey: 'software' });
     if (key === 'GET /rest/api/3/filter/search') return Response.json({ values: [] });
@@ -81,6 +82,43 @@ test('Scrum preview selects the matching Jira project template', () => {
   assert.equal(plan.boards[0].type, 'scrum');
 });
 
+test('business preview binds the accessible Jira project-management template', () => {
+  const plan = buildDeliveryPlan(makeState(), previewArgs({ projectType: 'business' }));
+  assert.equal(plan.project.type, 'business');
+  assert.equal(plan.project.template, 'com.atlassian.jira-core-project-templates:jira-core-simplified-project-management');
+  assert.equal(plan.boards[0].type, 'kanban');
+  assert.equal(plan.boards[0].name, 'Board');
+  assert.equal(plan.boards[0].provider, 'jira-business-native');
+  assert.equal(plan.operations[2].kind, 'board-verify');
+});
+
+test('business apply verifies the native board workflow without a Jira Software board POST', async () => {
+  const calls = [];
+  let projectReads = 0;
+  const state = makeState(async (url, options = {}) => {
+    const parsed = new URL(url);
+    const key = `${options.method || 'GET'} ${parsed.pathname}`;
+    calls.push(key);
+    if (key === 'GET /rest/api/3/myself') return Response.json({ accountId: 'account-1' });
+    if (key === 'GET /rest/api/3/project/SHOP' && projectReads++ === 0) return Response.json({}, { status: 404 });
+    if (key === 'GET /rest/api/3/project/type/accessible') return Response.json([{ key: 'business' }]);
+    if (key === 'POST /rest/api/3/project') return Response.json({ id: '10001', key: 'SHOP' }, { status: 201 });
+    if (key === 'GET /rest/api/3/project/SHOP') return Response.json({ id: '10001', key: 'SHOP', name: 'Shop', projectTypeKey: 'business' });
+    if (key === 'GET /rest/api/3/filter/search') return Response.json({ values: [] });
+    if (key === 'POST /rest/api/3/filter') return Response.json({ id: '20001' }, { status: 201 });
+    if (key === 'GET /rest/api/3/filter/20001') return Response.json({ id: '20001', name: 'Shop Delivery Filter', jql: 'project = SHOP ORDER BY Rank ASC' });
+    if (key === 'GET /rest/api/3/project/SHOP/statuses') return Response.json([{ name: 'Task', statuses: [
+      { statusCategory: { key: 'new' } }, { statusCategory: { key: 'indeterminate' } }, { statusCategory: { key: 'done' } }
+    ] }]);
+    return Response.json({}, { status: 404 });
+  });
+  await approved(state, previewArgs({ projectType: 'business' }));
+  const result = await applyDeliveryStack(state);
+  assert.equal(result.state, 'verified');
+  assert.equal(result.effects[2].resource.provider, 'jira-business-native');
+  assert.equal(calls.includes('POST /rest/agile/1.0/board'), false);
+});
+
 test('skip records a terminal onboarding choice with no fake project or plan', async () => {
   const state = makeState();
   const record = await previewDeliveryStack(state, { mode: 'skip' });
@@ -95,6 +133,14 @@ test('existing onboarding requires actual board and filter identifiers', () => {
   assert.throws(() => buildDeliveryPlan(state, previewArgs({ mode: 'existing' })), (error) => error instanceof JiraQueueError && error.exitCode === EXIT.CONFIG_INVALID);
   const plan = buildDeliveryPlan(state, previewArgs({ mode: 'existing', boardId: '31', filterId: '21' }));
   assert.deepEqual(plan.operations.map((operation) => operation.kind), ['project-verify', 'filter-verify', 'board-verify']);
+});
+
+test('existing Jira Business onboarding requires a filter but no fictional Agile board ID', () => {
+  const state = makeState();
+  assert.throws(() => buildDeliveryPlan(state, previewArgs({ mode: 'existing', projectType: 'business' })), (error) => error instanceof JiraQueueError && error.exitCode === EXIT.CONFIG_INVALID);
+  const plan = buildDeliveryPlan(state, previewArgs({ mode: 'existing', projectType: 'business', filterId: '21' }));
+  assert.equal(plan.boards[0].id, null);
+  assert.equal(plan.boards[0].provider, 'jira-business-native');
 });
 
 test('existing validation performs reads only and promotes exact resources', async () => {
@@ -115,6 +161,27 @@ test('existing validation performs reads only and promotes exact resources', asy
   assert.equal(result.state, 'existing-validated');
   assert.equal(calls.every((call) => call.startsWith('GET ')), true);
   assert.deepEqual(result.effects.map((entry) => entry.outcome), ['adopted', 'adopted', 'adopted']);
+});
+
+test('existing Jira Business validation verifies its native board workflow using reads only', async () => {
+  const calls = [];
+  const state = makeState(async (url, options = {}) => {
+    const pathname = new URL(url).pathname;
+    calls.push(`${options.method || 'GET'} ${pathname}`);
+    if (pathname === '/rest/api/3/myself') return Response.json({ accountId: 'account-1' });
+    if (pathname === '/rest/api/3/project/SHOP') return Response.json({ id: '10001', key: 'SHOP', name: 'Shop', projectTypeKey: 'business' });
+    if (pathname === '/rest/api/3/filter/21') return Response.json({ id: '21', name: 'Shop Delivery Filter', jql: 'project = SHOP ORDER BY Rank ASC' });
+    if (pathname === '/rest/api/3/project/SHOP/statuses') return Response.json([{ statuses: [
+      { statusCategory: { key: 'new' } }, { statusCategory: { key: 'indeterminate' } }, { statusCategory: { key: 'done' } }
+    ] }]);
+    return Response.json({}, { status: 404 });
+  });
+  await previewDeliveryStack(state, previewArgs({ mode: 'existing', projectType: 'business', filterId: '21' }));
+  const result = await validateExistingDeliveryStack(state);
+  assert.equal(result.state, 'existing-validated');
+  assert.equal(result.effects[2].resource.provider, 'jira-business-native');
+  assert.equal(calls.every((call) => call.startsWith('GET ')), true);
+  assert.equal(calls.some((call) => call.includes('/rest/agile/')), false);
 });
 
 test('approval binds the exact plan and current KStack configuration', async () => {
@@ -181,6 +248,7 @@ test('an ambiguous project POST stops the sequence and is never retried', async 
     calls.push(key);
     if (key === 'GET /rest/api/3/myself') return Response.json({ accountId: 'account-1' });
     if (key === 'GET /rest/api/3/project/SHOP') return Response.json({}, { status: 404 });
+    if (key === 'GET /rest/api/3/project/type/accessible') return Response.json([{ key: 'software' }]);
     if (key === 'POST /rest/api/3/project') return Response.json({}, { status: 503 });
     return Response.json({}, { status: 500 });
   });
@@ -188,6 +256,56 @@ test('an ambiguous project POST stops the sequence and is never retried', async 
   await assert.rejects(applyDeliveryStack(state), (error) => error.exitCode === EXIT.AMBIGUOUS_HISTORY);
   assert.equal(calls.filter((key) => key === 'POST /rest/api/3/project').length, 1);
   assert.equal((await readDeliveryRecord(state)).state, 'ambiguous');
+});
+
+test('a deterministic Jira rejection records bounded sanitized diagnostics without continuing', async () => {
+  const calls = [];
+  const state = makeState(async (url, options = {}) => {
+    const parsed = new URL(url);
+    const key = `${options.method || 'GET'} ${parsed.pathname}`;
+    calls.push(key);
+    if (key === 'GET /rest/api/3/myself') return Response.json({ accountId: 'account-1' });
+    if (key === 'GET /rest/api/3/project/SHOP') return Response.json({}, { status: 404 });
+    if (key === 'GET /rest/api/3/project/type/accessible') return Response.json([{ key: 'software' }]);
+    if (key === 'POST /rest/api/3/project') {
+      return Response.json({
+        errorMessages: ['The selected project template is unavailable.'],
+        errors: { leadAccountId: 'token=fixture-bootstrap-token-never-persisted is invalid' }
+      }, { status: 400 });
+    }
+    return Response.json({}, { status: 500 });
+  });
+  await approved(state);
+  await assert.rejects(applyDeliveryStack(state), (error) => {
+    assert.equal(error.exitCode, EXIT.PREFLIGHT_FAILED);
+    assert.match(error.message, /selected project template is unavailable/u);
+    assert.match(error.message, /token=\[REDACTED\]/u);
+    assert.doesNotMatch(error.message, /fixture-bootstrap-token-never-persisted/u);
+    return true;
+  });
+  const record = await readDeliveryRecord(state);
+  assert.equal(record.state, 'failed');
+  assert.match(record.lastFailure.message, /selected project template is unavailable/u);
+  assert.doesNotMatch(JSON.stringify(record), /fixture-bootstrap-token-never-persisted/u);
+  assert.equal(calls.some((call) => call.includes('/filter')), false);
+  assert.equal(calls.some((call) => call.includes('/board')), false);
+});
+
+test('project-type preflight blocks an unavailable type before project mutation', async () => {
+  const calls = [];
+  const state = makeState(async (url, options = {}) => {
+    const parsed = new URL(url);
+    const key = `${options.method || 'GET'} ${parsed.pathname}`;
+    calls.push(key);
+    if (key === 'GET /rest/api/3/myself') return Response.json({ accountId: 'account-1' });
+    if (key === 'GET /rest/api/3/project/SHOP') return Response.json({}, { status: 404 });
+    if (key === 'GET /rest/api/3/project/type/accessible') return Response.json([{ key: 'business' }]);
+    return Response.json({}, { status: 500 });
+  });
+  await approved(state);
+  await assert.rejects(applyDeliveryStack(state), (error) => error.exitCode === EXIT.PREFLIGHT_FAILED && /software is not accessible/u.test(error.message));
+  assert.equal(calls.includes('POST /rest/api/3/project'), false);
+  assert.equal((await readDeliveryRecord(state)).state, 'failed');
 });
 
 test('expired approval performs no network request', async () => {
@@ -240,6 +358,32 @@ test('reconciliation adopts a partial filter, requires fresh approval, and avoid
   assert.equal(result.effects.find((entry) => entry.operation === 'primary-filter').outcome, 'adopted');
   assert.equal(calls.some((key) => key === 'POST /rest/api/3/filter'), false);
   assert.equal(calls.filter((key) => key === 'POST /rest/agile/1.0/board').length, 1);
+});
+
+test('Jira Business reconciliation completes a partial stack by native-board read-back only', async () => {
+  const calls = [];
+  const state = makeState(async (url, options = {}) => {
+    const parsed = new URL(url);
+    const key = `${options.method || 'GET'} ${parsed.pathname}`;
+    calls.push(key);
+    if (key === 'GET /rest/api/3/project/SHOP') return Response.json({ id: '10001', key: 'SHOP', name: 'Shop', projectTypeKey: 'business' });
+    if (key === 'GET /rest/api/3/filter/search') return Response.json({ values: [{ id: '20001', name: 'Shop Delivery Filter', jql: 'project = SHOP ORDER BY Rank ASC' }] });
+    if (key === 'GET /rest/api/3/project/SHOP/statuses') return Response.json([{ statuses: [
+      { statusCategory: { key: 'new' } }, { statusCategory: { key: 'indeterminate' } }, { statusCategory: { key: 'done' } }
+    ] }]);
+    return Response.json({}, { status: 404 });
+  });
+  const initial = await approved(state, previewArgs({ projectType: 'business' }));
+  initial.state = 'failed';
+  initial.lastFailure = { code: EXIT.PREFLIGHT_FAILED, message: 'fixture board failure' };
+  await writeDeliveryRecord(state, initial);
+  const result = await reconcileDeliveryStack(state);
+  assert.equal(result.state, 'verified');
+  assert.equal(result.approvedAt, null);
+  assert.deepEqual(result.operations.map((entry) => entry.state), ['complete', 'complete', 'complete']);
+  assert.equal(result.effects[2].resource.provider, 'jira-business-native');
+  assert.equal(calls.every((call) => call.startsWith('GET ')), true);
+  assert.equal(calls.some((call) => call.includes('/rest/agile/')), false);
 });
 
 test('credential resolution failure leaves an approved plan retryable rather than applying', async () => {

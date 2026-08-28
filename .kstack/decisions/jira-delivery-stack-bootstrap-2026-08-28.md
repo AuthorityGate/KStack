@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-28  
 **Thread:** `release-automation-v2-2026-08-28 / jira-bootstrap`  
-**Status:** implementation-ready owner direction; runtime not yet qualified
+**Status:** implemented; business/native-board path live-qualified; software-board path fixture-qualified
 
 ## Outcome
 
@@ -16,12 +16,29 @@ creates or modifies Jira resources.
 A separate Jira bootstrap lifecycle performs `preview -> approve -> apply ->
 verify/reconcile`. Its default new-stack topology is compatible with Jira Free:
 
-- one Jira Software project per product or closely related repository group;
+- one dedicated Jira project/space per ordinary product repository by default;
 - one primary Kanban board and backlog;
 - one saved filter binding the board to the project;
 - Jira versions for releases;
 - repository, primary/development branch, and deployment-environment mappings;
 - optional Dev or Release boards only when the owner selects them in preview.
+
+Initialization also asks whether the repository belongs to a larger program or
+whether one unusually large task needs separately governed phases. A program
+may intentionally use multiple project/spaces, and a large task may use
+multiple phase scopes, but each scope needs its own key, repository/branch and
+environment mapping, preview digest, approval, operation ledger, and
+qualification evidence. The current executable bootstrap provisions one
+project/space per preview; multi-space orchestration is a recorded requirement,
+not a shipped capability.
+
+The preview binds the Jira provider shape. A Jira Software project uses a
+saved filter plus the Jira Software Agile-board API. A Jira Business project
+uses the project-management template, the same saved delivery filter, and its
+native business-space Board view. Apply reads the tenant's accessible project
+types before project creation and fails before mutation when the selected type
+is unavailable. It never tries to create a Jira Software board for a Business
+space.
 
 Jira board/project counts are not the limiting Free-plan resource. KStack must
 minimize dependence on Jira automation because Jira Free currently permits only
@@ -84,9 +101,11 @@ offer to create missing resources without a newly hashed preview.
 
 ## Apply and reconciliation
 
-New-stack apply uses the Jira Cloud project, filter, board, and version APIs in
-the preview's order. Before every POST it checks whether the exact intended
-resource already exists. After every POST it reads the resource back and stores
+New-stack apply uses the Jira Cloud project, filter, and provider-appropriate
+board APIs in the preview's order. Business-space board verification reads the
+project workflow and requires the `new`, `indeterminate`, and `done` status
+categories; it does not issue a Jira Software board POST. Before every POST it
+checks whether the exact intended resource already exists. After every POST it reads the resource back and stores
 only IDs, normalized metadata, response class, timestamps, and request/response
 digests with secret-bearing fields excluded.
 
@@ -103,6 +122,12 @@ Project, filter, or board deletion is not automatic rollback. Deletion is a
 separate destructive action; a partial stack remains inventoried with manual
 cleanup guidance. This prevents recovery from destroying a pre-existing Jira
 resource that happened to share a name.
+
+Bounded, sanitized Jira `errorMessages`, field errors, and top-level messages
+are retained for deterministic failures. Authorization headers, credential
+values, arbitrary response fields, and more than 1,024 characters are never
+persisted. This makes a rejected request diagnosable without expanding the
+secret boundary.
 
 ## Authority and secret boundary
 
@@ -146,6 +171,8 @@ Tests must cover:
 - existing/new/skip and existing-add-board previews;
 - deterministic canonicalization and approval invalidation on every bound field;
 - Free-compatible one-project/one-Kanban default and optional-board opt-in;
+- accessible project-type preflight and both Software/Agile and
+  Business/native-board provider paths;
 - project/filter/board read-back success and mismatches;
 - no POST during init, preview, show, validate, or reconcile-search-only paths;
 - exact-match adoption, proven absence, duplicate ambiguity, timeout, redirect,
@@ -154,9 +181,15 @@ Tests must cover:
 - receipts and all failure output contain no credential or authorization value;
 - legacy `.kstack/config.json` and existing ticket-queue behavior remain valid.
 
-Live Jira qualification is separate from mocked conformance. Until one enrolled
-Free tenant completes preview, approval, apply, forced failures, reconciliation,
-and read-back, runtime status remains `TARGET_FIXTURE_NOT_YET_QUALIFIED`.
+Live Jira qualification is separate from mocked conformance. On 2026-08-28 an
+enrolled Jira Cloud tenant exercised authentication, unavailable-type failure,
+known-4xx diagnostics, partial project/filter creation, read-only
+reconciliation, a newly hashed Business/native-board repair, exact-match
+adoption, and final project/filter/workflow read-back. No tenant URL, account,
+credential, local resource ID, or user-specific configuration is part of this
+design record. The Business/native-board target is therefore qualified for
+this path. Jira Software board creation and multi-space orchestration remain
+unqualified until separately exercised.
 
 ## Primary references
 

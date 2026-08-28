@@ -27,8 +27,14 @@ For repository onboarding, ask whether the user has an existing Jira delivery
 stack, needs a new one, has an existing project that needs a board/backlog, or
 wants to skip Jira. The skill may invoke
 `<kstack-plugin-root>/scripts/kstack-jira-bootstrap.mjs preview` or `show`; both
-are offline. Default a new stack to one Jira Software project and
-one Kanban delivery board/backlog with a saved project-bounded filter. Additional
+are offline. Default an ordinary repository to one dedicated Jira project/space
+and one Kanban delivery board/backlog with a saved project-bounded filter. Ask
+whether the target is Jira Software or Jira Business: Software uses the Agile
+board API, while Business uses the project-management template's native Board
+view. Apply preflights accessible project types and must never issue a Software
+board POST for a Business space. Larger programs or tasks may request multiple
+explicit project/phase scopes, but the current executable provisions one scope
+per preview and must report multi-space orchestration as unavailable. Additional
 Dev or Release boards are opt-in. `validate` and `reconcile` are read-only Jira
 operations and may run when the user requests validation or before escalating an
 incomplete or ambiguous onboarding state. Reconciliation must occur before a
