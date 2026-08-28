@@ -1,0 +1,68 @@
+{
+  "schema": "kstack-jira-roadmap-v1",
+  "items": [
+    {
+      "localId": "secret-broker",
+      "issueType": "Task",
+      "summary": "Deliver the KStack Secret Broker at the 93% closure gate",
+      "description": "Design, review, implement, and qualify opaque-handle secret use so Claude and Codex never receive secret values.",
+      "labels": ["kstack-roadmap", "security", "secret-broker"]
+    },
+    {
+      "localId": "jira-roadmap-automation",
+      "issueType": "Task",
+      "summary": "Automate Jira roadmap population during repository onboarding",
+      "description": "Bind roadmap work items into delivery-stack preview, approval, apply, read-back, and reconciliation so a verified Jira space is not empty.",
+      "labels": ["kstack-roadmap", "jira", "release-automation"]
+    },
+    {
+      "localId": "release-runtime",
+      "issueType": "Task",
+      "summary": "Implement and qualify the release automation runtime",
+      "description": "Turn the validated M1-M7 release design into a staged, observable, rollback-aware runtime and qualify it against a real target.",
+      "labels": ["kstack-roadmap", "release-automation", "qualification"]
+    },
+    {
+      "localId": "host-breadth",
+      "issueType": "Task",
+      "summary": "Expand and qualify host breadth across coding agents",
+      "description": "Complete portable host adapters, truthful capability projection, and qualification across supported coding-agent environments.",
+      "labels": ["kstack-roadmap", "host-breadth"]
+    },
+    {
+      "localId": "domain-breadth",
+      "issueType": "Task",
+      "summary": "Deliver the remaining domain-breadth packs independently",
+      "description": "Design, implement, and qualify each approved domain pack as its own bounded workstream without weakening the core lifecycle.",
+      "labels": ["kstack-roadmap", "domain-breadth"]
+    },
+    {
+      "localId": "realtime-interception",
+      "issueType": "Task",
+      "summary": "Strengthen real-time action interception",
+      "description": "Increase enforceable action coverage while preserving host truth, deny-only Codex behavior, and owner-controlled rollback.",
+      "labels": ["kstack-roadmap", "safety", "interception"]
+    },
+    {
+      "localId": "memory-maturity",
+      "issueType": "Task",
+      "summary": "Mature GitHub and Jira backed KStack memory",
+      "description": "Exercise durable memory with real accepted artifacts, deterministic retrieval, safe ingestion, and cross-session qualification without Ollama.",
+      "labels": ["kstack-roadmap", "memory"]
+    },
+    {
+      "localId": "token-efficiency",
+      "issueType": "Task",
+      "summary": "Qualify secure token-use reduction for unattended runs",
+      "description": "Complete the isolated benchmark, implement only proven reductions, and preserve review quality and security during overnight automation.",
+      "labels": ["kstack-roadmap", "token-efficiency"]
+    },
+    {
+      "localId": "multi-repository-qualification",
+      "issueType": "Task",
+      "summary": "Build a multi-repository qualification and adoption record",
+      "description": "Exercise KStack across additional repositories and operators, retain comparable evidence, and close packaging or onboarding defects found in use.",
+      "labels": ["kstack-roadmap", "adoption", "qualification"]
+    }
+  ]
+}

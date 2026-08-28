@@ -105,6 +105,22 @@ move the active path aside to an operator-chosen name, restore only the exact
 intended backup, re-register the modern Codex plugin if applicable, and rerun
 `setup`. KStack does not perform those moves, removals, or restores.
 
+This installation-health result is distinct from application validation. After
+an application deployment, `$kstack-post-deploy` or `/kstack-post-deploy` runs
+a KStack-owned browser canary and the repository's complete Playwright suite
+against the exact release/deployment/commit/artifact binding. Both must pass;
+provider success, a skipped check, a flaky retry, exceeded performance budget,
+or missing browser capability cannot produce a user handoff. When Jira tracking
+is required, a clean run records validation, completion, and release against
+the linked item before returning `READY_FOR_USER_VALIDATION`. An unhealthy run
+blocks handoff and creates bounded Jira follow-up work for functional,
+performance, flaky/inconsistent, timeout, coverage, console, request, or canary
+health defects. Private screenshots, traces, sanitized output, and canonical
+browser/handoff receipts are retained below the ignored
+`.kstack/post-deploy-evidence/` directory. The function is the final automated
+validation boundary, not a substitute for the user's deeper validation, and it
+never grants deploy, rollback, or product-data mutation authority.
+
 The false-positive escape hatch is deliberately unavailable until an ordinary
 reviewed source change enrolls at least two distinct Ed25519 public keys in
 `plugins/kstack/install-health-authority-registry-v1.json`, one with the

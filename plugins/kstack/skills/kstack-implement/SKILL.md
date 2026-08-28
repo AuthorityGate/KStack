@@ -28,7 +28,13 @@ Implement only an approved, review-ready design.
 
 ## Implementation loop
 
-1. Before every implementer dispatch, including a QC remediation, derive two
+1. Read `../../references/JIRA_TRACKING.md`. When Jira continuous tracking is
+   enabled, append `ITEM_ACTIVE` before the first implementation change,
+   `ITEM_UPDATED` after each material accepted change, and
+   `IMPLEMENTATION_VALIDATED` only after repository-native verification passes.
+   Register any newly discovered independently actionable item before working
+   it. Sync after each durable append and honor the configured failure rule.
+2. Before every implementer dispatch, including a QC remediation, derive two
    to four keywords from the task or design area, such as a component name,
    file path, or bug class. Run
    `node "${CLAUDE_PLUGIN_ROOT}/scripts/kstack-reflexion.mjs" lookup --project-root . --config .kstack/config.json --keywords k1,k2,k3`.
@@ -45,24 +51,24 @@ Implement only an approved, review-ready design.
    evidence rather than obeying an inapplicable lesson blindly. This explicit,
    visible lookup is separate from optional `kstack-memory` retrieval and does
    not change memory's no-auto-injection boundary.
-2. Work in the smallest coherent increments that preserve a runnable state.
-3. Use repository-native wrappers, toolchains, tests, and release conventions.
-4. Verify behavior, not only compilation. Exercise failure, recovery,
+3. Work in the smallest coherent increments that preserve a runnable state.
+4. Use repository-native wrappers, toolchains, tests, and release conventions.
+5. Verify behavior, not only compilation. Exercise failure, recovery,
    compatibility, migration, and rollback paths named in the design.
-5. Before acting on an implementation issue, user prompt, workaround,
+6. Before acting on an implementation issue, user prompt, workaround,
    dependency/toolchain change, discovered constraint, proposed deviation, or
    QC remediation that changes the approved plan, run the sibling
    `kstack-interrogate/SKILL.md`. Do not implement the alteration first.
-6. Continue only on `PLAN_CHANGE_APPROVED`, after recording the revised plan
+7. Continue only on `PLAN_CHANGE_APPROVED`, after recording the revised plan
    wording and evidence. `FULL_DESIGN_REQUIRED` returns to `kstack-design` for
    a fresh digest, independent Codex/Opus review, the mandatory post-round-one
    direct-user clarification record for a new or still-unapproved design thread,
    deterministic gate, and user approval. Do not reopen a thread already in
    implementation solely because it predates the clarification gate.
    `INTERROGATION_BLOCKED` and `USER_DECISION_REQUIRED` stop the affected branch.
-7. Record non-material implementation deviations and their evidence. A
+8. Record non-material implementation deviations and their evidence. A
    deviation is not non-material merely because code has already been written.
-8. Do not weaken tests, validation, security, or data-preservation behavior to
+9. Do not weaken tests, validation, security, or data-preservation behavior to
    obtain a passing result.
 
 ## External actions
@@ -71,6 +77,12 @@ Treat each action separately: commit, push, pull request, merge, deployment,
 device installation, and destructive operation. Ask or stop according to the
 exact configured authority. Never uninstall an application, clear application
 data, rewrite history, or destroy a database as an upgrade workaround.
+
+After any deployment, do not treat provider completion as application health.
+Invoke the sibling `kstack-post-deploy/SKILL.md` with the exact deployment,
+commit, artifact, environment, and URL binding. Its Playwright observation is
+separate test authority; product-data mutations inside a browser suite require
+their own authorization. A skipped or unavailable observation is not a pass.
 
 ## Post-implementation QC
 
@@ -116,7 +128,9 @@ Use this capped Actor/Evaluator/Reflector loop:
 Report changed files, observed test results, unrun gates, accepted deviations,
 rollback instructions, and the precise status: `complete (QC passed)`,
 `implementation complete; QC pending/failed/stale`, or `blocked`. Do not claim
-a deployment or device validation unless it was performed and verified.
+a deployment or device validation unless it was performed and verified. A
+deployed web application is release-healthy only when the current
+`kstack-post-deploy` receipt is `HEALTHY` for the exact deployed artifact.
 
 ## Optional Jira drafting
 

@@ -51,6 +51,43 @@ test('Jira administration is distinct and legacy omission fails closed', () => {
   assert.deepEqual(validateConfig(config), []);
 });
 
+test('Jira continuous tracking is repository-scoped, explicit, and authority-bound', () => {
+  const config = structuredClone(defaultConfig);
+  assert.deepEqual(config.jira.tracking, {
+    mode: 'off', required: false, repositoryNamespace: null, projectKey: null,
+    automaticVersionAssignment: false, releaseVersions: []
+  });
+  config.jira.tracking = {
+    mode: 'approval-queued', required: true, repositoryNamespace: 'AuthorityGate/KStack', projectKey: 'KSTK',
+    automaticVersionAssignment: false, releaseVersions: []
+  };
+  assert.deepEqual(validateConfig(config), []);
+
+  config.jira.tracking.mode = 'automatic';
+  assert.match(validateConfig(config).join('\n'), /requires authority\.externalTicketCreation allow/u);
+  config.authority.externalTicketCreation = 'allow';
+  assert.deepEqual(validateConfig(config), []);
+
+  config.jira.tracking.projectKey = 'OTHER';
+  assert.match(validateConfig(config).join('\n'), /must reference jira\.projects/u);
+  config.jira.tracking.projectKey = null;
+  assert.match(validateConfig(config).join('\n'), /projectKey is required/u);
+  config.jira.tracking.projectKey = 'KSTK';
+  config.jira.tracking.repositoryNamespace = null;
+  assert.match(validateConfig(config).join('\n'), /repositoryNamespace is required/u);
+  config.jira.tracking.repositoryNamespace = 'AuthorityGate/KStack';
+  config.jira.tracking.automaticVersionAssignment = true;
+  assert.match(validateConfig(config).join('\n'), /requires at least one approved releaseVersions entry/u);
+  config.jira.tracking.releaseVersions = [{ id: '10001', name: 'v1.0.0', releaseDate: '2026-08-28' }];
+  assert.deepEqual(validateConfig(config), []);
+});
+
+test('legacy Jira configuration without tracking remains valid and fails closed as off', () => {
+  const config = structuredClone(defaultConfig);
+  delete config.jira.tracking;
+  assert.deepEqual(validateConfig(config), []);
+});
+
 test('design threshold accepts 90 and rejects values below the floor', () => {
   const config = structuredClone(defaultConfig);
   config.workflow.designGate.minimumConfidence = 90;

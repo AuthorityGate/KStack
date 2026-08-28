@@ -1,7 +1,7 @@
 {
   "name": "kstack",
   "version": "0.1.0",
-  "description": "KStack workflows with bounded per-host and per-action safety hooks.",
+  "description": "KStack workflows with bounded safety hooks and Playwright post-deploy validation.",
   "author": {
     "name": "AuthorityGate"
   }

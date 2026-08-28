@@ -23,6 +23,16 @@ export const DELIVERY_STATES = Object.freeze(new Set([
 
 const MODES = new Set(['skip', 'existing', 'new', 'existing-add-board']);
 const BOARD_TYPES = new Set(['kanban', 'scrum']);
+const ROADMAP_MODES = new Set(['auto', 'custom', 'empty']);
+const ROADMAP_LOCAL_ID = /^[a-z0-9][a-z0-9-]{0,63}$/u;
+const ROADMAP_LABEL = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/u;
+const DEFAULT_ROADMAP_ITEMS = Object.freeze([
+  Object.freeze({ localId: 'objectives', issueType: 'Task', summary: 'Confirm objectives and acceptance evidence', description: 'Ground the objective in repository evidence and freeze measurable acceptance criteria.', labels: ['kstack-lifecycle', 'objectives'] }),
+  Object.freeze({ localId: 'design', issueType: 'Task', summary: 'Complete independent design review', description: 'Resolve design findings and obtain the configured KStack design-gate evidence.', labels: ['kstack-lifecycle', 'design'] }),
+  Object.freeze({ localId: 'implementation', issueType: 'Task', summary: 'Implement the accepted design', description: 'Implement only the accepted plan and record any material deviation for interrogation.', labels: ['kstack-lifecycle', 'implementation'] }),
+  Object.freeze({ localId: 'quality-control', issueType: 'Task', summary: 'Run quality control and close defects', description: 'Run the configured verification and adversarial QC loop until the accepted closure rule is met.', labels: ['kstack-lifecycle', 'quality-control'] }),
+  Object.freeze({ localId: 'release', issueType: 'Task', summary: 'Ship and verify the release', description: 'Execute the approved release path, verify target health, and retain the release evidence.', labels: ['kstack-lifecycle', 'release'] })
+]);
 const PROJECT_TEMPLATES = Object.freeze({
   software: Object.freeze({
     kanban: 'com.pyxis.greenhopper.jira:gh-simplified-kanban-classic',
@@ -63,6 +73,34 @@ function list(value, field, validator) {
   const unique = [...new Set(values)];
   for (const item of unique) validator(item);
   return unique;
+}
+
+function roadmapMarker(projectKey, localId) {
+  return `kstack-roadmap-${sha256(Buffer.from(`${projectKey}\0${localId}`, 'utf8')).slice(0, 24)}`;
+}
+
+function normalizeRoadmapItems(value, projectKey) {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 64) fail('roadmap must contain 1-64 items', EXIT.CONFIG_INVALID);
+  const localIds = new Set();
+  return value.map((raw, index) => {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) fail(`roadmap item ${index + 1} is invalid`, EXIT.CONFIG_INVALID);
+    const allowed = new Set(['localId', 'issueType', 'summary', 'description', 'labels']);
+    if (Object.keys(raw).some((key) => !allowed.has(key))) fail(`roadmap item ${index + 1} contains an unknown field`, EXIT.CONFIG_INVALID);
+    const localId = bounded(raw.localId, `roadmap item ${index + 1} localId`, 64);
+    if (!ROADMAP_LOCAL_ID.test(localId) || localIds.has(localId)) fail(`roadmap item ${index + 1} localId is invalid or duplicated`, EXIT.CONFIG_INVALID);
+    localIds.add(localId);
+    const issueType = bounded(raw.issueType || 'Task', `roadmap item ${index + 1} issueType`, 64);
+    const summary = bounded(raw.summary, `roadmap item ${index + 1} summary`, 255);
+    const description = bounded(raw.description, `roadmap item ${index + 1} description`, 4000);
+    const labels = raw.labels == null ? [] : list(raw.labels, `roadmap item ${index + 1} labels`, (label) => {
+      bounded(label, `roadmap item ${index + 1} label`, 64);
+      if (!ROADMAP_LABEL.test(label)) fail(`roadmap item ${index + 1} label is invalid`, EXIT.CONFIG_INVALID);
+    });
+    const marker = roadmapMarker(projectKey, localId);
+    const contentSha256 = sha256(Buffer.from(canonicalJson({ localId, issueType, summary, description, labels }), 'utf8'));
+    const contentMarker = `kstack-content-${contentSha256.slice(0, 24)}`;
+    return { localId, issueType, summary, description, labels: [...new Set([marker, contentMarker, ...labels])], marker, contentSha256 };
+  });
 }
 
 function configDigest(state) {
@@ -239,7 +277,16 @@ function normalizeArgs(state, args) {
   const boardId = args.boardId == null ? null : bounded(String(args.boardId), 'board id', 32);
   const filterId = args.filterId == null ? null : bounded(String(args.filterId), 'filter id', 32);
   if (mode === 'existing' && (!filterId || (projectType !== 'business' && !boardId))) fail('existing mode requires filter-id and requires board-id for Jira Software', EXIT.CONFIG_INVALID);
-  return { mode, projectKey, projectName, repository, branches, environments, projectType, boardType, boardName, filterName, boardId, filterId };
+  const roadmapMode = args.roadmapMode || (args.roadmapItems ? 'custom' : mode === 'existing' ? 'empty' : 'auto');
+  if (!ROADMAP_MODES.has(roadmapMode)) fail('roadmap mode must be auto, custom, or empty', EXIT.CONFIG_INVALID);
+  if (roadmapMode === 'custom' && !args.roadmapItems) fail('custom roadmap mode requires roadmap items', EXIT.CONFIG_INVALID);
+  if (roadmapMode === 'empty' && args.roadmapItems) fail('empty roadmap mode cannot include roadmap items', EXIT.CONFIG_INVALID);
+  const roadmapItems = roadmapMode === 'empty' ? [] : normalizeRoadmapItems(
+    roadmapMode === 'auto' ? DEFAULT_ROADMAP_ITEMS : args.roadmapItems,
+    projectKey
+  );
+  if (mode === 'existing' && roadmapItems.length) fail('existing mode is read-only; use existing-add-board for roadmap creation', EXIT.CONFIG_INVALID);
+  return { mode, projectKey, projectName, repository, branches, environments, projectType, boardType, boardName, filterName, boardId, filterId, roadmapMode, roadmapItems };
 }
 
 export function buildDeliveryPlan(state, args = {}) {
@@ -270,6 +317,7 @@ export function buildDeliveryPlan(state, args = {}) {
       id: input.boardId
     }],
     repository: { slug: input.repository, branches: input.branches, environments: input.environments },
+    roadmap: { mode: input.roadmapMode, items: input.roadmapItems },
     releasePolicy: { jiraVersions: true, executionPlane: 'github-actions', jiraAutomationRequired: false },
     operations: [
       ...(createProject ? [{ id: 'create-project', kind: 'project-create' }] : [{ id: 'verify-project', kind: 'project-verify' }]),
@@ -279,7 +327,8 @@ export function buildDeliveryPlan(state, args = {}) {
       ] : [
         { id: 'verify-primary-filter', kind: 'filter-verify' },
         { id: 'verify-primary-board', kind: 'board-verify' }
-      ])
+      ]),
+      ...input.roadmapItems.map((item) => ({ id: `roadmap-${item.localId}`, kind: 'roadmap-issue-create', localId: item.localId }))
     ]
   };
 }
@@ -482,6 +531,101 @@ async function verifyBusinessBoard(state, credentials, projectKey, board) {
   };
 }
 
+function roadmapAdf(text) {
+  return {
+    version: 1,
+    type: 'doc',
+    content: text.split(/\n{2,}/u).map((paragraph) => ({
+      type: 'paragraph',
+      content: paragraph ? [{ type: 'text', text: paragraph }] : []
+    }))
+  };
+}
+
+function adfText(node) {
+  if (!node || typeof node !== 'object') return '';
+  if (node.type === 'text') return typeof node.text === 'string' ? node.text : '';
+  if (!Array.isArray(node.content)) return '';
+  const values = node.content.map(adfText);
+  return node.type === 'doc' ? values.join('\n\n') : values.join('');
+}
+
+async function preflightRoadmapIssueTypes(state, credentials, plan) {
+  if (!plan.roadmap.items.length) return;
+  const body = requireSuccess(await jsonResponse(
+    state,
+    credentials,
+    `/rest/api/3/issue/createmeta/${encodeURIComponent(plan.project.key)}/issuetypes`
+  ), 'roadmap issue-type preflight');
+  const values = Array.isArray(body.issueTypes) ? body.issueTypes : Array.isArray(body.values) ? body.values : null;
+  if (!values || !values.every((item) => item && typeof item.name === 'string')) fail('roadmap issue-type preflight returned an unsupported shape', EXIT.PREFLIGHT_FAILED);
+  const available = new Set(values.map((item) => item.name));
+  const missing = [...new Set(plan.roadmap.items.map((item) => item.issueType).filter((name) => !available.has(name)))];
+  if (missing.length) fail(`roadmap issue type is unavailable: ${missing.join(', ')}`, EXIT.PREFLIGHT_FAILED);
+}
+
+async function searchRoadmapIssues(state, credentials, plan) {
+  const items = plan.roadmap.items;
+  if (!items.length) return new Map();
+  const markers = items.map((item) => `"${item.marker.replace(/\\/gu, '\\\\').replace(/"/gu, '\\"')}"`).join(', ');
+  const body = requireSuccess(await jsonResponse(state, credentials, '/rest/api/3/search/jql', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: Buffer.from(JSON.stringify({
+      jql: `project = "${plan.project.key}" AND labels in (${markers})`,
+      fields: ['key', 'summary', 'issuetype', 'description', 'labels'],
+      maxResults: 100
+    }), 'utf8')
+  }), 'roadmap discovery');
+  if (!Array.isArray(body.issues) || body.nextPageToken || body.isLast === false) fail('roadmap discovery returned an unsupported or incomplete page', EXIT.AMBIGUOUS_HISTORY);
+  const matches = new Map(items.map((item) => [item.localId, []]));
+  for (const issue of body.issues) {
+    const labels = Array.isArray(issue?.fields?.labels) ? issue.fields.labels : [];
+    for (const item of items) if (labels.includes(item.marker)) matches.get(item.localId).push(issue);
+  }
+  return matches;
+}
+
+function verifyRoadmapIssue(issue, item, projectKey) {
+  const labels = Array.isArray(issue?.fields?.labels) ? issue.fields.labels : [];
+  const expectedContentMarker = `kstack-content-${item.contentSha256.slice(0, 24)}`;
+  if (!issue?.key || !String(issue.key).startsWith(`${projectKey}-`) || issue.fields?.summary !== item.summary || issue.fields?.issuetype?.name !== item.issueType || !labels.includes(item.marker) || !labels.includes(expectedContentMarker) || adfText(issue.fields?.description) !== item.description) {
+    fail(`roadmap item ${item.localId} does not match the approved preview`, EXIT.AMBIGUOUS_HISTORY);
+  }
+  return { key: String(issue.key), localId: item.localId, issueType: item.issueType, summary: item.summary, marker: item.marker, contentSha256: item.contentSha256 };
+}
+
+async function readRoadmapIssue(state, credentials, key) {
+  return requireSuccess(await jsonResponse(state, credentials, `/rest/api/3/issue/${encodeURIComponent(key)}?fields=summary,issuetype,description,labels`), 'roadmap issue read-back');
+}
+
+async function ensureRoadmapIssue(state, credentials, plan, item, discovered) {
+  const matches = discovered.get(item.localId) || [];
+  if (matches.length > 1) fail(`roadmap item ${item.localId} has multiple marker matches`, EXIT.AMBIGUOUS_HISTORY);
+  if (matches.length === 1) {
+    const full = matches[0].fields?.description === undefined
+      ? await readRoadmapIssue(state, credentials, matches[0].key)
+      : matches[0];
+    return { adopted: true, resource: verifyRoadmapIssue(full, item, plan.project.key) };
+  }
+  const payload = {
+    fields: {
+      project: { key: plan.project.key },
+      issuetype: { name: item.issueType },
+      summary: item.summary,
+      description: roadmapAdf(item.description),
+      labels: item.labels
+    }
+  };
+  const created = requireSuccess(await jsonResponse(state, credentials, '/rest/api/3/issue', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json; charset=utf-8' },
+    body: Buffer.from(JSON.stringify(payload), 'utf8')
+  }), `roadmap item ${item.localId} creation`);
+  if (!created.key || !created.id) fail(`roadmap item ${item.localId} creation returned an incomplete success`, EXIT.AMBIGUOUS_HISTORY);
+  return { adopted: false, resource: verifyRoadmapIssue(await readRoadmapIssue(state, credentials, String(created.key)), item, plan.project.key) };
+}
+
 function effect(operation, resource, clock, adopted = false) {
   return { operation, outcome: adopted ? 'adopted' : 'created', resource, at: nowIso(clock) };
 }
@@ -519,6 +663,19 @@ async function applyDeliveryStackUnlocked(state, lock) {
       : await ensureBoard(state, credentials, boardPlan, record.plan.project.key, filterResult.resource.id);
     record.effects.push(effect('primary-board', boardResult.resource, state.clock, boardResult.adopted));
     record.operations[2].state = 'complete';
+    record.updatedAt = nowIso(state.clock);
+    await writeDeliveryRecord(state, record, lock);
+
+    await preflightRoadmapIssueTypes(state, credentials, record.plan);
+    const roadmapIssues = await searchRoadmapIssues(state, credentials, record.plan);
+    for (let index = 0; index < record.plan.roadmap.items.length; index += 1) {
+      const item = record.plan.roadmap.items[index];
+      const result = await ensureRoadmapIssue(state, credentials, record.plan, item, roadmapIssues);
+      record.effects.push(effect(`roadmap-${item.localId}`, result.resource, state.clock, result.adopted));
+      record.operations[index + 3].state = 'complete';
+      record.updatedAt = nowIso(state.clock);
+      await writeDeliveryRecord(state, record, lock);
+    }
     record.state = 'verified';
     record.updatedAt = nowIso(state.clock);
     return writeDeliveryRecord(state, record, lock);
@@ -610,7 +767,30 @@ async function reconcileDeliveryStackUnlocked(state, lock) {
     record.effects.push(effect('primary-board', board, state.clock, true));
     record.operations[2].state = 'complete';
   } else record.operations[2].state = 'pending';
-  record.state = project && filter && board ? 'verified' : 'new-previewed';
+  let roadmapComplete = true;
+  if (project && filter && board && record.plan.roadmap.items.length) {
+    const discovered = await searchRoadmapIssues(state, credentials, record.plan);
+    for (let index = 0; index < record.plan.roadmap.items.length; index += 1) {
+      const item = record.plan.roadmap.items[index];
+      const matches = discovered.get(item.localId) || [];
+      if (matches.length > 1) fail(`roadmap item ${item.localId} has multiple marker matches`, EXIT.AMBIGUOUS_HISTORY);
+      if (matches.length === 0) {
+        record.operations[index + 3].state = 'pending';
+        roadmapComplete = false;
+        continue;
+      }
+      const full = matches[0].fields?.description === undefined
+        ? await readRoadmapIssue(state, credentials, matches[0].key)
+        : matches[0];
+      const resource = verifyRoadmapIssue(full, item, record.plan.project.key);
+      record.effects.push(effect(`roadmap-${item.localId}`, resource, state.clock, true));
+      record.operations[index + 3].state = 'complete';
+    }
+  } else if (record.plan.roadmap.items.length) {
+    roadmapComplete = false;
+    for (let index = 0; index < record.plan.roadmap.items.length; index += 1) record.operations[index + 3].state = 'pending';
+  }
+  record.state = project && filter && board && roadmapComplete ? 'verified' : 'new-previewed';
   record.approvedAt = null;
   record.updatedAt = nowIso(state.clock);
   delete record.lastFailure;
@@ -633,7 +813,26 @@ export async function runBootstrapCommand(state, command, args = {}) {
   }
 }
 
-const HELP = `KStack Jira delivery-stack bootstrap (Jira Cloud)\n\nCommands:\n  preview --mode skip|existing|new|existing-add-board [--project-key KEY] [--project-name NAME] [--project-type software|business] [--repository OWNER/NAME] [--board-name NAME] [--board-type kanban|scrum] [--filter-name NAME] [--board-id ID --filter-id ID] [--branches main,Dev] [--environments development,staging,production]\n  show\n  validate                                    (read-only existing-stack validation)\n  approve --plan-hash SHA256                  (interactive TTY required)\n  apply                                       (interactive TTY approval read-back required)\n  reconcile                                   (read-only ambiguous/interrupted outcome reconciliation)\n\nPreview and show are offline. Validate and reconcile perform Jira reads only. Apply never retries an ambiguous Jira mutation. Project/filter/board deletion is never automatic.`;
+const HELP = `KStack Jira delivery-stack bootstrap (Jira Cloud)\n\nCommands:\n  preview --mode skip|existing|new|existing-add-board [--project-key KEY] [--project-name NAME] [--project-type software|business] [--repository OWNER/NAME] [--board-name NAME] [--board-type kanban|scrum] [--filter-name NAME] [--board-id ID --filter-id ID] [--branches main,Dev] [--environments development,staging,production] [--roadmap-file PATH | --roadmap-mode auto|empty]\n  show\n  validate                                    (read-only existing-stack validation)\n  approve --plan-hash SHA256                  (interactive TTY required)\n  apply                                       (interactive TTY approval read-back required)\n  reconcile                                   (read-only ambiguous/interrupted outcome reconciliation)\n\nNew and existing-add-board previews include a five-item KStack lifecycle roadmap by default. --roadmap-file replaces it with a kstack-jira-roadmap-v1 manifest; --roadmap-mode empty is an explicit opt-out. Preview and show are offline. Validate and reconcile perform Jira reads only. Apply never retries an ambiguous Jira mutation. Project/filter/board/issue deletion is never automatic.`;
+
+function readRoadmapFile(file) {
+  const resolved = path.resolve(file);
+  let stat;
+  let link;
+  try {
+    link = fs.lstatSync(resolved);
+    stat = fs.statSync(resolved);
+  } catch (error) {
+    fail(`roadmap file could not be inspected: ${sanitize(error.message)}`, EXIT.CONFIG_INVALID);
+  }
+  if (link.isSymbolicLink() || !stat.isFile() || stat.size > 64 * 1024) fail('roadmap file must be a non-symlink regular file no larger than 64 KiB', EXIT.CONFIG_INVALID);
+  let manifest;
+  try { manifest = JSON.parse(fs.readFileSync(resolved, 'utf8')); } catch (error) {
+    fail(`roadmap file is invalid JSON: ${sanitize(error.message)}`, EXIT.CONFIG_INVALID);
+  }
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest) || Object.keys(manifest).sort().join(',') !== 'items,schema' || manifest.schema !== 'kstack-jira-roadmap-v1') fail('roadmap file must use the closed kstack-jira-roadmap-v1 schema', EXIT.CONFIG_INVALID);
+  return manifest.items;
+}
 
 function parseCli(argv) {
   const [command = 'help', ...rest] = argv;
@@ -654,6 +853,12 @@ async function cli(argv) {
   if (parsed.command === 'help') {
     process.stdout.write(`${HELP}\n`);
     return;
+  }
+  if (parsed.args.roadmapFile) {
+    if (parsed.args.roadmapMode && parsed.args.roadmapMode !== 'custom') fail('--roadmap-file cannot be combined with auto or empty roadmap mode', EXIT.CONFIG_INVALID);
+    parsed.args.roadmapItems = readRoadmapFile(parsed.args.roadmapFile);
+    parsed.args.roadmapMode = 'custom';
+    delete parsed.args.roadmapFile;
   }
   const state = await loadJiraState({ command: parsed.command });
   if (['approve', 'apply'].includes(parsed.command)) {

@@ -5,6 +5,14 @@ description: Perform KStack post-implementation quality control against the appr
 
 # KStack QC
 
+Read `../../references/JIRA_TRACKING.md`. When Jira continuous tracking is
+enabled, append `REVIEW_COMPLETED` for every scored QC pass, `BUG_FOUND` for
+every genuine defect, `BUG_FIXED` only after its repair test passes,
+`QC_VALIDATED` only when the QC gate passes, and `ITEM_DONE` only when all
+required work is complete. Sync after every durable append. New independently
+actionable defects receive their own `ITEM_CREATED` event rather than being
+hidden only in the parent issue.
+
 Review the current implementation before KStack calls it complete. This is a
 cooperative review, not reviewer identity attestation or a calibrated
 probability claim.

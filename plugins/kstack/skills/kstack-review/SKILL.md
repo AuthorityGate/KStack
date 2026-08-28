@@ -13,8 +13,9 @@ Locate `.kstack/config.json`. If it does not exist, read the sibling
 `kstack-init/SKILL.md` and conduct that initialization conversation before
 continuing. Do not silently accept defaults.
 
-Read `../../references/SAFETY.md` and `../../references/ARTIFACTS.md` relative
-to this skill directory.
+Read `../../references/SAFETY.md`, `../../references/ARTIFACTS.md`, and, when
+Jira continuous tracking is enabled, `../../references/JIRA_TRACKING.md`
+relative to this skill directory.
 
 Use the configured role for each stage. Resolve `active` once at phase entry.
 All stages use the same project authority matrix; model routing changes who
@@ -75,6 +76,12 @@ Return one status:
 
 Include the implementation sequence, verification matrix, rollback path, and
 remaining user decisions.
+
+When Jira continuous tracking is enabled, append `REVIEW_COMPLETED` with the
+exact current counters for every scored readiness review. Append
+`ITEM_BLOCKED` only for a real blocked work state, not merely a lower score.
+Register any newly identified independently actionable follow-up before it is
+scheduled, then sync the projection under the configured mode.
 
 ## Stage 5: Transition
 

@@ -36,6 +36,12 @@ Turn an initial request into a decision-ready objective before design begins.
    - readiness for design: ready, ready with risks, or blocked.
 8. Save the brief under `.kstack/objectives/` only when configured persistence
    permits it. Otherwise return it in the conversation.
+9. Read `../../references/JIRA_TRACKING.md`. When Jira continuous tracking is
+   enabled, append `ITEM_CREATED` for the objective's root work item before
+   reporting readiness. Every later independently actionable objective item
+   receives its own stable item and creation event; a generic backlog card is
+   not an acceptable substitute. Run projection sync after the durable append
+   and apply the configured required/non-required failure rule.
 
 Do not design or implement beyond identifying candidate directions needed to
 clarify the objective.

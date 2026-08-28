@@ -16,7 +16,8 @@ dissent, and user approval.
    produced Codex and Opus reports. Role selection does not change the shared
    authority matrix.
 3. Read `../../references/DUAL_REVIEW.md`, `../../references/SAFETY.md`, and
-   `../../references/ARTIFACTS.md` relative to this skill directory.
+   `../../references/ARTIFACTS.md` relative to this skill directory. Also read
+   `../../references/JIRA_TRACKING.md` when Jira continuous tracking is enabled.
 4. Inspect the relevant source, tests, interfaces, data model, deployment path,
    and repository-native build instructions. Distinguish observed facts from
    assumptions.
@@ -96,6 +97,11 @@ dissent, and user approval.
     decisions only when persistence permits it. A material change returned by
     `kstack-interrogate` supersedes the old digest and must traverse this
     complete procedure with fresh reports and approval.
+15. When Jira continuous tracking is enabled, register each new independently
+    actionable design-ledger item with `ITEM_CREATED`, append
+    `REVIEW_COMPLETED` after every scored round, and append
+    `DESIGN_VALIDATED` only after the gate passes. Include exact review counters
+    and evidence digests. Sync the projection after each durable append.
 
 Stop at an approved design. Continue through `kstack-implement` only when the
 configured transition and edit authority allow it.
@@ -137,6 +143,11 @@ When `jira.enabled` is true, read `.kstack/jira-delivery-stack.json` before
 offering Jira linkage. Only `existing-validated` and `verified` prove a usable
 delivery mapping. Treat `skipped` as an owner choice and every other state as a
 release-readiness gap. Never infer a backlog from `jira.projects[]` alone.
+For a `verified` mapping, also require every preview-bound roadmap operation to
+be complete; project/board existence without the planned work items is an
+incomplete onboarding state. When offering a new preview and a concrete design
+ledger exists, offer to generate a closed `kstack-jira-roadmap-v1` manifest
+from its accepted open items rather than defaulting to generic lifecycle work.
 
 When the design produces a concrete follow-up and the mapping is validated,
 offer the sibling `kstack-jira` extension. It may call only the fully offline

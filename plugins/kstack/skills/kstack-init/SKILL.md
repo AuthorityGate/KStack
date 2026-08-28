@@ -9,11 +9,12 @@ Configure KStack without changing the host agent, global memory, or permissions.
 
 ## Procedure
 
-1. Read `../../references/CONFIG.md` and `../../references/SAFETY.md` relative
-   to this skill directory.
+1. Read `../../references/CONFIG.md`, `../../references/SAFETY.md`, and
+   `../../references/JIRA_TRACKING.md` relative to this skill directory.
 2. Inspect the repository read-only to discover facts that should not be asked:
    roots, languages, wrappers, CI, existing agent instructions, deployment
-   scripts, and whether `.kstack/config.json` exists.
+   scripts, Playwright configuration/post-deploy suites, and whether
+   `.kstack/config.json` exists.
 3. If a config exists, validate it with
    `node ../../scripts/kstack-config.mjs validate .kstack/config.json`. Ask
    whether to review, reconfigure, or leave it unchanged.
@@ -35,6 +36,33 @@ Configure KStack without changing the host agent, global memory, or permissions.
    preflight accessible project types. Jira Software uses a saved-filter Agile
    board; Jira Business uses its native Board view and must not receive a Jira
    Software board POST. A configured project key is not validation.
+   Ask whether the initial backlog should use KStack's five lifecycle items,
+   load a discovered repository `kstack-jira-roadmap-v1` manifest, or be empty
+   by explicit owner choice. New and existing-project/new-board previews must
+   default to populated, and the roadmap bodies must be bound into the same
+   preview digest as the project and board. Never report a populated onboarding
+   state from project/board existence alone.
+   Configure Jira tracking separately as `off`, `approval-queued`, or
+   `automatic`, ask whether enqueue failure is phase-blocking, bind one exact
+   configured project key and stable `owner/name` repository namespace, and ask
+   whether assignment to an already approved release version may be automatic.
+   If yes, record the exact numeric Jira version ID, name, and release date in
+   `releaseVersions`; never infer an approval from a name match alone.
+   Explain both enabled outputs: every new actionable item begins as forward
+   work, and later design/review/implementation/QC/fix/completion/release events
+   remain visible on that item as delivery history. Version creation/release is
+   always separate Jira administration. `automatic` requires ticket-creation
+   authority `allow`; otherwise use `approval-queued`.
+   When a web application is deployed, ask whether post-deploy Playwright
+   validation is required for development, staging, and production. Default
+   production to required. If enabled, read
+   `../../references/POST_DEPLOY_VALIDATION.md`, discover existing Playwright
+   config and suitable full-suite paths, and write the non-secret
+   `.kstack/post-deploy-validation.json` plan only after confirming its allowed
+   origins, projects, timeouts, retry bound, console/network policy, and skip
+   policy. Initialization validates the plan offline but never launches a
+   browser or contacts a deployment. Missing Playwright is a reported setup
+   requirement, not permission to install it.
    Prefer the active host for init, objectives, and ordinary review; ask which one or two
    roles should design, implement, interrogate deviations, and perform QC.
    Explain that roles change responsibility and token use, never authority.

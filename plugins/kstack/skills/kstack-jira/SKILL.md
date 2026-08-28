@@ -43,8 +43,35 @@ or `apply` from this skill. Approval and apply are host-side operations that
 require interactive confirmation of the exact preview hash and separate
 `jiraAdministration` authority.
 
+A new or existing-project/new-board preview includes a five-item KStack
+lifecycle roadmap by default. Before preview, ask whether to use that default,
+load a repository roadmap manifest, or explicitly create an empty board. Prefer
+a custom `kstack-jira-roadmap-v1` manifest when accepted objectives or a design
+ledger already identifies concrete work. The entire item content is approval-
+hash-bound; never claim onboarding is complete when a planned item is missing.
+The skill may pass `--roadmap-file` to offline `preview`, but it never invokes
+the externally mutating `apply` operation.
+
 Jira Cloud is the only v1 target. The hostname rule accepts exactly one tenant
 label plus `.atlassian.net`; it is a typo/DNS-suffix guard, not protection from
 an attacker-controlled Atlassian tenant. `doctor` performs the site-identity
 assertion and warns that `BROWSE_PROJECTS` does not prove issue-level
 visibility when project defaults, workflows, or automation apply security.
+
+## Continuous work and history tracking
+
+This drafting extension does not replace continuous tracking. When
+`jira.tracking.mode` is enabled, read `../../references/JIRA_TRACKING.md` and
+use `kstack-jira-tracking.mjs`: every new actionable item starts with a durable
+creation event, and later reviews, defects, fixes, completions, and releases are
+projected onto that same Jira issue. A project, board, backlog, or one-time issue
+seed without ongoing history is incomplete.
+
+For web releases, `ITEM_RELEASED` must bind the current healthy receipt from
+`kstack-post-deploy`; provider deployment success alone is insufficient. A
+failed, slow, flaky, inconsistent, skipped, timed-out, or otherwise unhealthy
+browser validation is appended to the same item and creates stable follow-up
+work by defect category; it must not be projected as released. A clean run
+records validation, completion, and release, then hands the release to the user
+for deeper validation. Jira records the receipt digest, never raw
+screenshots, traces, cookies, storage state, credentials, or test output.

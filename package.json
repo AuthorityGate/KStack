@@ -15,7 +15,9 @@
     "safety:disable": "node plugins/kstack/scripts/kstack-safety-admin.mjs disable",
     "safety:rollback": "node plugins/kstack/scripts/kstack-safety-admin.mjs rollback",
     "jira": "node plugins/kstack/scripts/kstack-jira.mjs",
-    "jira:bootstrap": "node plugins/kstack/scripts/kstack-jira-bootstrap.mjs"
+    "jira:bootstrap": "node plugins/kstack/scripts/kstack-jira-bootstrap.mjs",
+    "jira:tracking": "node plugins/kstack/scripts/kstack-jira-tracking.mjs",
+    "post-deploy": "node plugins/kstack/scripts/kstack-post-deploy.mjs"
   },
   "engines": {
     "node": ">=20"

@@ -23,6 +23,11 @@ not reviewer identity attestation or a calibrated probability claim.
    same concrete model/host identity; they are one reviewer, never consensus.
    At least one reviewer must be independent of the implementer. Otherwise
    follow the configured unavailable-provider behavior and do not approve.
+5. When Jira continuous tracking is enabled, read
+   `../../references/JIRA_TRACKING.md`. Register a newly split or newly added
+   implementation unit with `ITEM_CREATED`. After the classification is
+   accepted, append `ITEM_UPDATED` to the affected item with the decision and
+   exact evidence digest, then sync the projection.
 
 ## Evidence
 

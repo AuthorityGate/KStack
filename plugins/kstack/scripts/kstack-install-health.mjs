@@ -313,7 +313,17 @@ function main(argv) {
     for (const rootInput of args.roots) {
       const rootPath = fs.realpathSync.native(rootInput.path); const root = { ...rootInput, path: rootPath };
       validateInstalledRoot(rootPath, manifest); validateReflexionState(root);
-      const probeResults = root.role === 'provisioning' ? [] : contract.value.probes.map((probe) => probe.kind === 'esm-import-v1' ? probeImport(rootPath, probe) : probeReflexion(rootPath, probe, root.reflexionState));
+      const probeResults = [];
+      if (root.role !== 'provisioning') {
+        for (const probe of contract.value.probes) {
+          const result = probe.kind === 'esm-import-v1' ? probeImport(rootPath, probe) : probeReflexion(rootPath, probe, root.reflexionState);
+          probeResults.push(result);
+          // A failed installed module invalidates the root. Stop launching
+          // transitive dependants so one hung shared import consumes one
+          // timeout budget instead of multiplying it across every skill.
+          if (result.blocking) break;
+        }
+      }
       const failure = probeResults.some((probe) => probe.blocking); const degraded = probeResults.some((probe) => probe.outcome === 'SKIPPED_UNAVAILABLE');
       roots.push({ rootId: root.rootId, role: root.role, status: failure ? 'FAILED' : degraded ? 'DEGRADED' : root.role === 'provisioning' ? 'NOT_APPLICABLE' : 'PASS', executedProbeCount: probeResults.filter((probe) => probe.launched).length, probeResults });
     }

@@ -34,6 +34,7 @@ function previewArgs(changes = {}) {
   return {
     mode: 'new', projectKey: 'SHOP', projectName: 'Shop', repository: 'Example/shop',
     branches: ['main', 'Dev'], environments: ['development', 'staging', 'production'],
+    roadmapMode: 'empty',
     ...changes
   };
 }
@@ -44,6 +45,8 @@ async function approved(state, args = previewArgs()) {
 }
 
 function successfulJiraMock(calls) {
+  const issues = new Map();
+  let issueSequence = 1;
   return async (url, options = {}) => {
     const parsed = new URL(url);
     const key = `${options.method || 'GET'} ${parsed.pathname}`;
@@ -60,20 +63,57 @@ function successfulJiraMock(calls) {
     if (key === 'POST /rest/agile/1.0/board') return Response.json({ id: '30001', name: 'Shop Delivery' }, { status: 201 });
     if (key === 'GET /rest/agile/1.0/board/30001') return Response.json({ id: '30001', name: 'Shop Delivery', type: 'kanban' });
     if (key === 'GET /rest/agile/1.0/board/30001/configuration') return Response.json({ id: 30001, filter: { id: '20001' } });
+    if (key === 'GET /rest/api/3/issue/createmeta/SHOP/issuetypes') return Response.json({ issueTypes: [{ id: '10010', name: 'Task' }] });
+    if (key === 'POST /rest/api/3/search/jql') return Response.json({ issues: [...issues.values()], isLast: true });
+    if (key === 'POST /rest/api/3/issue') {
+      const fields = JSON.parse(options.body.toString('utf8')).fields;
+      const issue = { id: String(40000 + issueSequence), key: `SHOP-${issueSequence}`, fields: { ...fields, issuetype: fields.issuetype } };
+      issueSequence += 1;
+      issues.set(issue.key, issue);
+      return Response.json({ id: issue.id, key: issue.key }, { status: 201 });
+    }
+    if (key.startsWith('GET /rest/api/3/issue/SHOP-')) return Response.json(issues.get(parsed.pathname.split('/').at(-1)) || {}, { status: issues.has(parsed.pathname.split('/').at(-1)) ? 200 : 404 });
     return Response.json({}, { status: 404 });
   };
 }
 
 test('new preview defaults to one Free-compatible Kanban board without Jira automation', async () => {
   const state = makeState();
-  const record = await previewDeliveryStack(state, previewArgs());
+  const args = previewArgs();
+  delete args.roadmapMode;
+  const record = await previewDeliveryStack(state, args);
   assert.equal(record.state, 'new-previewed');
   assert.equal(record.plan.boards.length, 1);
   assert.equal(record.plan.boards[0].type, 'kanban');
   assert.equal(record.plan.releasePolicy.jiraAutomationRequired, false);
+  assert.equal(record.plan.roadmap.mode, 'auto');
+  assert.equal(record.plan.roadmap.items.length, 5);
   assert.deepEqual(record.plan.repository.branches, ['main', 'Dev']);
-  assert.deepEqual(record.operations.map((operation) => operation.kind), ['project-create', 'filter-create', 'board-create']);
+  assert.deepEqual(record.operations.map((operation) => operation.kind), ['project-create', 'filter-create', 'board-create', ...Array(5).fill('roadmap-issue-create')]);
   assert.equal((await readDeliveryRecord(state)).planSha256, record.planSha256);
+});
+
+test('default roadmap is preview-bound, created once, and verified by exact read-back', async () => {
+  const calls = [];
+  const state = makeState(successfulJiraMock(calls));
+  const args = previewArgs();
+  delete args.roadmapMode;
+  await approved(state, args);
+  const result = await applyDeliveryStack(state);
+  assert.equal(result.state, 'verified');
+  assert.equal(result.plan.roadmap.items.length, 5);
+  assert.equal(result.operations.filter((entry) => entry.kind === 'roadmap-issue-create' && entry.state === 'complete').length, 5);
+  assert.equal(result.effects.filter((entry) => entry.operation.startsWith('roadmap-') && entry.outcome === 'created').length, 5);
+  assert.equal(calls.filter((call) => call.key === 'POST /rest/api/3/issue').length, 5);
+  assert.equal(calls.filter((call) => call.key === 'POST /rest/api/3/search/jql').length, 1);
+});
+
+test('custom roadmap rejects duplicate IDs, unknown fields, and an unbound empty array', () => {
+  const state = makeState();
+  const item = { localId: 'one', issueType: 'Task', summary: 'One', description: 'One.', labels: ['roadmap'] };
+  assert.throws(() => buildDeliveryPlan(state, previewArgs({ roadmapMode: 'custom', roadmapItems: [] })), (error) => error.exitCode === EXIT.CONFIG_INVALID);
+  assert.throws(() => buildDeliveryPlan(state, previewArgs({ roadmapMode: 'custom', roadmapItems: [item, item] })), (error) => error.exitCode === EXIT.CONFIG_INVALID);
+  assert.throws(() => buildDeliveryPlan(state, previewArgs({ roadmapMode: 'custom', roadmapItems: [{ ...item, unexpected: true }] })), (error) => error.exitCode === EXIT.CONFIG_INVALID);
 });
 
 test('Scrum preview selects the matching Jira project template', () => {

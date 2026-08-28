@@ -141,7 +141,15 @@ export const defaultConfig = {
     maxAttempts: 3,
     approvalTtlMs: 86400000,
     dryRun: false,
-    nodeMinVersion: "20.0.0"
+    nodeMinVersion: "20.0.0",
+    tracking: {
+      mode: "off",
+      required: false,
+      repositoryNamespace: null,
+      projectKey: null,
+      automaticVersionAssignment: false,
+      releaseVersions: []
+    }
   },
   persistence: {
     scope: "project",
@@ -193,7 +201,8 @@ const allowed = {
   memoryContextInjection: new Set(["disabled"]),
   memoryEngine: new Set(["pglite"]),
   memoryTrust: new Set(["read-write", "read-only", "deny"]),
-  memorySync: new Set(["manual"])
+  memorySync: new Set(["manual"]),
+  jiraTrackingMode: new Set(["off", "approval-queued", "automatic"])
 };
 
 const planningLensIds = new Set(['strategy', 'developer-experience', 'strengthened-product-ux']);
@@ -472,6 +481,9 @@ export function validateConfig(config, options = {}) {
     need(allowed.authority.has(value), `authority.${key} is invalid`);
   }
   validateJiraConfig(config.jira, errors);
+  if (config.jira?.tracking?.mode === 'automatic') {
+    need(config.authority?.externalTicketCreation === 'allow', 'jira.tracking.mode automatic requires authority.externalTicketCreation allow');
+  }
   if (config.jira?.credentialSource?.type === 'file' && options.configPath) {
     const repoRoot = path.dirname(path.dirname(path.resolve(options.configPath)));
     if (options.command === 'draft') validateCredentialFilePathContainment(config.jira.credentialSource, repoRoot, errors);
@@ -509,8 +521,11 @@ export function validateConfig(config, options = {}) {
 
 const jiraKeys = new Set([
   'enabled', 'siteUrl', 'projects', 'credentialSource', 'staticLabels',
-  'timeoutMs', 'maxAttempts', 'approvalTtlMs', 'dryRun', 'nodeMinVersion'
+  'timeoutMs', 'maxAttempts', 'approvalTtlMs', 'dryRun', 'nodeMinVersion',
+  'tracking'
 ]);
+const PROJECT_KEY = /^[A-Z][A-Z0-9_]{1,9}$/u;
+const jiraTrackingKeys = new Set(['mode', 'required', 'repositoryNamespace', 'projectKey', 'automaticVersionAssignment', 'releaseVersions']);
 const projectKeys = new Set(['key', 'issueTypes', 'defaultFields']);
 const envCredentialKeys = new Set(['type', 'emailEnvVar', 'tokenEnvVar']);
 const fileCredentialKeys = new Set(['type', 'path', 'allowInsecurePermissions']);
@@ -552,6 +567,43 @@ export function validateJiraConfig(jira, errors = []) {
   need(Number.isInteger(jira.approvalTtlMs) && jira.approvalTtlMs >= 60000 && jira.approvalTtlMs <= 604800000, 'jira.approvalTtlMs must be an integer from 60000 to 604800000');
   need(jira.nodeMinVersion === '20.0.0', 'jira.nodeMinVersion must be 20.0.0');
 
+  if (jira.tracking !== undefined) {
+    const tracking = jira.tracking;
+    need(tracking && typeof tracking === 'object' && !Array.isArray(tracking), 'jira.tracking must be an object');
+    if (tracking && typeof tracking === 'object' && !Array.isArray(tracking)) {
+      unknownKeys(tracking, jiraTrackingKeys, 'jira.tracking', errors);
+      need(allowed.jiraTrackingMode.has(tracking.mode), 'jira.tracking.mode must be off, approval-queued, or automatic');
+      need(typeof tracking.required === 'boolean', 'jira.tracking.required must be boolean');
+      need(tracking.repositoryNamespace === null || (typeof tracking.repositoryNamespace === 'string' && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u.test(tracking.repositoryNamespace)), 'jira.tracking.repositoryNamespace must be null or owner/name');
+      need(tracking.projectKey === null || (typeof tracking.projectKey === 'string' && PROJECT_KEY.test(tracking.projectKey)), 'jira.tracking.projectKey must be null or a valid Jira project key');
+      need(typeof tracking.automaticVersionAssignment === 'boolean', 'jira.tracking.automaticVersionAssignment must be boolean');
+      need(Array.isArray(tracking.releaseVersions), 'jira.tracking.releaseVersions must be an array');
+      if (Array.isArray(tracking.releaseVersions)) {
+        const versionIds = new Set();
+        const versionNames = new Set();
+        for (const [index, version] of tracking.releaseVersions.entries()) {
+          need(version && typeof version === 'object' && !Array.isArray(version), `jira.tracking.releaseVersions[${index}] must be an object`);
+          if (!version || typeof version !== 'object' || Array.isArray(version)) continue;
+          unknownKeys(version, new Set(['id', 'name', 'releaseDate']), `jira.tracking.releaseVersions[${index}]`, errors);
+          need(typeof version.id === 'string' && /^[1-9][0-9]*$/u.test(version.id), `jira.tracking.releaseVersions[${index}].id must be a positive Jira ID string`);
+          need(typeof version.name === 'string' && version.name.length >= 1 && version.name.length <= 255, `jira.tracking.releaseVersions[${index}].name must contain 1-255 characters`);
+          need(typeof version.releaseDate === 'string' && /^\d{4}-\d{2}-\d{2}$/u.test(version.releaseDate) && !Number.isNaN(Date.parse(`${version.releaseDate}T00:00:00.000Z`)), `jira.tracking.releaseVersions[${index}].releaseDate must be YYYY-MM-DD`);
+          need(!versionIds.has(version.id), `jira.tracking.releaseVersions duplicates ID ${version.id}`);
+          need(!versionNames.has(version.name), `jira.tracking.releaseVersions duplicates name ${version.name}`);
+          versionIds.add(version.id);
+          versionNames.add(version.name);
+        }
+      }
+      if (tracking.required === true) need(tracking.mode !== 'off', 'jira.tracking.required cannot use off mode');
+      if (tracking.mode !== 'off') {
+        need(typeof tracking.repositoryNamespace === 'string', 'jira.tracking.repositoryNamespace is required when tracking is enabled');
+        need(typeof tracking.projectKey === 'string', 'jira.tracking.projectKey is required when tracking is enabled');
+      }
+      if (tracking.mode === 'off') need(tracking.automaticVersionAssignment === false, 'jira.tracking.automaticVersionAssignment requires enabled tracking');
+      if (tracking.automaticVersionAssignment === true) need(Array.isArray(tracking.releaseVersions) && tracking.releaseVersions.length > 0, 'jira.tracking.automaticVersionAssignment requires at least one approved releaseVersions entry');
+    }
+  }
+
   if (jira.siteUrl !== null) {
     let parsed;
     try { parsed = new URL(jira.siteUrl); } catch {}
@@ -585,6 +637,7 @@ export function validateJiraConfig(jira, errors = []) {
       }
     });
   }
+  if (jira.tracking?.projectKey) need(jira.projects.some((project) => project?.key === jira.tracking.projectKey), 'jira.tracking.projectKey must reference jira.projects');
 
   need(Array.isArray(jira.staticLabels) && jira.staticLabels.every((item) => typeof item === 'string' && item.length > 0), 'jira.staticLabels must contain non-empty strings');
   if (Array.isArray(jira.staticLabels)) {

@@ -794,7 +794,7 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function jiraJson(state, credentials, endpoint, options = {}) {
+export async function jiraJson(state, credentials, endpoint, options = {}) {
   let response;
   try { response = await jiraRequest(state, credentials, endpoint, options); } catch (error) {
     fail(`Jira request failed: ${sanitize(error.message)}`, EXIT.STATE_ERROR, { network: true, classification: classifyFetchError(error) });
@@ -918,7 +918,7 @@ async function withDraftLock(state, id, op, action) {
 }
 
 async function createDraft(state, args) {
-  const id = crypto.randomUUID();
+  const id = args.trackingDraftId ? validateUuid(args.trackingDraftId) : crypto.randomUUID();
   let source;
   if (args.from) source = await loadDraft(state, validateUuid(args.from));
   const project = args.project || source?.project || state.jira.projects[0]?.key;
@@ -929,6 +929,16 @@ async function createDraft(state, args) {
   ensureWellFormed(summary, 'content.summary');
   ensureWellFormed(descriptionText, 'content.descriptionText');
   if (!summary.length) fail('summary must be non-empty', EXIT.STATE_ERROR);
+  if (args.trackingDraftId) {
+    const existing = await loadDraft(state, id).catch((error) => {
+      if (error instanceof JiraQueueError && /not found/u.test(error.message)) return null;
+      throw error;
+    });
+    if (existing) {
+      if (existing.project !== project || existing.issueType !== issueType || existing.sessionId !== (args.sessionId || '') || existing.content.summary !== summary || existing.content.descriptionText !== descriptionText) fail('tracking draft identity was reused with different content', EXIT.PAYLOAD_INTEGRITY);
+      return existing;
+    }
+  }
   const at = nowIso(state.clock);
   const draft = {
     schemaVersion: 1,

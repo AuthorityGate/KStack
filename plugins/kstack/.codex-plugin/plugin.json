@@ -1,7 +1,7 @@
 {
   "name": "kstack",
   "version": "0.1.0+codex.20260812133549",
-  "description": "Explicit objective, design, interrogation, implementation, and QC workflows for Codex and Claude Code.",
+  "description": "Explicit objective, design, implementation, QC, Jira, and post-deploy validation workflows for Codex and Claude Code.",
   "author": {
     "name": "AuthorityGate"
   },
@@ -21,6 +21,7 @@
       "implementation",
       "implementation-interrogation",
       "post-implementation-qc",
+      "post-deploy-playwright-validation",
       "blinded-planning-lens-evaluation",
       "explicit-memory",
       "offline-jira-ticket-drafting",

@@ -23,6 +23,14 @@ verify/reconcile`. Its default new-stack topology is compatible with Jira Free:
 - repository, primary/development branch, and deployment-environment mappings;
 - optional Dev or Release boards only when the owner selects them in preview.
 
+The 2026-08-28 roadmap correction makes an empty default board invalid as a
+completed onboarding outcome. A mutating preview now includes five generic
+KStack lifecycle work items by default, may replace them with a closed custom
+roadmap manifest, or may omit them only through an explicit owner opt-out. The
+item bodies and deterministic markers are bound into the same preview digest;
+apply and reconciliation create or adopt them individually and cannot report
+`verified` while a planned item is missing.
+
 Initialization also asks whether the repository belongs to a larger program or
 whether one unusually large task needs separately governed phases. A program
 may intentionally use multiple project/spaces, and a large task may use
@@ -77,6 +85,8 @@ The canonical preview binds:
 - issue types, workflow expectation, components, and version policy;
 - GitHub repository identity, default/development branches, and environments;
 - ordered resource operations and their stable local operation IDs;
+- roadmap mode and every work item's stable local ID, issue type, summary,
+  description, labels, identity marker, and content digest;
 - KStack configuration digest and preview schema version.
 
 The canonical UTF-8 JSON bytes are SHA-256 hashed. Approval is valid only for
@@ -101,8 +111,8 @@ offer to create missing resources without a newly hashed preview.
 
 ## Apply and reconciliation
 
-New-stack apply uses the Jira Cloud project, filter, and provider-appropriate
-board APIs in the preview's order. Business-space board verification reads the
+New-stack apply uses the Jira Cloud project, filter, provider-appropriate
+board, search, and issue APIs in the preview's order. Business-space board verification reads the
 project workflow and requires the `new`, `indeterminate`, and `done` status
 categories; it does not issue a Jira Software board POST. Before every POST it
 checks whether the exact intended resource already exists. After every POST it reads the resource back and stores
@@ -117,6 +127,14 @@ retried by apply. Reconciliation searches by the exact admitted identity and
   either adopts one exact match, proves absence and returns to `new-previewed`
   for fresh approval, or requires a human decision for multiple/mismatched
   candidates.
+
+Roadmap apply first preflights every selected issue type, then performs one
+project-bounded marker discovery. One exact marker/content match is adopted;
+zero is created once and read back; multiple matches or content drift is
+ambiguous. Each item is persisted as a separate completed operation before the
+next begins. An uncertain issue POST is never retried by apply. Reconciliation
+searches and reads only, adopts exact matches, and requires a fresh approval
+before any still-missing item can be created.
 
 Project, filter, or board deletion is not automatic rollback. Deletion is a
 separate destructive action; a partial stack remains inventoried with manual
@@ -174,6 +192,9 @@ Tests must cover:
 - accessible project-type preflight and both Software/Agile and
   Business/native-board provider paths;
 - project/filter/board read-back success and mismatches;
+- default/custom/explicit-empty roadmap modes, manifest validation, digest
+  binding, issue-type preflight, item create/adopt/read-back, partial apply, and
+  read-only reconciliation;
 - no POST during init, preview, show, validate, or reconcile-search-only paths;
 - exact-match adoption, proven absence, duplicate ambiguity, timeout, redirect,
   4xx, 5xx, malformed success, and crash cuts after each operation;

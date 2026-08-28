@@ -10,6 +10,7 @@
     { "skillId": "kstack-jira", "scripts": [{ "path": "scripts/kstack-jira.mjs", "probeId": "jira-import-v1" }, { "path": "scripts/kstack-jira-bootstrap.mjs", "probeId": "jira-bootstrap-import-v1" }] },
     { "skillId": "kstack-memory", "scripts": [{ "path": "scripts/kstack-config.mjs", "probeId": "config-import-v1" }, { "path": "scripts/kstack-memory.mjs", "probeId": "memory-import-v1" }] },
     { "skillId": "kstack-objectives", "scripts": [] },
+    { "skillId": "kstack-post-deploy", "scripts": [{ "path": "scripts/kstack-post-deploy.mjs", "probeId": "post-deploy-import-v1" }] },
     { "skillId": "kstack-qc", "scripts": [{ "path": "scripts/kstack-invoke-role.mjs", "probeId": "invoke-role-import-v1" }, { "path": "scripts/kstack-reflexion.mjs", "probeId": "reflexion-no-match-v1" }] },
     { "skillId": "kstack-review", "scripts": [] }
   ],
@@ -20,6 +21,7 @@
     { "probeId": "jira-bootstrap-import-v1", "path": "scripts/kstack-jira-bootstrap.mjs", "kind": "esm-import-v1" },
     { "probeId": "jira-import-v1", "path": "scripts/kstack-jira.mjs", "kind": "esm-import-v1" },
     { "probeId": "memory-import-v1", "path": "scripts/kstack-memory.mjs", "kind": "esm-import-v1" },
+    { "probeId": "post-deploy-import-v1", "path": "scripts/kstack-post-deploy.mjs", "kind": "esm-import-v1" },
     { "probeId": "reflexion-no-match-v1", "path": "scripts/kstack-reflexion.mjs", "kind": "reflexion-no-match-v1" }
   ]
 }

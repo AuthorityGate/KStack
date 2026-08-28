@@ -145,6 +145,27 @@ configuration: the suffix check is only a typo/DNS guard, so doctor verifies
 `/rest/api/3/myself`, smoke-tests createmeta, permissions, and cursor-paginated
 `POST /rest/api/3/search/jql`, and warns about issue-security schemes.
 
+Optional `jira.tracking` selects the repository's continuous work/history
+projection. `mode` is `off`, `approval-queued`, or `automatic`; `required`
+decides whether failure to durably enqueue blocks phase advance;
+`repositoryNamespace` is the stable `owner/name` identity and is required when
+tracking is enabled; `projectKey` must reference one configured Jira project;
+and
+`automaticVersionAssignment` permits assignment only to an exact
+`releaseVersions` entry binding Jira's numeric ID, name, and release date.
+The provider read-back must also prove that the version belongs to the bound
+project and is already released. `automatic` requires
+`authority.externalTicketCreation: allow`. It never grants Jira project,
+workflow, board, filter, or version administration. Legacy configurations with
+no `jira.tracking` behave as `off`.
+
+Enabled tracking has two inseparable outputs: every new independently
+actionable item is created as forward work, and every material lifecycle event
+is retained as its Jira history. See `JIRA_TRACKING.md`. `approval-queued`
+keeps provider writes behind the existing Jira draft approval flow;
+`automatic` performs marker-reconciled issue creation and history projection
+under its explicit repository authority.
+
 When Jira is considered during initialization, ask whether this repository will
 connect an existing Jira delivery stack, preview a new one, or skip Jira. Treat
 an existing project that needs a new board/backlog as a separate supported
