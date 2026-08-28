@@ -20,6 +20,14 @@ export const defaultConfig = {
       enabled: false,
       objectives: {}
     },
+    contextReduction: {
+      measurementEnabled: false,
+      eagerInstructionsEnabled: false,
+      slicingEnabled: false,
+      qualificationEvidenceSha256: null,
+      qualificationRouteId: null,
+      qualificationProfileId: null
+    },
     panel: {
       enabled: false,
       releaseStage: "local",
@@ -189,6 +197,63 @@ const allowed = {
 
 const planningLensIds = new Set(['strategy', 'developer-experience', 'strengthened-product-ux']);
 
+const contextReductionKeys = new Set([
+  'measurementEnabled', 'eagerInstructionsEnabled', 'slicingEnabled',
+  'qualificationEvidenceSha256', 'qualificationRouteId',
+  'qualificationProfileId'
+]);
+
+// The frozen security chain qualifies zero runtime routes/profiles. Keep this
+// registry closed until a separately reviewed qualification adds an exact pair.
+const qualifiedContextReductionRouteProfiles = new Set();
+
+function validateContextReductionConfig(reduction, errors) {
+  const need = (condition, message) => { if (!condition) errors.push(message); };
+  need(reduction && typeof reduction === 'object' && !Array.isArray(reduction), 'workflow.contextReduction must be an object');
+  if (!reduction || typeof reduction !== 'object' || Array.isArray(reduction)) return;
+  unknownKeys(reduction, contextReductionKeys, 'workflow.contextReduction', errors);
+
+  for (const key of ['measurementEnabled', 'eagerInstructionsEnabled', 'slicingEnabled']) {
+    need(typeof reduction[key] === 'boolean', `workflow.contextReduction.${key} must be boolean`);
+  }
+  need(
+    reduction.qualificationEvidenceSha256 === null
+      || (typeof reduction.qualificationEvidenceSha256 === 'string'
+        && /^[0-9a-f]{64}$/.test(reduction.qualificationEvidenceSha256)),
+    'workflow.contextReduction.qualificationEvidenceSha256 must be null or lowercase 64-hex'
+  );
+  for (const key of ['qualificationRouteId', 'qualificationProfileId']) {
+    need(
+      reduction[key] === null || (typeof reduction[key] === 'string' && /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/.test(reduction[key])),
+      `workflow.contextReduction.${key} must be null or a lower-case hyphen-case ID`
+    );
+  }
+
+  const qualificationKeys = [
+    'qualificationEvidenceSha256',
+    'qualificationRouteId',
+    'qualificationProfileId'
+  ];
+  const qualificationAllNull = qualificationKeys.every((key) => Object.hasOwn(reduction, key) && reduction[key] === null);
+  const qualificationAllPresent = qualificationKeys.every((key) => Object.hasOwn(reduction, key) && reduction[key] !== null && reduction[key] !== undefined);
+  need(
+    qualificationAllNull || qualificationAllPresent,
+    'workflow.contextReduction qualificationEvidenceSha256, qualificationRouteId, and qualificationProfileId must be all null or all configured'
+  );
+
+  const featureRequested = reduction.eagerInstructionsEnabled === true || reduction.slicingEnabled === true;
+  const evidenceConfigured = typeof reduction.qualificationEvidenceSha256 === 'string'
+    && /^[0-9a-f]{64}$/.test(reduction.qualificationEvidenceSha256);
+  const pair = `${reduction.qualificationRouteId ?? ''}:${reduction.qualificationProfileId ?? ''}`;
+  const routeProfileQualified = qualificationAllPresent && qualifiedContextReductionRouteProfiles.has(pair);
+  if (featureRequested) {
+    need(evidenceConfigured, 'workflow.contextReduction eager instructions or slicing requires qualificationEvidenceSha256');
+    need(routeProfileQualified, 'workflow.contextReduction eager instructions or slicing requires a supported qualified route/profile; none are qualified in this build');
+  } else if (qualificationAllPresent) {
+    need(routeProfileQualified, 'workflow.contextReduction qualificationRouteId/qualificationProfileId is not a supported qualified pair');
+  }
+}
+
 const panelKeys = new Set([
   'enabled', 'releaseStage', 'capacityProfile',
   'projectPersonaDirectory', 'stateDirectory', 'paidShadowEnabled',
@@ -318,6 +383,9 @@ export function validateConfig(config, options = {}) {
         need(Array.isArray(lenses) && lenses.length > 0 && new Set(lenses).size === lenses.length && lenses.every((lens) => planningLensIds.has(lens)), `workflow.planningLensTrial.objectives.${objectiveId} must contain unique closed-catalog lens IDs`);
       }
     }
+  }
+  if (config.workflow?.contextReduction !== undefined) {
+    validateContextReductionConfig(config.workflow.contextReduction, errors);
   }
   if (config.workflow?.panel !== undefined) validatePanelConfig(config.workflow.panel, errors);
   if (config.workflow?.designGate !== undefined) {

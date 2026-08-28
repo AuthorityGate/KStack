@@ -765,6 +765,33 @@ test('host hook enforces Claude mediation, Codex deny-only asymmetry, disclosure
   assert.match(malformedVerdict.hookSpecificOutput.permissionDecisionReason, /untrusted/u);
 });
 
+test('clean project enrollment regenerates local state while only the canonical plugin hook ships', () => {
+  const ignored = fs.readFileSync('.gitignore', 'utf8').split('\n');
+  for (const entry of ['.kstack/safety-hooks.json', '.kstack/rollback/', '/scripts/kstack-safety-hook.mjs']) {
+    assert.equal(ignored.includes(entry), true, `${entry} must remain repository-local`);
+  }
+
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-safety-clean-project-'));
+  const pluginRoot = path.resolve('plugins/kstack');
+  writePolicy(projectRoot);
+  const registrationFile = path.join(projectRoot, '.kstack', 'safety-hooks.json');
+  assert.equal(fs.existsSync(registrationFile), false);
+  const installed = activateSafetyHooks({ projectRoot, pluginRoot, preserveDisabled: true });
+  assert.equal(installed.file, registrationFile);
+  assert.equal(installed.enabled, true);
+  const registration = JSON.parse(fs.readFileSync(registrationFile, 'utf8'));
+
+  const auditManifest = JSON.parse(fs.readFileSync(path.join(pluginRoot, 'install-health-audit-manifest-v1.json'), 'utf8'));
+  const shippedHooks = auditManifest.entries.filter((entry) => entry.path.endsWith('/kstack-safety-hook.mjs'));
+  assert.deepEqual(shippedHooks.map((entry) => entry.path), ['scripts/kstack-safety-hook.mjs']);
+  assert.equal(shippedHooks[0].sha256, registration.releaseDigests['scripts/kstack-safety-hook.mjs']);
+  assert.equal(shippedHooks[0].sha256, crypto.createHash('sha256').update(fs.readFileSync(path.join(pluginRoot, 'scripts', 'kstack-safety-hook.mjs'))).digest('hex'));
+
+  const setup = fs.readFileSync('setup', 'utf8');
+  assert.match(setup, /if \[ "\$SCOPE" = "project" \]; then/u);
+  assert.match(setup, /install --project-root "\$TARGET" --plugin-root "\$ROOT\/plugins\/kstack"/u);
+});
+
 test('activation is idempotent, preserves explicit disablement, and reports control-plane tampering without blocking ordinary edits', () => {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-safety-admin-project-'));
   const pluginRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-safety-admin-plugin-'));

@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "kind": "kstack-kcrp-ecr-closure-replay-config-v1",
+  "schemaVersions": {
+    "canonicalJson": "kstack-kcrp-json-v1",
+    "artifact": "kstack-utf8-lf-v1",
+    "itemMap": "kstack-kcrp-item-map-v1"
+  },
+  "limits": {
+    "artifacts": 256, "items": 4096, "spansPerItem": 64, "totalSpans": 16384,
+    "dependenciesPerItem": 256, "requestedItems": 256, "includedItems": 4096,
+    "sourceRecords": 32768, "sourceRecordBytes": 1048576, "sourceArtifactBytes": 4194304,
+    "itemMapBytes": 4194304, "manifestBytes": 4194304, "packetBytes": 1048576,
+    "reviewInputBytes": 1200000
+  },
+  "threadId": "encrypted-credential-repository-2026-08-27",
+  "phase": "design",
+  "requestedItemIds": ["ECR_13_TC06B"],
+  "sourceDefaults": {
+    "artifactRole": "decision", "risk": "ordinary", "status": "open",
+    "reductionEligibility": "reducible", "mechanismGroupId": null
+  },
+  "sources": [
+    {
+      "itemId": "ECR_01_OBJECTIVE", "artifactId": "ART_ECR_01",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-initial-objective-design.md",
+      "byteLength": 27013, "sha256": "b2c5167492d70ad1513a8bc76ababf124b0f2288841b9602373f2c051ba8388d",
+      "dependsOn": []
+    },
+    {
+      "itemId": "ECR_02_TC01_CONTENDER", "artifactId": "ART_ECR_02",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc01-contender-selection.md",
+      "byteLength": 33786, "sha256": "95358294c90dcd88a57fd6a2ec329005348c73c4f1e2ee21e0a5e0b112617bc0",
+      "dependsOn": ["ECR_01_OBJECTIVE"]
+    },
+    {
+      "itemId": "ECR_03_TC01_CLOSURE", "artifactId": "ART_ECR_03",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc01-codex-closure.md",
+      "byteLength": 2796, "sha256": "afa02ba0faa5c23600b10197e86d0f66f33b93ebfd1df6847e0d59d7bab523e3",
+      "dependsOn": ["ECR_02_TC01_CONTENDER"]
+    },
+    {
+      "itemId": "ECR_04_TC02_DESIGN", "artifactId": "ART_ECR_04",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc02-threat-identity-authority-policy.md",
+      "byteLength": 92009, "sha256": "e03e4c298eb65314cf251095f9f9349f53733edb1efab009ee577c4f66d4b202",
+      "dependsOn": ["ECR_03_TC01_CLOSURE"]
+    },
+    {
+      "itemId": "ECR_05_TC02_CLOSURE", "artifactId": "ART_ECR_05",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc02-codex-closure.md",
+      "byteLength": 3825, "sha256": "1c8cf9e874ea5f137d39b4be32c7b1e066c6abc3bdb0df48be39cc8742286bf3",
+      "dependsOn": ["ECR_04_TC02_DESIGN"]
+    },
+    {
+      "itemId": "ECR_06_TC03_OWNER", "artifactId": "ART_ECR_06",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc03-fips-owner-decision.md",
+      "byteLength": 3239, "sha256": "6b4cf4fe2cff2ad016055a31333652cc35fd23672f0cdb1f9abebae75c1a38f8",
+      "dependsOn": ["ECR_05_TC02_CLOSURE"]
+    },
+    {
+      "itemId": "ECR_07_TC03_DESIGN", "artifactId": "ART_ECR_07",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc03-cryptographic-format-design.md",
+      "byteLength": 80054, "sha256": "16d7cd06aff3ecf111076252c1cbe80c80bf08f46f514ab62bb5db7268c49ca5",
+      "dependsOn": ["ECR_05_TC02_CLOSURE", "ECR_06_TC03_OWNER"]
+    },
+    {
+      "itemId": "ECR_08_TC03_CLOSURE", "artifactId": "ART_ECR_08",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc03-codex-closure.md",
+      "byteLength": 4604, "sha256": "6d562b5473ef5965272a4400b95b1f29977b11fb06b0ab6b9893adf630b70438",
+      "dependsOn": ["ECR_07_TC03_DESIGN"]
+    },
+    {
+      "itemId": "ECR_09_TC04_DESIGN", "artifactId": "ART_ECR_09",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc04-platform-custody-recovery-design.md",
+      "byteLength": 109677, "sha256": "2fed5c13961e132962dc469f2f91260cbddaf43bcdcc9d23f04c73c8b9abd54e",
+      "dependsOn": ["ECR_08_TC03_CLOSURE"]
+    },
+    {
+      "itemId": "ECR_10_TC04_CLOSURE", "artifactId": "ART_ECR_10",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc04-codex-closure.md",
+      "byteLength": 9226, "sha256": "0759ded9c92165b8d3455b659f0bef5fbf839af9d906223e41b574b1b83081c1",
+      "dependsOn": ["ECR_09_TC04_DESIGN"]
+    },
+    {
+      "itemId": "ECR_11_TC05_DESIGN", "artifactId": "ART_ECR_11",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-27-tc05-transactional-store-design.md",
+      "byteLength": 183352, "sha256": "3d38ee883d89405cbf0b275ebeb1ec117a8883092d53fbb5b9fbe1550a5d8968",
+      "dependsOn": ["ECR_10_TC04_CLOSURE"]
+    },
+    {
+      "itemId": "ECR_12_TC06A", "artifactId": "ART_ECR_12",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-28-tc06a-entry-currentness-design.md",
+      "byteLength": 54983, "sha256": "2f438db8a2f177bc44fcd5fc1f956158286027291c3300d8735882e9e2214fd9",
+      "dependsOn": ["ECR_11_TC05_DESIGN"]
+    },
+    {
+      "itemId": "ECR_13_TC06B", "artifactId": "ART_ECR_13",
+      "relativePath": ".kstack/decisions/encrypted-credential-repository-2026-08-28-tc06b-transition-authority-lifecycle-design.md",
+      "byteLength": 39327, "sha256": "e15ca3123d6054ac939db902f357f97be3c6fb1a41b36f6b46c2c5b013793dc4",
+      "dependsOn": ["ECR_12_TC06A"]
+    }
+  ],
+  "expected": {
+    "itemMapSha256": "57a61fa441f2e25aec491bfa15cb59b060d96d2bdba30578c5303d539964edfe",
+    "includedItemIds": [
+      "ECR_01_OBJECTIVE", "ECR_02_TC01_CONTENDER", "ECR_03_TC01_CLOSURE",
+      "ECR_04_TC02_DESIGN", "ECR_05_TC02_CLOSURE", "ECR_06_TC03_OWNER",
+      "ECR_07_TC03_DESIGN", "ECR_08_TC03_CLOSURE", "ECR_09_TC04_DESIGN",
+      "ECR_10_TC04_CLOSURE", "ECR_11_TC05_DESIGN", "ECR_12_TC06A", "ECR_13_TC06B"
+    ],
+    "omittedItemIds": []
+  }
+}

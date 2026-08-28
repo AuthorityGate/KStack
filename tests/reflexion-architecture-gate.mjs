@@ -30,6 +30,10 @@ const IMPORT_MANIFEST = new Map([
   ['kstack-install-health.mjs', ['node:crypto','node:fs','node:os','node:path','node:child_process','node:url']],
   ['kstack-invoke-role.mjs', ['node:crypto','node:fs','node:path','node:url','./kstack-config.mjs','./kstack-provider-runner.mjs']],
   ['kstack-jira.mjs', ['node:crypto','node:fs','node:fs/promises','node:os','node:path','node:readline/promises','node:url','./kstack-config.mjs','./kstack-provider-runner.mjs']],
+  ['kstack-kcrp-byte-benchmark.mjs', ['node:util','./kstack-kcrp-core.mjs','./kstack-kcrp-dispatch-manifest.mjs','./kstack-kcrp-json.mjs']],
+  ['kstack-kcrp-core.mjs', ['./kstack-kcrp-json.mjs']],
+  ['kstack-kcrp-dispatch-manifest.mjs', ['./kstack-kcrp-json.mjs','./kstack-kcrp-core.mjs','node:util']],
+  ['kstack-kcrp-json.mjs', ['node:crypto']],
   ['kstack-memory.mjs', ['node:crypto','node:fs','node:os','node:path','node:child_process','node:url','@electric-sql/pglite','./kstack-config.mjs','./kstack-review-schema.mjs']],
   ['kstack-panel-core.mjs', ['node:crypto','node:fs','node:path','./kstack-safety-matchers.mjs']],
   ['kstack-panel-personas.mjs', ['node:fs','node:path','node:url','./kstack-panel-core.mjs']],
@@ -38,6 +42,7 @@ const IMPORT_MANIFEST = new Map([
   ['kstack-planning-lens-trial.mjs', ['node:fs','node:path','node:url','./kstack-config.mjs','./kstack-planning-lens-core.mjs']],
   ['kstack-provider-runner.mjs', ['node:fs','node:child_process','./kstack-safety-matchers.mjs','./kstack-safety-matchers.mjs']],
   ['kstack-reflexion.mjs', ['node:crypto','node:fs','node:os','node:path','node:child_process','node:url','./kstack-config.mjs','./kstack-memory.mjs','./reflexion/retrieval-core.mjs','./reflexion/corpus-io.mjs','./reflexion/prompt-assembler.mjs','./reflexion/unavailable-sentinel.mjs','./reflexion-architecture/resolver-client.mjs']],
+  ['kstack-review-measurement.mjs', []],
   ['kstack-review-schema.mjs', ['node:crypto']],
   ['kstack-safety-admin.mjs', ['node:crypto','node:fs','node:path','node:url','./kstack-safety-hook.mjs','./kstack-safety-executor.mjs']],
   ['kstack-safety-broker.mjs', ['node:crypto','node:fs','node:path','node:child_process','./kstack-safety-matchers.mjs','./kstack-safety-executor.mjs']],
@@ -74,6 +79,10 @@ const CAPABILITY_TOKEN_MANIFEST = new Map([
   ['kstack-install-health.mjs', {Buffer:14,crypto:6,fs:44,os:4,path:78,pathToFileURL:2,process:16,spawnSync:3}],
   ['kstack-invoke-role.mjs', {console:2,crypto:3,fileURLToPath:2,fs:11,path:12,process:6,structuredClone:1}],
   ['kstack-jira.mjs', {Buffer:6,TextDecoder:1,URL:1,clearInterval:4,crypto:9,fetch:2,fileURLToPath:2,fs:15,fsp:32,globalThis:1,os:3,path:41,process:24,readline:3,require:3,setInterval:1,setTimeout:1}],
+  ['kstack-kcrp-byte-benchmark.mjs', {Buffer:5,Reflect:3,utilTypes:5}],
+  ['kstack-kcrp-core.mjs', {Buffer:59,TextDecoder:2,TextEncoder:1}],
+  ['kstack-kcrp-dispatch-manifest.mjs', {Buffer:8,utilTypes:6}],
+  ['kstack-kcrp-json.mjs', {Buffer:8,TextDecoder:1,crypto:4}],
   ['kstack-memory.mjs', {PGlite:2,TextDecoder:1,console:1,crypto:3,fetch:5,fileURLToPath:2,fs:29,os:3,path:50,process:7,spawnSync:4}],
   ['kstack-panel-core.mjs', {Buffer:8,TextDecoder:1,crypto:3,fs:10,path:7}],
   ['kstack-panel-personas.mjs', {Buffer:1,fileURLToPath:2,fs:10,path:11,require:1}],
@@ -82,6 +91,7 @@ const CAPABILITY_TOKEN_MANIFEST = new Map([
   ['kstack-planning-lens-trial.mjs', {fileURLToPath:2,fs:5,path:10,process:8}],
   ['kstack-provider-runner.mjs', {Buffer:1,clearTimeout:4,fs:21,process:1,setTimeout:4,spawn:4}],
   ['kstack-reflexion.mjs', {Buffer:7,crypto:5,fileURLToPath:4,fs:38,os:3,path:23,process:39,spawnSync:2}],
+  ['kstack-review-measurement.mjs', {Buffer:3,process:1}],
   ['kstack-review-schema.mjs', {crypto:3}],
   ['kstack-safety-admin.mjs', {Buffer:1,TextDecoder:2,crypto:7,fileURLToPath:3,fs:37,path:19,process:8}],
   ['kstack-safety-broker.mjs', {Buffer:10,clearTimeout:1,crypto:12,fs:14,path:11,performance:4,process:2,setTimeout:1,spawnSync:2,structuredClone:3}],
@@ -121,13 +131,17 @@ const CAPABILITY_USE_SITE_MANIFEST = new Map([
   ['kstack-citation-native.mjs','75d36fcdb896cc6d69517b1fa5db8b6b3cfcd05424bb8a81d6408fc2867a7ed0'],
   ['kstack-citation-runtime.mjs','1139e542e11a3fba3b2a594eb0743d569dc2593c086c1247f230771a84e57002'],
   ['kstack-citation-state.mjs','83d1767b4a23a20e877506282f2f66a5462b00a29514d6d49fc9b0b0dad8a425'],
-  ['kstack-config.mjs','809c677105aed9c31518be4ce110b0a5fefa895763aed074f5dad4d9bef56f48'],
+  ['kstack-config.mjs','8b7c4ab2355b21ec401629cc94e88420e5e16b58c093014aa1c2cff2f3bc8241'],
   ['kstack-design-gate.mjs','bb4d6829b587281b157b39ab78141f2160914cbd89e0e000cb5887f6cf2a0e9d'],
   ['kstack-dual-review.mjs','aef18e52087b8220a83f7d77a9b4e084012755efe54cf5213717706a2f3957cc'],
   ['kstack-git-askpass.mjs','7b5922e73f1602b6d4733de19183e9af8a3802eda2228682db6b1f040ea452c1'],
   ['kstack-install-health.mjs','665932d30b0a5397eb8de2346efa779854fa4d6aca5929928adffb625108fc04'],
   ['kstack-invoke-role.mjs','342c2d0574e022c7626cac5cd7a1f98626c5ba9b5a8bd528ef4278978958dd5c'],
   ['kstack-jira.mjs','8349f9020acfb00d4bdd6c060942c5c0c9c8308713fa24687e8341a25b311882'],
+  ['kstack-kcrp-byte-benchmark.mjs','b0647889cd68034441e1351894e124d66b92f52a7e74b72c0dd50bde5461a2f8'],
+  ['kstack-kcrp-core.mjs','d92cb3a27f925e4fb096c0daf90e4f01615026b864cbc2903bf42a2ad4625afb'],
+  ['kstack-kcrp-dispatch-manifest.mjs','1b9bf7b3d6b5a29d1630881ff2693df2bbd8f596c05f3fc6e20c25778412bc87'],
+  ['kstack-kcrp-json.mjs','a624e72c6a3a7cc81478f7404fd8f06b2d299abf5c972ddee7495cdf9fee899c'],
   ['kstack-memory.mjs','3d36b318b72871e1788c45099e20a84d3f10d88b8bd5f6a8122920836a4583f0'],
   ['kstack-panel-core.mjs','70e28a6f0cc2eb189bedda4eeba2ed779a5f2302238bd154764f88b9fb5ba95f'],
   ['kstack-panel-personas.mjs','09294ecd511185cf918fce23c9fdfc08a8c1e3dafe4076ab5b194d821ae4e6a0'],
@@ -136,6 +150,7 @@ const CAPABILITY_USE_SITE_MANIFEST = new Map([
   ['kstack-planning-lens-trial.mjs','b14429ad5380e8f385046fac08e57c2e440a3cc42aef8f8651d6c2f08ae254d9'],
   ['kstack-provider-runner.mjs','0d8805a919cd3503ab9b21fdef9d158d06ecd92bd533134decbc49521cf86142'],
   ['kstack-reflexion.mjs','090089c41936e0c59a0e5dd321804160268249f83322078674b9409aeab4bcfb'],
+  ['kstack-review-measurement.mjs','f737a6de3ce4fa796063f9dd10ef40f7858943d49ecd491e9abadb070147d954'],
   ['kstack-review-schema.mjs','82f5389b474cd47307c6143cf5c23f6f4efe2af280e223f5f713d2ba1943db28'],
   ['kstack-safety-admin.mjs','b2a915f8ba48aef9bf1d78e0b663e7ab5aab883a931a42b1c4508441748a8eea'],
   ['kstack-safety-broker.mjs','a0165ffd4d805f8c02d5a5c1f00c4a64cb524467cb71afbb03cc5cb844f0a801'],
@@ -157,6 +172,29 @@ const CAPABILITY_USE_SITE_MANIFEST = new Map([
   ['reflexion/termination-schema.mjs','0917a3cf1fa06d24b06b9293ab4d9b1484b350911db74e81b54f56c3d9d67a57'],
   ['reflexion/termination-supervisor.mjs','dc9f0d14f3082733fa4eeb5626a0d422e60cbd3a3aeabe4cebd0e10502ca30c7'],
   ['reflexion/unavailable-sentinel.mjs','3cbc815515dc126d6132537bdb178c78c95de8b8bad9cea8a3c59c684e680dd1']
+]);
+
+const FROZEN_OFFLINE_SOURCE_SHA256 = new Map([
+  ['kstack-config.mjs', '4484ae55cf4dfdf792e4d33a1144e8d67ffd3414b37356b4b58818a1f814f90c'],
+  ['kstack-kcrp-byte-benchmark.mjs', '521c3b3caa1b52dce912b187519a7ed3c35bc8d601dbe7aabf5b4feb3dfb21f2'],
+  ['kstack-kcrp-core.mjs', 'd0e7c7272989edcf6df84a3a65b030c9be6da4532612dc2ba9b702cb09e5c155'],
+  ['kstack-kcrp-dispatch-manifest.mjs', '87e15cdda08552c643e10222da4fc5a8a6641385e4712c5f07f095528f5b099b'],
+  ['kstack-kcrp-json.mjs', 'f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99'],
+  ['kstack-review-measurement.mjs', '1fab15ecaed41f03325a37294eb9d1e99a3b275dd054d920b2134318202b9faf']
+]);
+
+const OFFLINE_SUBSET_IMPORTERS = new Map([
+  ['kstack-kcrp-byte-benchmark.mjs', []],
+  ['kstack-kcrp-core.mjs', ['kstack-kcrp-byte-benchmark.mjs', 'kstack-kcrp-dispatch-manifest.mjs']],
+  ['kstack-kcrp-dispatch-manifest.mjs', ['kstack-kcrp-byte-benchmark.mjs']],
+  ['kstack-kcrp-json.mjs', ['kstack-kcrp-byte-benchmark.mjs', 'kstack-kcrp-core.mjs', 'kstack-kcrp-dispatch-manifest.mjs']],
+  ['kstack-review-measurement.mjs', []]
+]);
+
+const OFFLINE_FORBIDDEN_IMPORTS = new Set([
+  'node:child_process', 'node:cluster', 'node:dgram', 'node:dns', 'node:fs', 'node:fs/promises',
+  'node:http', 'node:http2', 'node:https', 'node:net', 'node:process', 'node:tls', 'node:worker_threads',
+  './kstack-config.mjs', './kstack-provider-runner.mjs'
 ]);
 
 function gateError(code, detail = '') { const error = new Error(`${code}${detail ? `: ${detail}` : ''}`); error.code = code; return error; }
@@ -426,6 +464,10 @@ function checkCapabilityManifest(scriptsRoot, files) {
   assert.deepEqual(files.map((file) => path.relative(scriptsRoot, file)), [...IMPORT_MANIFEST.keys()]);
   assert.deepEqual([...CAPABILITY_TOKEN_MANIFEST.keys()], [...IMPORT_MANIFEST.keys()]);
   assert.deepEqual([...CAPABILITY_USE_SITE_MANIFEST.keys()], [...IMPORT_MANIFEST.keys()]);
+  for (const [relative, expectedSha256] of FROZEN_OFFLINE_SOURCE_SHA256) {
+    const bytes = fs.readFileSync(path.join(scriptsRoot, relative));
+    assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), expectedSha256, `frozen offline source drift in ${relative}`);
+  }
   for (const file of files) {
     const relative = path.relative(scriptsRoot, file); const source = fs.readFileSync(file, 'utf8');
     assert.deepEqual(staticSpecifiers(source), IMPORT_MANIFEST.get(relative), `capability import drift in ${relative}`);
@@ -451,6 +493,100 @@ function checkCapabilityManifest(scriptsRoot, files) {
     ['reflexion-architecture/resolver-driver.mjs', /import\.meta\.resolve\(/gu, 8], ['kstack-jira.mjs', /globalThis\.fetch/gu, 1]
   ];
   for (const [relative, expression, count] of exactHighRiskRows) assert.equal((fs.readFileSync(path.join(scriptsRoot, relative), 'utf8').match(expression) ?? []).length, count, `capability use drift in ${relative}`);
+
+  const offlineNames = new Set(OFFLINE_SUBSET_IMPORTERS.keys());
+  const actualImporters = new Map([...offlineNames].map((name) => [name, []]));
+  for (const [importer, specifiers] of IMPORT_MANIFEST) {
+    for (const specifier of specifiers) {
+      if (!specifier.startsWith('.')) continue;
+      const target = path.posix.normalize(path.posix.join(path.posix.dirname(importer), specifier));
+      if (actualImporters.has(target)) actualImporters.get(target).push(importer);
+    }
+  }
+  for (const [relative, expectedImporters] of OFFLINE_SUBSET_IMPORTERS) {
+    const importers = actualImporters.get(relative).sort();
+    assert.deepEqual(importers, expectedImporters, `offline consumer drift in ${relative}`);
+    assert.equal(importers.every((importer) => offlineNames.has(importer)), true, `runtime consumer admitted for ${relative}`);
+
+    const source = fs.readFileSync(path.join(scriptsRoot, relative), 'utf8');
+    const specifiers = staticSpecifiers(source);
+    assert.equal(specifiers.some((specifier) => OFFLINE_FORBIDDEN_IMPORTS.has(specifier)), false, `offline boundary import in ${relative}`);
+    const inventory = capabilityTokenInventory(source);
+    for (const capability of ['fetch', 'globalThis', 'require']) {
+      assert.equal(inventory[capability] ?? 0, 0, `offline ${capability} capability in ${relative}`);
+    }
+    assert.doesNotMatch(source, /\b(?:XMLHttpRequest|WebSocket|spawn|spawnSync|execFile|execFileSync|fork)\s*\(/u, `offline execution or network capability in ${relative}`);
+    if (relative === 'kstack-review-measurement.mjs') {
+      assert.equal(inventory.process, 1, 'review measurement process capability drift');
+      assert.equal((source.match(/\bprocess\.hrtime\.bigint\b/gu) ?? []).length, 1, 'review measurement monotonic clock drift');
+      assert.equal((source.match(/\bprocess\./gu) ?? []).length, 1, 'review measurement process boundary drift');
+    } else {
+      assert.equal(inventory.process ?? 0, 0, `offline process capability in ${relative}`);
+    }
+  }
+}
+
+async function checkOfflineSubsetContracts(scriptsRoot) {
+  const load = async (relative) => import(pathToFileURL(path.join(scriptsRoot, relative)).href);
+  const json = await load('kstack-kcrp-json.mjs');
+  const core = await load('kstack-kcrp-core.mjs');
+  const dispatchManifest = await load('kstack-kcrp-dispatch-manifest.mjs');
+  const byteBenchmark = await load('kstack-kcrp-byte-benchmark.mjs');
+  const measurement = await load('kstack-review-measurement.mjs');
+  const config = await load('kstack-config.mjs');
+
+  assert.equal(json.KCRP_JSON_VERSION, 'kstack-kcrp-json-v1');
+  assert.equal(json.KCRP_CONTROL_JSON_MAX_BYTES, 4_194_304);
+  assert.equal(json.KCRP_JSON_MAX_DEPTH, 64);
+  assert.deepEqual(core.KCRP_OFFLINE_BOUNDARIES, {
+    status: 'OFFLINE_SUBSET_ONLY',
+    implemented: ['canonical-json-v1', 'item-map-validation', 'declared-closure', 'source-record-serialization', 'review-input-framing', 'offline-closure-eligibility'],
+    unimplemented: [
+      'qualified-safe-file-discovery', 'governance-policy-resolution',
+      'complete-dispatch-manifest-schema', 'outbound-scan', 'provider-execution',
+      'receipt-chain', 'gate-integration', 'configuration', 'activation'
+    ]
+  });
+  assert.deepEqual(dispatchManifest.KCRP_DISPATCH_MANIFEST_BOUNDARY, {
+    status: 'OFFLINE_SUBSET_ONLY',
+    kind: 'kstack-kcrp-dispatch-manifest-offline-subset-v1',
+    dispatchAuthority: 'NONE',
+    finalR2eManifestImplemented: false
+  });
+  assert.deepEqual(byteBenchmark.KCRP_BYTE_BENCHMARK_BOUNDARY, {
+    status: 'OFFLINE_SUBSET_ONLY',
+    kind: 'kstack-kcrp-byte-benchmark-offline-subset-v1',
+    dispatchAuthority: 'NONE',
+    providerMeasurementAvailable: false
+  });
+  assert.equal(measurement.REVIEW_MEASUREMENT_KIND, 'kstack-review-measurement-v1');
+  const marker = Object.freeze({ exactReviewInput: true });
+  const disabledMeasurement = measurement.beginReviewMeasurement(marker);
+  assert.equal(disabledMeasurement.enabled, false);
+  assert.equal(disabledMeasurement.reviewInput, marker);
+  assert.equal(disabledMeasurement.finish(), null);
+
+  const expectedContextReduction = {
+    measurementEnabled: false,
+    eagerInstructionsEnabled: false,
+    slicingEnabled: false,
+    qualificationEvidenceSha256: null,
+    qualificationRouteId: null,
+    qualificationProfileId: null
+  };
+  assert.deepEqual(config.defaultConfig.workflow.contextReduction, expectedContextReduction);
+  assert.deepEqual(config.validateConfig(config.defaultConfig), []);
+  for (const feature of ['eagerInstructionsEnabled', 'slicingEnabled']) {
+    const candidate = JSON.parse(JSON.stringify(config.defaultConfig));
+    candidate.workflow.contextReduction = {
+      ...candidate.workflow.contextReduction,
+      [feature]: true,
+      qualificationEvidenceSha256: '0'.repeat(64),
+      qualificationRouteId: 'offline-reduced',
+      qualificationProfileId: 'default'
+    };
+    assert.match(config.validateConfig(candidate).join('\n'), /none are qualified in this build/u, `${feature} activation boundary drift`);
+  }
 }
 
 function checkMetadata(repoRoot, scriptsRoot, files) {
@@ -484,6 +620,7 @@ export async function validateProductionArchitecture(repoRoot) {
   const files = productionFiles(scriptsRoot);
   repositoryProductionCensus(repoRoot, scriptsRoot);
   checkCapabilityManifest(scriptsRoot, files);
+  await checkOfflineSubsetContracts(scriptsRoot);
   checkMetadata(repoRoot, scriptsRoot, files);
   const requests = [];
   for (const file of files) {

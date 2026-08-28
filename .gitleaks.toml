@@ -32,3 +32,8 @@ regexes = ['''^ghp_rotated1234567890abcdefghijklmnop$''']
 description = "Synthetic GitHub-token-shaped validated credential-rotation fixture"
 targetRules = ["generic-api-key"]
 regexes = ['''^ghp_validated1234567890abcdefghijklmnop$''']
+
+[[allowlists]]
+description = "Non-secret token-budget pseudocode identifier"
+targetRules = ["generic-api-key"]
+regexes = ['''^totalRenderedUtf8Bytes$''']

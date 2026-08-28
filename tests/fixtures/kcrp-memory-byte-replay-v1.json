@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "kind": "kstack-kcrp-offline-byte-replay-config-v1",
+  "schemaVersions": {
+    "canonicalJson": "kstack-kcrp-json-v1",
+    "artifact": "kstack-utf8-lf-v1",
+    "itemMap": "kstack-kcrp-item-map-v1",
+    "sourceRecord": "kstack-kcrp-source-record-v1",
+    "dispatchManifest": "kstack-kcrp-dispatch-manifest-offline-subset-v1",
+    "byteBenchmark": "kstack-kcrp-byte-benchmark-offline-subset-v1"
+  },
+  "limits": {
+    "artifacts": 256, "items": 4096, "spansPerItem": 64, "totalSpans": 16384,
+    "dependenciesPerItem": 256, "requestedItems": 256, "includedItems": 4096,
+    "sourceRecords": 32768, "sourceRecordBytes": 1048576, "sourceArtifactBytes": 4194304,
+    "itemMapBytes": 4194304, "manifestBytes": 4194304, "packetBytes": 1048576,
+    "reviewInputBytes": 1200000, "benchmarkPairs": 256
+  },
+  "identityFraming": {
+    "reviewer": {
+      "domain": "KSTACK.KCRP.LOCAL-CODEX-READONLY-REVIEWER/1",
+      "fields": ["provider=local-codex", "mode=read-only", "date=2026-08-28"],
+      "expectedSha256": "8c0712df91b9de8e9821474b7baf8429771ff45dc4947f1fe0674233c9db26b4"
+    },
+    "governance": {
+      "domain": "KSTACK.KCRP.OFFLINE-BYTE-GOVERNANCE/1",
+      "modules": [
+        {"role": "core", "path": "plugins/kstack/scripts/kstack-kcrp-core.mjs", "sha256": "d0e7c7272989edcf6df84a3a65b030c9be6da4532612dc2ba9b702cb09e5c155"},
+        {"role": "dispatch-manifest", "path": "plugins/kstack/scripts/kstack-kcrp-dispatch-manifest.mjs", "sha256": "87e15cdda08552c643e10222da4fc5a8a6641385e4712c5f07f095528f5b099b"},
+        {"role": "byte-benchmark", "path": "plugins/kstack/scripts/kstack-kcrp-byte-benchmark.mjs", "sha256": "521c3b3caa1b52dce912b187519a7ed3c35bc8d601dbe7aabf5b4feb3dfb21f2"}
+      ],
+      "expectedSha256": "b93b7b2ed932cc5dfee6a1e728ac502cb3639dfa37929cb9773cdfbcb805d45b"
+    }
+  },
+  "threadId": "memory-maturity-2026-08-26",
+  "phase": "design",
+  "objectiveItemId": "MEM_OPTION",
+  "requestedItemIds": ["MEM_SLICE_3"],
+  "sourceDefaults": {
+    "artifactRole": "decision", "sourceRole": "design-under-review", "inclusion": "full",
+    "risk": "ordinary", "status": "open", "reductionEligibility": "reducible", "mechanismGroupId": null
+  },
+  "sources": [
+    {
+      "itemId": "MEM_LEDGER", "artifactId": "ART_MEM_01", "sourceId": "KCRP_I000001_S000001", "label": "MEM_LEDGER",
+      "relativePath": ".kstack/decisions/memory-maturity-2026-08-26-source-ledger.md",
+      "byteLength": 7781, "sha256": "baf70e2cde3f82ff17a34c97599797875d73a07eea3bdc6fa2685a6016374676",
+      "span": {"byteStart": 0, "byteLength": 7781, "sha256": "baf70e2cde3f82ff17a34c97599797875d73a07eea3bdc6fa2685a6016374676"},
+      "dependsOn": []
+    },
+    {
+      "itemId": "MEM_OPTION", "artifactId": "ART_MEM_02", "sourceId": "KCRP_I000002_S000001", "label": "MEM_OPTION",
+      "relativePath": ".kstack/decisions/memory-maturity-2026-08-26-option-selection.md",
+      "byteLength": 17769, "sha256": "8611a99bddd92392a142b431d7693b3faa0a0d1e0328ea955f229cf133a208cf",
+      "span": {"byteStart": 0, "byteLength": 17769, "sha256": "8611a99bddd92392a142b431d7693b3faa0a0d1e0328ea955f229cf133a208cf"},
+      "dependsOn": []
+    },
+    {
+      "itemId": "MEM_OWNER", "artifactId": "ART_MEM_03", "sourceId": "KCRP_I000003_S000001", "label": "MEM_OWNER",
+      "relativePath": ".kstack/decisions/memory-maturity-2026-08-26-option-selection-owner-record.md",
+      "byteLength": 2534, "sha256": "c74d350ab4fa3ea912aa09a35963800d73bba63b4942ae466a4ef677726e2dfe",
+      "span": {"byteStart": 0, "byteLength": 2534, "sha256": "c74d350ab4fa3ea912aa09a35963800d73bba63b4942ae466a4ef677726e2dfe"},
+      "dependsOn": ["MEM_OPTION"]
+    },
+    {
+      "itemId": "MEM_SLICE_1", "artifactId": "ART_MEM_04", "sourceId": "KCRP_I000004_S000001", "label": "MEM_SLICE_1",
+      "relativePath": ".kstack/decisions/memory-maturity-2026-08-26-slice1-authority-citation.md",
+      "byteLength": 20234, "sha256": "6a444beb3302428fc0fd824c3df88eeae653f65e35b6b7177845812f1d85f8d4",
+      "span": {"byteStart": 0, "byteLength": 20234, "sha256": "6a444beb3302428fc0fd824c3df88eeae653f65e35b6b7177845812f1d85f8d4"},
+      "dependsOn": ["MEM_LEDGER", "MEM_OPTION", "MEM_OWNER"]
+    },
+    {
+      "itemId": "MEM_SLICE_2", "artifactId": "ART_MEM_05", "sourceId": "KCRP_I000005_S000001", "label": "MEM_SLICE_2",
+      "relativePath": ".kstack/decisions/memory-maturity-2026-08-26-slice2-exact-bm25.md",
+      "byteLength": 14911, "sha256": "9b8e303f8a7cbe1a2c7adac7b22e79f8e9aea5131b448175ab7dda499c2d206d",
+      "span": {"byteStart": 0, "byteLength": 14911, "sha256": "9b8e303f8a7cbe1a2c7adac7b22e79f8e9aea5131b448175ab7dda499c2d206d"},
+      "dependsOn": ["MEM_SLICE_1"]
+    },
+    {
+      "itemId": "MEM_SLICE_3", "artifactId": "ART_MEM_06", "sourceId": "KCRP_I000006_S000001", "label": "MEM_SLICE_3",
+      "relativePath": ".kstack/decisions/memory-maturity-2026-08-26-slice3-github-jira-ingestion.md",
+      "byteLength": 19170, "sha256": "41f46d0159f84975403c5829cb7f014a8f93647b700cf65562a9e19d1206b16b",
+      "span": {"byteStart": 0, "byteLength": 19170, "sha256": "41f46d0159f84975403c5829cb7f014a8f93647b700cf65562a9e19d1206b16b"},
+      "dependsOn": ["MEM_SLICE_1", "MEM_SLICE_2"]
+    },
+    {
+      "itemId": "MEM_SLICE_4", "artifactId": "ART_MEM_07", "sourceId": "KCRP_I000007_S000001", "label": "MEM_SLICE_4",
+      "relativePath": ".kstack/decisions/memory-maturity-2026-08-26-slice4-encryption-deletion.md",
+      "byteLength": 27983, "sha256": "7e652550ff287d834235a5a1ae83082b711fd4509aa1046d86b3b4a40e8b3207",
+      "span": {"byteStart": 0, "byteLength": 27983, "sha256": "7e652550ff287d834235a5a1ae83082b711fd4509aa1046d86b3b4a40e8b3207"},
+      "dependsOn": ["MEM_SLICE_1", "MEM_SLICE_2", "MEM_SLICE_3"]
+    },
+    {
+      "itemId": "MEM_SLICE_5", "artifactId": "ART_MEM_08", "sourceId": "KCRP_I000008_S000001", "label": "MEM_SLICE_5",
+      "relativePath": ".kstack/decisions/memory-maturity-2026-08-26-slice5-sync-portability.md",
+      "byteLength": 40254, "sha256": "58c2bbce85413aa264d4557306e965f3afcde9165cf504318c34c4b62958b8de",
+      "span": {"byteStart": 0, "byteLength": 40254, "sha256": "58c2bbce85413aa264d4557306e965f3afcde9165cf504318c34c4b62958b8de"},
+      "dependsOn": ["MEM_SLICE_1", "MEM_SLICE_2", "MEM_SLICE_3", "MEM_SLICE_4"]
+    }
+  ],
+  "dispatch": {
+    "full": {"invocationId": "memory-slice3-full-20260828", "round": 1, "purpose": "closure", "route": "full-required", "reductionFailure": null},
+    "reduced": {"invocationId": "memory-slice3-reduced-20260828", "round": 1, "purpose": "remediation", "route": "reduced", "reductionFailure": null}
+  },
+  "benchmark": {"benchmarkId": "MEMORY-SLICE3-20260828", "pairId": "MEMORY-SLICE3-PAIR"},
+  "expected": {
+    "itemMapSha256": "1dd8d1e9adac2fbbea80e329d638241fab696cd838e182097bae0daf6b7fdc48",
+    "includedItemIds": ["MEM_LEDGER", "MEM_OPTION", "MEM_OWNER", "MEM_SLICE_1", "MEM_SLICE_2", "MEM_SLICE_3"],
+    "omittedItemIds": ["MEM_SLICE_4", "MEM_SLICE_5"],
+    "full": {"packetBytes": 151869, "packetSha256": "ca334fef9003c5bf03d0344820d8b549269ac69b81c61bc31b219cb0e61da4b3", "manifestBytes": 1824, "manifestSha256": "cee87c390ae1e1a040fe53fb75639d71795f94c73ac465c6a455ede7ff7d70d7"},
+    "reduced": {"packetBytes": 83322, "packetSha256": "1137a8f0673059217ebcf757717ed240940c41f12588a0a258b964b67d703112", "manifestBytes": 1581, "manifestSha256": "bcd485cfa1be4eec370011a1971bbce2afdd843450c1d60a6892db6ce5ee5b38"},
+    "reportSha256": "de2a66a3f3222856451c2277aa17e366980be1c8d17ada23e7444bea8975b45d"
+  }
+}

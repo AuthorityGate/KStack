@@ -19,4 +19,9 @@ plugins/kstack/.codex-plugin/reflexion-runtime-unavailable-v1
 .kstack/state/citation-staging-*/
 .kstack/native-build/
 .kstack/safety-hooks-audit/
+# Machine-local safety enrollment and rollback snapshots.
+.kstack/safety-hooks.json
+.kstack/rollback/
+# Root compatibility shim; the canonical hook ships from plugins/kstack/scripts/.
+/scripts/kstack-safety-hook.mjs
 reports/

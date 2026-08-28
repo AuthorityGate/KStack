@@ -151,8 +151,8 @@
     {
       "path": "scripts/kstack-config.mjs",
       "executable": true,
-      "size": 35912,
-      "sha256": "a9ab0b9c4e679a77b7828331baf8bcd45cb8dcc39a284c5da0701923ab33bd46"
+      "size": 39562,
+      "sha256": "4484ae55cf4dfdf792e4d33a1144e8d67ffd3414b37356b4b58818a1f814f90c"
     },
     {
       "path": "scripts/kstack-design-gate.mjs",
@@ -189,6 +189,30 @@
       "executable": true,
       "size": 81278,
       "sha256": "795a74653b61af37cf75c85eb729f6724d12a4d0a7fea0c2b96a3c9ff1d56a26"
+    },
+    {
+      "path": "scripts/kstack-kcrp-byte-benchmark.mjs",
+      "executable": true,
+      "size": 19062,
+      "sha256": "521c3b3caa1b52dce912b187519a7ed3c35bc8d601dbe7aabf5b4feb3dfb21f2"
+    },
+    {
+      "path": "scripts/kstack-kcrp-core.mjs",
+      "executable": true,
+      "size": 63548,
+      "sha256": "d0e7c7272989edcf6df84a3a65b030c9be6da4532612dc2ba9b702cb09e5c155"
+    },
+    {
+      "path": "scripts/kstack-kcrp-dispatch-manifest.mjs",
+      "executable": true,
+      "size": 23204,
+      "sha256": "87e15cdda08552c643e10222da4fc5a8a6641385e4712c5f07f095528f5b099b"
+    },
+    {
+      "path": "scripts/kstack-kcrp-json.mjs",
+      "executable": true,
+      "size": 9579,
+      "sha256": "f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99"
     },
     {
       "path": "scripts/kstack-memory.mjs",
@@ -237,6 +261,12 @@
       "executable": true,
       "size": 34161,
       "sha256": "75d674244acedf2654c5257b821d4387bdd28f6702927c801a99a71b69f4604b"
+    },
+    {
+      "path": "scripts/kstack-review-measurement.mjs",
+      "executable": true,
+      "size": 4233,
+      "sha256": "1fab15ecaed41f03325a37294eb9d1e99a3b275dd054d920b2134318202b9faf"
     },
     {
       "path": "scripts/kstack-review-schema.mjs",
