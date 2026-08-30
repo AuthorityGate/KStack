@@ -229,8 +229,8 @@
     {
       "path": "references/DUAL_REVIEW.md",
       "executable": false,
-      "size": 23112,
-      "sha256": "b0a3c0f83ecbac942cade4982d987f0e22a036494405cf29b83b254e73b91a3d"
+      "size": 24748,
+      "sha256": "3f94669b221aaf4d3c159ec940ee8261da7a3ff50988fe58267c0f07c692cc92"
     },
     {
       "path": "references/HOST_DEPENDENCY_ADMISSION.md",
@@ -253,8 +253,8 @@
     {
       "path": "references/JIRA_TRACKING.md",
       "executable": false,
-      "size": 5658,
-      "sha256": "f0c100792b8e6f8c71ac67ba84d62d9dea9a6e7cbb95366b42162570ecdd0db8"
+      "size": 6199,
+      "sha256": "5f886e74739f36048d45cdb6cd099ff570e26a85708e204c20017450d3c37594"
     },
     {
       "path": "references/LINUX_QUALIFICATION.md",
@@ -297,6 +297,12 @@
       "executable": false,
       "size": 3830,
       "sha256": "8016bdf5b75d83bcae7d04fa16f3f96dc1a28a989bf45bc02ed86651ede7f71e"
+    },
+    {
+      "path": "references/SKILL_SCOPE.md",
+      "executable": false,
+      "size": 3017,
+      "sha256": "d3f86fb5b03d5384faab5b6f3c8677b10223f9571c2b1ed5ea94cdc1b9bea49d"
     },
     {
       "path": "scripts/kstack-checkpoint.mjs",
@@ -347,6 +353,12 @@
       "sha256": "b27e2eb3538d8bfaa28c0d1d70ffb2bc55ceefc4599edcfd2be02cc854d7faa5"
     },
     {
+      "path": "scripts/kstack-design-lineage.mjs",
+      "executable": true,
+      "size": 20478,
+      "sha256": "898f6b6dc1e2002d13138d78978e5b050cf9675ca0936135117e481043d147b9"
+    },
+    {
       "path": "scripts/kstack-domain-acquisition.mjs",
       "executable": true,
       "size": 15412,
@@ -355,20 +367,20 @@
     {
       "path": "scripts/kstack-domain-activation.mjs",
       "executable": true,
-      "size": 29241,
-      "sha256": "2ed086bdd1bf3d261068a65db1300177bbbc2e9a5163cdb388e8fdd9625a8e00"
+      "size": 33020,
+      "sha256": "1ac0dc428b396ddf605c023ce56d821cbb5757923ab0596ecf07b285c1130bf8"
     },
     {
       "path": "scripts/kstack-domain-budget.mjs",
       "executable": true,
-      "size": 23850,
-      "sha256": "a1d15b62ef54b7d950cf3846b68f81f271e949275ff0f144009e28ed203308f6"
+      "size": 23882,
+      "sha256": "36006da986518e1e2d9d4b0ad8485b1b8a4736aea087004793bbf41621f84dea"
     },
     {
       "path": "scripts/kstack-domain-catalog.mjs",
       "executable": true,
-      "size": 10239,
-      "sha256": "c77163cb3299acc191b27614fcce6fcc4b5970a3b7743be9b027cb77d0552795"
+      "size": 10450,
+      "sha256": "d331f5bb0e6a46fcd283973b8f129c078c92ddd78d30b4a15a20a4d7baf6825d"
     },
     {
       "path": "scripts/kstack-domain-evaluation.mjs",
@@ -397,32 +409,38 @@
     {
       "path": "scripts/kstack-domain-result.mjs",
       "executable": true,
-      "size": 52157,
-      "sha256": "332138bf9a3278c62d1c0ad969ca73639e702d8884ba0a155c8cfed05d6399aa"
+      "size": 52209,
+      "sha256": "3056a08227031454993a1d46a6623045c641127f4696e96eefb6044ae55c1041"
     },
     {
       "path": "scripts/kstack-domain-schema.mjs",
       "executable": true,
-      "size": 78513,
-      "sha256": "a29b254f617eaf71ec0c2685f984810844f245c8f16e0e060c2d7795b5d9c8cd"
+      "size": 78502,
+      "sha256": "803ba74444672d184856ca8087e70c5a316eb07d4dce04bd71912b3c69f1e341"
     },
     {
       "path": "scripts/kstack-domain-selection.mjs",
       "executable": true,
-      "size": 27163,
-      "sha256": "2a58bb66380d2f8bd9c1dd09aef0d12818bf60c10bb4dcb172a04b672abd7200"
+      "size": 27795,
+      "sha256": "6e34f539539229a7747a151a4632d7d8789cd8641965c99756a7ae37df35d26c"
     },
     {
       "path": "scripts/kstack-domain-separation.mjs",
       "executable": true,
-      "size": 26954,
-      "sha256": "a4883bb84722f90043e867a4840cee6f989b30095a5c5c5b441018a5f0e59990"
+      "size": 29940,
+      "sha256": "2dc51215178e020e19ec8a61fd4a7339d5c2d12a43460a4c29dd19cd57b351bb"
+    },
+    {
+      "path": "scripts/kstack-domain-time-binding.mjs",
+      "executable": true,
+      "size": 2583,
+      "sha256": "885faaa7e42a30fa27eb12a09ea2e4535df99c953580984525efa51a1edd1f37"
     },
     {
       "path": "scripts/kstack-domain-time.mjs",
       "executable": true,
-      "size": 43145,
-      "sha256": "99c96c0e24d4ebbcbfa979a5bb2c41c6b53ad15abe0d821ff870e31a390ee2cb"
+      "size": 43612,
+      "sha256": "a21a4c26033a88e30123893c95e60ac020853f5246cad8d1a57f422971a62784"
     },
     {
       "path": "scripts/kstack-dual-review.mjs",
@@ -781,8 +799,8 @@
     {
       "path": "scripts/kstack-staged-review.mjs",
       "executable": true,
-      "size": 36301,
-      "sha256": "b5f425d05f87470f4967147d7c3b34f412785271ab299c6faab78c07df19ca99"
+      "size": 36539,
+      "sha256": "1a4498d5d6e4de47962235a1da40f4e26cb34f18cec152e6cacfd266a9c801a6"
     },
     {
       "path": "scripts/kstack-work-envelope.mjs",
@@ -895,8 +913,8 @@
     {
       "path": "skills/kstack-design/SKILL.md",
       "executable": false,
-      "size": 17708,
-      "sha256": "0b733430b6c22b5bf86fb975f388a9b8cdefca1b16f22edf98664bf565a59a4e"
+      "size": 19639,
+      "sha256": "95959013b1f126e412d380639ed71cbcf167e4be29e6a025aa101c4cf7a4bbb3"
     },
     {
       "path": "skills/kstack-design/agents/openai.yaml",
@@ -919,8 +937,8 @@
     {
       "path": "skills/kstack-implement/SKILL.md",
       "executable": false,
-      "size": 10842,
-      "sha256": "d831ef2920857a27f5d0c40012eb6a24246c77752fbaf518808a19332b8794bd"
+      "size": 11251,
+      "sha256": "dfe538f2888e89da83c27d42dd39a20070bde6ec15932aec6b13ec2f52cd53a6"
     },
     {
       "path": "skills/kstack-implement/agents/openai.yaml",
@@ -1009,8 +1027,8 @@
     {
       "path": "skills/kstack-qc/SKILL.md",
       "executable": false,
-      "size": 13957,
-      "sha256": "1bbdd29b4fc964b10cdac250aa1ff4d1dbe75d115adfa81f3b23c5b0bc005942"
+      "size": 14708,
+      "sha256": "c5583ec41c330ce296a2e3961c92fcfdc8ffa3fd11111126515ef67cc1a0f285"
     },
     {
       "path": "skills/kstack-qc/agents/openai.yaml",
@@ -1021,8 +1039,8 @@
     {
       "path": "skills/kstack-review/SKILL.md",
       "executable": false,
-      "size": 6670,
-      "sha256": "34deca764874c2da5cd1964f8881e89b71ce6e5b9cbd99bb48953db164303f96"
+      "size": 6896,
+      "sha256": "71a40f500f4f61483e47ab01c168cfaf81f02e8f4a02169f7994108f344d6d53"
     },
     {
       "path": "skills/kstack-review/agents/openai.yaml",

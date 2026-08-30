@@ -24,6 +24,48 @@ const COMMON = Object.freeze([
   '.kstack/roadmaps/runtime-maturity-focused-2026-08-28.json'
 ]);
 const GROUPS = Object.freeze({
+  'host-portability-identity': Object.freeze({
+    rows: Object.freeze([
+      ['hp-tc01-schemas', 'HP-TC01'],
+      ['hp-tc02-request-context', 'HP-TC02'],
+      ['hp-tc03-replay-time', 'HP-TC03'],
+      ['hp-tc04-evidence-selection', 'HP-TC04']
+    ]),
+    maximumClaim: 'IMPLEMENTED_VALIDATED_HOST_PORTABILITY_IDENTITY'
+  }),
+  'host-portability-governance': Object.freeze({
+    rows: Object.freeze([
+      ['hp-tc05-eligibility-quarantine', 'HP-TC05'],
+      ['hp-tc06-harness-bypass', 'HP-TC06'],
+      ['hp-tc07-structural-broker', 'HP-TC07'],
+      ['hp-tc08-race-mutation', 'HP-TC08']
+    ]),
+    maximumClaim: 'IMPLEMENTED_VALIDATED_HOST_PORTABILITY_GOVERNANCE'
+  }),
+  'host-portability-lifecycle': Object.freeze({
+    rows: Object.freeze([
+      ['hp-tc09-mcp-boundary', 'HP-TC09'],
+      ['hp-tc10-receipt-trust', 'HP-TC10'],
+      ['hp-tc11-leases-activation', 'HP-TC11'],
+      ['hp-tc12-migrations-rollout', 'HP-TC12']
+    ]),
+    maximumClaim: 'IMPLEMENTED_VALIDATED_HOST_PORTABILITY_LIFECYCLE'
+  }),
+  'host-breadth-package': Object.freeze({
+    rows: Object.freeze([
+      ['hb-tc01-canonical-package', 'HB-TC01'],
+      ['hb-tc02-installer', 'HB-TC02'],
+      ['hb-tc03-opencode-package', 'HB-TC03']
+    ]),
+    maximumClaim: 'IMPLEMENTED_VALIDATED_HOST_BREADTH_PACKAGE'
+  }),
+  'host-breadth-facade-conformance': Object.freeze({
+    rows: Object.freeze([
+      ['hb-tc04-readonly-mcp', 'HB-TC04'],
+      ['hb-tc05-opencode-conformance', 'HB-TC05']
+    ]),
+    maximumClaim: 'IMPLEMENTED_VALIDATED_HOST_BREADTH_FACADE_CONFORMANCE'
+  }),
   'host-portability': Object.freeze({
     rows: Object.freeze([
       ['hp-tc01-schemas', 'HP-TC01'],

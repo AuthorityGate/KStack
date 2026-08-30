@@ -17,6 +17,7 @@ const REASON_CODE = /^[A-Z][A-Z0-9_]{0,127}$/u;
 const NONCE = /^[a-f0-9]{32,64}$/u;
 const CONTROL_OR_BIDI = /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u;
 const FAILURE_MODES = Object.freeze(['closed', 'continue', 'degrade']);
+const FAILURE_MODE_OPENNESS = Object.freeze({ closed: 0, degrade: 1, continue: 2 });
 const MAX_STATE_BYTES = 1024 * 1024;
 const ISSUED_WEAKENING_AUTHORIZATIONS = new WeakSet();
 
@@ -203,6 +204,22 @@ function validatePolicyState(input) {
   };
 }
 
+export function parseProtectedPolicyState(bytes, protection) {
+  const code = 'WEAKENING_STATE_UNAVAILABLE';
+  exact(protection, ['source', 'repositoryResident', 'protected'], code);
+  if (protection.source !== 'external-broker'
+      || protection.repositoryResident !== false || protection.protected !== true) fail(code);
+  let record;
+  try { record = validatePolicyState(parseCanonical(bytes, code)); } catch { fail(code); }
+  const canonicalBytes = hostCanonicalBytes(record);
+  if (!canonicalBytes.equals(Buffer.from(bytes))) fail(code);
+  return immutable({
+    record,
+    canonicalBytes,
+    policyStateDigest: domainDigest('KSTACK-POLICY-STATE-V1\n', record)
+  });
+}
+
 function setRemoved(before, after) {
   const next = new Set(after);
   return before.filter((value) => !next.has(value));
@@ -244,7 +261,9 @@ function classifierReceipt(beforeBytes, afterBytes) {
   if (after.minimumAuthorityCount < before.minimumAuthorityCount) reasons.push('AUTHORITY_REDUCED');
   if (before.rollbackRequired && !after.rollbackRequired) reasons.push('ROLLBACK_DISABLED');
   if (after.retentionDaysMinimum < before.retentionDaysMinimum) reasons.push('RETENTION_REDUCED');
-  if (before.failureMode === 'closed' && after.failureMode !== 'closed') reasons.push('FAILURE_MODE_OPENED');
+  if (FAILURE_MODE_OPENNESS[after.failureMode] > FAILURE_MODE_OPENNESS[before.failureMode]) {
+    reasons.push('FAILURE_MODE_OPENED');
+  }
   const waiverAdded = setAdded(before.waiverScopePacks, after.waiverScopePacks);
   for (const pack of waiverAdded) affected.add(pack);
   if (waiverAdded.length || before.waiverExpiresAt !== null && (after.waiverExpiresAt === null
@@ -338,6 +357,17 @@ function validateClassifierBinding(classifier, request) {
       || !hostCanonicalBytes(classifier.receipt.affectedPackIds).equals(hostCanonicalBytes(request.affectedPackIds))) fail(code);
 }
 
+function weakeningActionsForReasons(reasonCodes) {
+  const actions = new Set();
+  for (const reason of reasonCodes) {
+    if (reason === 'QUARANTINE_REVERSED') actions.add('quarantine-reversal');
+    else if (reason === 'CATALOG_DOWNGRADED') actions.add('catalog-downgrade');
+    else if (reason === 'REQUIRED_PACK_REMOVED' || reason === 'WAIVER_BROADENED') actions.add('required-pack-waiver');
+    else actions.add('policy-weakening');
+  }
+  return [...actions].sort(compareUtf8);
+}
+
 function principalFor(policy, verification, role) {
   const principal = policy.record.principals.find((entry) => entry.adapterId === 'github-protected-review'
     && entry.providerPrincipalId === verification.providerPrincipalId);
@@ -347,8 +377,9 @@ function principalFor(policy, verification, role) {
 
 export async function authorizeWeakening(input) {
   const code = 'WEAKENING_AUTHORIZATION_INVALID';
-  exact(input, ['separationPolicyBytes', 'separationPolicyProtection', 'expectedSeparationPolicyDigest', 'weakeningRequestBytes', 'expectedWeakeningRequestDigest', 'classifier', 'requesterVerification', 'independentApproverVerification', 'trustedTime', 'policyAuthority', 'ledger'], code);
+  exact(input, ['separationPolicyBytes', 'separationPolicyProtection', 'expectedSeparationPolicyDigest', 'weakeningRequestBytes', 'expectedWeakeningRequestDigest', 'classifier', 'requesterVerification', 'independentApproverVerification', 'trustedTime', 'policyAuthority', 'inventory', 'ledger'], code);
   if (!input.ledger || typeof input.ledger.inspect !== 'function' || typeof input.ledger.consumePairOnce !== 'function') fail('WEAKENING_LEDGER_UNAVAILABLE');
+  if (!input.inventory || typeof input.inventory.retain !== 'function') fail('WEAKENING_EVIDENCE_RETENTION_FAILED');
   if (!input.policyAuthority || typeof input.policyAuthority.confirmCurrent !== 'function') fail('SEPARATION_POLICY_UNAVAILABLE');
   const requestResult = parseWeakeningRequest(input.weakeningRequestBytes);
   sameDigest(requestResult.weakeningRequestDigest, input.expectedWeakeningRequestDigest, code);
@@ -361,8 +392,9 @@ export async function authorizeWeakening(input) {
   const now = trustedTime(input.trustedTime);
   if (Date.parse(policy.record.effectiveAt) > Date.parse(now)
       || Date.parse(request.notBefore) > Date.parse(now) || Date.parse(request.expiresAt) <= Date.parse(now)) fail('WEAKENING_AUTHORIZATION_EXPIRED');
-  const actionPolicy = policy.record.actions.find((entry) => entry.action === request.action);
-  if (!actionPolicy) fail('SEPARATION_POLICY_INVALID');
+  const requiredActions = weakeningActionsForReasons(input.classifier.receipt.reasonCodes);
+  if (!requiredActions.includes(request.action)
+      || requiredActions.some((action) => !policy.record.actions.some((entry) => entry.action === action))) fail('SEPARATION_POLICY_INVALID');
 
   const requester = verifyGithubProtectedReview(input.requesterVerification);
   const approver = verifyGithubProtectedReview(input.independentApproverVerification);
@@ -371,7 +403,7 @@ export async function authorizeWeakening(input) {
     && entry.adapterVersion === '1.0.0');
   if (!sharedAdapter || !sharedAdapter.allowedProviderPrincipalIds.includes(requester.providerPrincipalId)
       || !sharedAdapter.allowedProviderPrincipalIds.includes(approver.providerPrincipalId)
-      || !sharedAdapter.allowedActions.includes(request.action)) fail('WEAKENING_RECEIPT_DISAGREEMENT');
+      || requiredActions.some((action) => !sharedAdapter.allowedActions.includes(action))) fail('WEAKENING_RECEIPT_DISAGREEMENT');
   const requesterReceipt = createIdentityVerificationReceipt(requester);
   const approverReceipt = createIdentityVerificationReceipt(approver);
   for (const verification of [requester, approver]) {
@@ -392,6 +424,28 @@ export async function authorizeWeakening(input) {
   if (policyConfirmation.current !== true || policyConfirmation.rollbackDetected !== false) fail('SEPARATION_POLICY_STALE');
   sameDigest(policyConfirmation.policyDigest, policy.separationPolicyDigest, 'SEPARATION_POLICY_STALE');
   digest(policyConfirmation.checkpointDigest, 'SEPARATION_POLICY_UNAVAILABLE');
+  const evidenceInventory = immutable({
+    weakeningRequestDigest: requestResult.weakeningRequestDigest,
+    separationPolicyDigest: policy.separationPolicyDigest,
+    classifierReceiptDigest: input.classifier.classifierReceiptDigest,
+    requiredActions,
+    requester: {
+      receipt: requesterReceipt.receipt, receiptDigest: requesterReceipt.receiptDigest,
+      admittedEvidence: requester.admittedEvidence, responseInventory: requester.responseInventory,
+      providerEvidenceDigest: requester.providerEvidenceDigest
+    },
+    independentApprover: {
+      receipt: approverReceipt.receipt, receiptDigest: approverReceipt.receiptDigest,
+      admittedEvidence: approver.admittedEvidence, responseInventory: approver.responseInventory,
+      providerEvidenceDigest: approver.providerEvidenceDigest
+    }
+  });
+  const expectedInventoryDigest = domainDigest('KSTACK-WEAKENING-EVIDENCE-INVENTORY-V1\n', evidenceInventory);
+  const retained = await input.inventory.retain(evidenceInventory);
+  exact(retained, ['retained', 'inventoryDigest'], 'WEAKENING_EVIDENCE_RETENTION_FAILED');
+  if (retained.retained !== true) fail('WEAKENING_EVIDENCE_RETENTION_FAILED');
+  const inventoryDigest = digest(retained.inventoryDigest, 'WEAKENING_EVIDENCE_RETENTION_FAILED');
+  sameDigest(inventoryDigest, expectedInventoryDigest, 'WEAKENING_EVIDENCE_RETENTION_FAILED');
   const before = ledgerHealth(await input.ledger.inspect());
   const pairKeyDigest = domainDigest('KSTACK-WEAKENING-CONSUMPTION-KEY-V1\n', {
     projectId: request.projectId, weakeningRequestDigest: requestResult.weakeningRequestDigest,
@@ -402,6 +456,7 @@ export async function authorizeWeakening(input) {
     separationPolicyDigest: policy.separationPolicyDigest,
     requesterReceiptDigest: requesterReceipt.receiptDigest,
     independentApproverReceiptDigest: approverReceipt.receiptDigest,
+    inventoryDigest,
     policyCheckpointDigest: policyConfirmation.checkpointDigest,
     priorGeneration: before.generation, priorCheckpointDigest: before.checkpointDigest
   }));
@@ -420,6 +475,7 @@ export async function authorizeWeakening(input) {
     separationPolicyDigest: policy.separationPolicyDigest,
     requesterReceiptDigest: requesterReceipt.receiptDigest,
     independentApproverReceiptDigest: approverReceipt.receiptDigest,
+    inventoryDigest,
     requesterPersonSubjectId: requesterPrincipal.personSubjectId,
     approverPersonSubjectId: approverPrincipal.personSubjectId,
     authorizedAt: now, expiresAt, consumptionId: consumption.consumptionId
@@ -435,7 +491,7 @@ export async function authorizeWeakening(input) {
 export function validateWeakeningTransitionUse(input) {
   const code = 'WEAKENING_TARGET_STALE';
   exact(input, ['authorization', 'authorizationDigest', 'requestBytes', 'liveBeforeDigest', 'candidateAfterDigest', 'action', 'affectedPackIds', 'trustedTime'], code);
-  exact(input.authorization, ['artifactType', 'schemaVersion', 'projectId', 'repositoryImmutableId', 'weakeningRequestDigest', 'separationPolicyDigest', 'requesterReceiptDigest', 'independentApproverReceiptDigest', 'requesterPersonSubjectId', 'approverPersonSubjectId', 'authorizedAt', 'expiresAt', 'consumptionId'], code);
+  exact(input.authorization, ['artifactType', 'schemaVersion', 'projectId', 'repositoryImmutableId', 'weakeningRequestDigest', 'separationPolicyDigest', 'requesterReceiptDigest', 'independentApproverReceiptDigest', 'inventoryDigest', 'requesterPersonSubjectId', 'approverPersonSubjectId', 'authorizedAt', 'expiresAt', 'consumptionId'], code);
   const authorizedAt = instant(input.authorization.authorizedAt, 'WEAKENING_AUTHORIZATION_INVALID');
   const expiresAt = instant(input.authorization.expiresAt, 'WEAKENING_AUTHORIZATION_INVALID');
   if (!ISSUED_WEAKENING_AUTHORIZATIONS.has(input.authorization)) fail('WEAKENING_AUTHORIZATION_PROVENANCE_INVALID');

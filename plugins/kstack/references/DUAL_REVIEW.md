@@ -157,10 +157,11 @@ contract.
 The independent final reviewer has a separate
 `secondaryReview.finalAcceptanceConfidence` threshold of 81 by default,
 regardless of cycle number. A final `approve` or `revise` at or above that
-threshold completes staged review. Convert every final failed check, security
+threshold completes staged review. Give every final failed check, security
 finding, material dissent item, unresolved question, and otherwise-unexplained
-`revise` verdict into explicit mandatory bug-fix/backlog intake; do not restart
-the full design loop for those items. A final `block` or sub-threshold score
+`revise` verdict an explicit `SKILL_SCOPE.md` disposition; only `IN_SCOPE_BUG`
+items become mandatory bug-fix/backlog intake. Do not restart the full design
+loop for accepted intake. A final `block` or sub-threshold score
 returns the work to the primary. After repair, the primary must establish a
 fresh clean readiness result for the new design digest before final review runs
 again. Do not turn the final reviewer into an every-cycle co-author.
@@ -251,6 +252,30 @@ intervene mid-thread to mandate both reject-on-regression and per-item grading
 directly; this section exists so a future coordinator does not need to
 rediscover the same correction from a live user intervention.
 
+The coordinator must also learn across cycles, not merely preserve the best
+digest. Maintain the thread's `kstack-design-lineage-v1` evidence ledger. Each
+completed full-design cycle records its hypothesis, changed clause paths,
+digest, score, and whether the evidence was accepted, rejected, or
+inconclusive. Before another full-design dispatch, run the lineage preflight on
+a proposal that cites applicable evidence from both accepted and rejected
+attempts. It must state a testable hypothesis and the clauses it intends to
+change. Missing learning context blocks before a provider invocation; blindly
+trying a new mechanism is not a review cycle.
+
+At the configured cycle 5-8 early-warning boundary, the lineage alarm causes
+one automatic lightweight advisory dispatch using the stalled/regressed-cycle
+evidence. The advisory may inform the next hypothesis but cannot edit the
+design, count as item clearance, or replace the full independent final gate.
+
+Once a clean primary reaches 93, freeze that high-water digest. A final at or
+above 81 accepts it and sends residual findings to implementation intake. A
+sub-81 or blocking final creates a bounded targeted-remediation branch from the
+same frozen parent. It never authorizes another unrestricted whole-design
+cycle. Each targeted event names one finding, its allowed clauses, semantic
+delta, and item-specific evidence. Aggregate rescoring cannot erase a cleared
+item. This is why a 97 primary with five bounded final findings branches at
+that cycle instead of drifting through dozens of new whole-design drafts.
+
 ## Per-item ledger (default-on past a few cycles)
 
 **A per-item ledger is subordinate bookkeeping, never a design gate.** Use it
@@ -330,11 +355,11 @@ After the readiness-qualified primary report and independent final report return
    `--round N`; a missing or unrecognized round safely uses the round 1-10
    tier. The gate never infers skill class from content. Passing also requires
    zero failed or missing deterministic checks and a clean primary result. A
-   final `approve` or `revise` at or above 81 is accepted; its current findings,
-   including findings of any reported severity, are retained as mandatory
-   implementation intake rather than design blockers. This does not waive or
-   close those findings: implementation closure still requires every item to be
-   fixed, validated, tracked, and read back before completion.
+   final `approve` or `revise` at or above 81 is accepted. Disposition its
+   findings through `SKILL_SCOPE.md`; only `IN_SCOPE_BUG` items become mandatory
+   implementation intake. A parent delivery block may close after its own
+   acceptance evidence and all dispositions pass, while those separate bug
+   items remain visible and independently scheduled.
 10. Write the accepted decision and rationale to
    `.kstack/decisions/<decision-id>.md` only when project persistence is enabled.
 
@@ -347,7 +372,7 @@ at its separate 81-or-higher acceptance threshold.
 `primary-not-ready` means the final reviewer was correctly not dispatched.
 `final-not-approved` means the independent final result was structurally valid
 but contained a `block` verdict or sub-threshold confidence. Accepted final
-findings are digest-bound mandatory bug-fix intake.
+findings are digest-bound and require explicit skill-scope disposition.
 `primary-failed` and `final-review-failed` name an
 unavailable or malformed provider. Follow
 `models.onUnavailable`: continue, ask, or stop.

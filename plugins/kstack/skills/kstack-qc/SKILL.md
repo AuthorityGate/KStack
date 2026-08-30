@@ -5,6 +5,10 @@ description: Perform KStack post-implementation quality control against the appr
 
 # KStack QC
 
+Read `../../references/SKILL_SCOPE.md` first. Review KStack as an agent skill
+and plugin workflow; do not grade it as a standalone security kernel or
+multi-tenant runtime.
+
 Read `../../references/JIRA_TRACKING.md`. When Jira continuous tracking is
 enabled, append `REVIEW_COMPLETED` for every scored QC pass, `BUG_FOUND` for
 every genuine defect, `BUG_FIXED` only after its repair test passes,
@@ -59,8 +63,9 @@ plan, Git state, implementation content, and verification evidence. Require
 confidence of at least 93 and no known condition that makes the evidence unsafe,
 stale, or incomplete. Below 93, continue primary implementation and validation;
 do not spend the independent final review to discover ordinary unfinished work.
-The 93 threshold grants only permission to dispatch and never lowers the
-existing 95 QC pass floor.
+The 93 threshold grants only permission to dispatch. It is not the independent
+review acceptance threshold and never lowers the existing 95 QC completion
+floor.
 
 Create a digest-bound secondary-review decision before dispatch. Use the
 independent-final trigger for closure and the high-risk trigger where applicable;
@@ -70,9 +75,9 @@ and availability. Consume the decision once so replay or configuration drift
 cannot authorize another final review.
 The closed trigger catalog is `OWNER_REQUESTED`, `ROADBLOCK`,
 `MATERIAL_UNCERTAINTY`, `INDEPENDENT_FINAL_REVIEW`, `HIGH_RISK_BOUNDARY`,
-`MATERIAL_DISSENT`, and `AUDIT_SAMPLE`. The staged final acceptance floor of 81
-creates mandatory bug-fix intake but never lowers QC's stricter 95 completion
-floor.
+`MATERIAL_DISSENT`, and `AUDIT_SAMPLE`. The staged independent final acceptance
+floor is 81. A final `approve` or `revise` at or above 81 completes that review
+stage after every finding has a `SKILL_SCOPE.md` disposition.
 
 The final reviewer must be fresh and non-authoring: it must not have produced or
 edited the candidate being reviewed. A reviewer used earlier to consult on a
@@ -89,8 +94,8 @@ Bind the final review to the same evidence digests used by the primary
 assessment. Any implementation, test, plan, design, or relevant Git-state drift
 invalidates both the dispatch qualification and the final review. Re-establish
 93 on the new exact state before dispatching another fresh final reviewer.
-KStack remains gridlocked until this review and every stricter requirement in
-the Decision section pass.
+KStack remains gridlocked when the final review blocks, scores below 81, is
+stale or malformed, or leaves a finding without a scope disposition.
 
 ## Review
 
@@ -116,14 +121,20 @@ plan, and Git-state digests match.
 
 Use this precedence:
 
-1. Any redesign or material/security finding returns
-   `FULL_DESIGN_REQUIRED`.
-2. Otherwise unavailable/insufficient/unsafe/malformed/stale evidence,
-   confidence below 95, `block`, unresolved question, or insufficient mandatory
-   dual routing returns `QC_BLOCKED`.
-3. Otherwise `fix`, a failed check, or a quality finding returns
-   `FIX_REQUIRED`. Plan-changing fixes first run `kstack-interrogate`.
-4. Otherwise unanimous clean pass with unchanged Git state returns `QC_PASSED`.
+1. A final `block`, score below 81, unavailable/insufficient/unsafe/malformed/
+   stale evidence, insufficient mandatory dual routing, or an undispositioned
+   item returns `QC_BLOCKED`.
+2. Otherwise confidence below 95 returns `QC_BLOCKED`; the final review's
+   separate 81 acceptance threshold does not lower this QC floor.
+3. An observed defect that invalidates the parent block's explicit acceptance
+   evidence returns `FIX_REQUIRED`; a plan-changing fix first runs
+   `kstack-interrogate`.
+4. A material finding that proves the approved design itself cannot meet its
+   objective returns `FULL_DESIGN_REQUIRED`.
+5. Otherwise a final `approve` or `revise` at or above 81 with unchanged Git
+   state and complete dispositions returns `QC_PASSED` or
+   `QC_PASSED_WITH_INTAKE`. Each `IN_SCOPE_BUG` receives its own Jira/backlog
+   item. Host-owned and out-of-scope findings do not become KStack work.
    For a user-facing repository this additionally requires a fresh
    `node ../../scripts/kstack-experience.mjs phase-gate --project-root . --contract .kstack/experience.json --phase qc`
    result whose contract/source digest matches the reviewed implementation.

@@ -205,6 +205,12 @@ test('D8 publishes only after durable anchor and two external CAS witnesses, the
     predicate: { kind: 'expires-at', expiresAtUtcNs: expiry }
   });
   assert.equal(guarded.record.pass, true);
+  assert.equal(guarded.binding.trustedTimeReceiptDigest, published.receiptDigest);
+  assert.equal(guarded.binding.useReceiptDigest, guarded.useReceiptDigest);
+  assert.equal(guarded.binding.policyDigest, interval.policy.policyDigest);
+  assert.equal(guarded.binding.anchorDigest, published.anchorDigest);
+  assert.equal(guarded.binding.qualified, true);
+  assert.equal(guarded.binding.rollbackDetected, false);
   code('TEMPORAL_BOUNDARY_AMBIGUOUS', () => guardTrustedTimeUse({
     publication: published,
     currentHead: { sequence: 1, anchorHeadDigest: published.anchorDigest, policyDigest: interval.policy.policyDigest },

@@ -8,6 +8,7 @@ const VERSION = /^[0-9]+\.[0-9]+\.[0-9]+$/u;
 const HEX64 = /^[a-f0-9]{64}$/u;
 const CONTROL_OR_BIDI = /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u;
 const VALIDATED_DOMAIN_SELECTIONS = new WeakSet();
+export const DOMAIN_RENDERING_SCOPE = 'D0_ANALYSIS_METHOD_RENDERING_ONLY_NOT_D2_PACK_ADMISSION_OR_ACTIVATION';
 
 function fail(code, detail = '') {
   const error = new Error(`${code}${detail ? `: ${detail}` : ''}`);
@@ -165,7 +166,11 @@ export function renderDomainSelection(selectionInput, profileInput) {
   return Object.freeze({
     hostId: profile.hostId,
     selectionDigest: selectionInput.selectionDigest,
+    authorityScope: DOMAIN_RENDERING_SCOPE,
     artifacts,
-    renderingDigest: digest('KSTACK-DOMAIN-RENDERING-V1', { hostId: profile.hostId, selectionDigest: selectionInput.selectionDigest, artifacts })
+    renderingDigest: digest('KSTACK-DOMAIN-RENDERING-V1', {
+      hostId: profile.hostId, selectionDigest: selectionInput.selectionDigest,
+      authorityScope: DOMAIN_RENDERING_SCOPE, artifacts
+    })
   });
 }

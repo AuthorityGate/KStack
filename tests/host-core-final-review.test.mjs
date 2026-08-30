@@ -12,8 +12,11 @@ import {
 import { findOutboundSecret } from '../plugins/kstack/scripts/kstack-safety-matchers.mjs';
 
 const expected = {
-  'host-portability': 12,
-  'host-breadth-foundation': 5
+  'host-portability-identity': 4,
+  'host-portability-governance': 4,
+  'host-portability-lifecycle': 4,
+  'host-breadth-package': 3,
+  'host-breadth-facade-conformance': 2
 };
 const expectedEncodedArtifacts = [
   'plugins/kstack/scripts/kstack-host-package.mjs',
@@ -29,7 +32,8 @@ const expectedEncodedArtifacts = [
   'tests/opencode-protected-conformance.test.mjs'
 ];
 
-test('all 17 implemented Host core rows have deterministic, secret-excluding independent-review packets', () => {
+test('all 17 implemented Host core rows have deterministic, bounded, secret-excluding independent-review packets', () => {
+  const covered = new Set();
   for (const [groupId, itemCount] of Object.entries(expected)) {
     const first = buildHostCoreFinalReviewPayload(groupId);
     const second = buildHostCoreFinalReviewPayload(groupId);
@@ -37,6 +41,10 @@ test('all 17 implemented Host core rows have deterministic, secret-excluding ind
     assert.equal(first.groupId, groupId);
     assert.equal(first.scope.length, itemCount);
     assert.equal(first.target.rows.length, itemCount);
+    for (const row of first.target.rows) {
+      assert.equal(covered.has(row.itemId), false);
+      covered.add(row.itemId);
+    }
     assert.equal(first.primaryReadiness.confidence, 95);
     assert.equal(first.primaryReadiness.readyForIndependentFinalReview, true);
     assert.equal(first.decisionThreshold.minimumConfidence, 81);
@@ -62,7 +70,9 @@ test('all 17 implemented Host core rows have deterministic, secret-excluding ind
       assert.equal(bytes.length, artifact.bytes);
       assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'), artifact.sha256);
     }
+    assert.ok(Buffer.byteLength(JSON.stringify(first), 'utf8') < 700_000);
   }
+  assert.equal(covered.size, 17);
 });
 
 test('Host core packet files are byte-stable and exclusive-create', () => {
@@ -85,7 +95,7 @@ test('Host core packet files are byte-stable and exclusive-create', () => {
 test('Host core review preparation rejects unknown groups and relative output paths', () => {
   assert.throws(() => buildHostCoreFinalReviewPayload('host-unknown'), /HOST_CORE_REVIEW_GROUP_INVALID/u);
   assert.throws(
-    () => prepareHostCoreFinalReview('host-portability', 'relative.json'),
+    () => prepareHostCoreFinalReview('host-portability-identity', 'relative.json'),
     /HOST_CORE_REVIEW_OUTPUT_INVALID/u
   );
 });

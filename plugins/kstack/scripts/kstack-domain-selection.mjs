@@ -7,12 +7,18 @@ export const APPROVAL_CLASSES = Object.freeze(['human-owner', 'independent-agent
 export const REVIEW_CHECKS = Object.freeze(['artifact-integrity', 'compatibility', 'policy-conformance', 'security', 'test-evidence']);
 export const REVIEW_VERDICTS = Object.freeze(['approve', 'revise']);
 export const COMPOSITION_INPUT_ROLES = Object.freeze(['implementation-plan', 'objective', 'qc', 'release-observation']);
+export const PACK_APPROVAL_AUTHORITY_SCOPE = 'D2_APPROVAL_IS_QUALITY_METADATA_D1_OWNER_ACCEPTANCE_IS_SOLE_AUTHORITY';
 
 const DIGEST = /^[a-f0-9]{64}$/u;
 const ID = /^[a-z][a-z0-9-]{0,63}$/u;
 const VERSION = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/u;
 const CONTROL_OR_BIDI = /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u;
-const MAX_ARTIFACT_BYTES = 1024 * 1024;
+// These limits must remain jointly reachable through hostCanonicalBytes. In
+// particular, inventory payloads are base64 strings and the Host contract caps
+// each string at 16 KiB and the complete canonical document at 1 MiB.
+const MAX_ARTIFACT_BYTES = 12_000;
+const MAX_SELECTION_ENTRIES = 12;
+const MAX_INVENTORY_ENTRIES = 60;
 const VALIDATED_SELECTIONS = new WeakSet();
 
 const DOMAINS = Object.freeze({
@@ -226,7 +232,7 @@ function validateSnapshot(input) {
   const code = 'PACK_SNAPSHOT_INVALID';
   exact(input, ['artifactType', 'schemaVersion', 'generation', 'repositoryPolicyDigest', 'entries'], code);
   if (input.artifactType !== 'kstack-pack-snapshot' || input.schemaVersion !== 1
-      || !Array.isArray(input.entries) || input.entries.length < 1 || input.entries.length > 256) fail(code);
+      || !Array.isArray(input.entries) || input.entries.length < 1 || input.entries.length > MAX_SELECTION_ENTRIES) fail(code);
   const entries = input.entries.map(validateSnapshotEntry);
   if (new Set(entries.map((entry) => entry.packId)).size !== entries.length) fail(code);
   return {
@@ -249,7 +255,7 @@ function validateSelection(input) {
   const code = 'PACK_SELECTION_INVALID';
   exact(input, ['artifactType', 'schemaVersion', 'subjectDigest', 'repositoryPolicyDigest', 'snapshotDigest', 'expectedGeneration', 'orderedEntries', 'compositionInputs', 'expiresAt'], code);
   if (input.artifactType !== 'kstack-pack-selection' || input.schemaVersion !== 1
-      || !Array.isArray(input.orderedEntries) || input.orderedEntries.length < 1 || input.orderedEntries.length > 256
+      || !Array.isArray(input.orderedEntries) || input.orderedEntries.length < 1 || input.orderedEntries.length > MAX_SELECTION_ENTRIES
       || !Array.isArray(input.compositionInputs) || input.compositionInputs.length < 1
       || input.compositionInputs.length > COMPOSITION_INPUT_ROLES.length) fail(code);
   const orderedEntries = input.orderedEntries.map(validateSnapshotEntry);
@@ -310,7 +316,7 @@ function validateInventory(input) {
   const code = 'PACK_INVENTORY_INVALID';
   exact(input, ['artifactType', 'schemaVersion', 'operationReceiptDigest', 'entries'], code);
   if (input.artifactType !== 'kstack-operation-inventory' || input.schemaVersion !== 1
-      || !Array.isArray(input.entries) || input.entries.length < 1 || input.entries.length > 2_048) fail(code);
+      || !Array.isArray(input.entries) || input.entries.length < 1 || input.entries.length > MAX_INVENTORY_ENTRIES) fail(code);
   const entries = input.entries.map((entry) => {
     exact(entry, ['artifactType', 'digest', 'artifactBytesBase64'], code);
     if (!VALIDATORS[entry.artifactType]) fail(code);
@@ -339,7 +345,8 @@ export function createValidationInventory(input) {
     return { artifactType: artifact.artifactType, digest: parsed.artifactDigest, artifactBytesBase64: parsed.canonicalBytes.toString('base64') };
   }).sort((left, right) => compareUtf8(`${left.artifactType}\u0000${left.digest}`, `${right.artifactType}\u0000${right.digest}`));
   const record = validateInventory({ artifactType: 'kstack-operation-inventory', schemaVersion: 1, operationReceiptDigest: input.operationReceiptDigest, entries });
-  const canonicalBytes = hostCanonicalBytes(record);
+  let canonicalBytes;
+  try { canonicalBytes = hostCanonicalBytes(record); } catch { fail(code); }
   return immutable({ record, canonicalBytes, inventoryDigest: domainDigest('KSTACK-VALIDATION-INVENTORY-V1\n', record) });
 }
 
@@ -347,7 +354,8 @@ function openInventory(bytes, expectedDigest, expectedOperationReceiptDigest) {
   let input;
   try { input = parseHostCanonicalJson(bytes); } catch { fail('PACK_INVENTORY_INVALID'); }
   const record = validateInventory(input);
-  const canonicalBytes = hostCanonicalBytes(record);
+  let canonicalBytes;
+  try { canonicalBytes = hostCanonicalBytes(record); } catch { fail('PACK_INVENTORY_INVALID'); }
   if (!canonicalBytes.equals(Buffer.from(bytes))) fail('PACK_INVENTORY_INVALID');
   const inventoryDigest = domainDigest('KSTACK-VALIDATION-INVENTORY-V1\n', record);
   if (!digestEqual(inventoryDigest, expectedDigest) || !digestEqual(record.operationReceiptDigest, expectedOperationReceiptDigest)) fail('PACK_INVENTORY_BINDING_MISMATCH');
@@ -484,6 +492,7 @@ export function validatePackSelection(input) {
     input.ownerAcceptance, selectionResult.artifactDigest, selection.repositoryPolicyDigest, now
   );
   const projection = immutable({
+    approvalAuthorityScope: PACK_APPROVAL_AUTHORITY_SCOPE,
     subjectDigest: selection.subjectDigest,
     repositoryPolicyDigest: selection.repositoryPolicyDigest,
     snapshotDigest: selection.snapshotDigest,

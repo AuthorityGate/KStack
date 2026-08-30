@@ -58,8 +58,8 @@ test('Hermes and OpenClaw negative qualifications reach independent review only 
     assert.equal(domainFirst.artifacts.some((entry) => entry.path.startsWith('.kstack/secrets/')), false);
     if (groupId === 'domain-execution') {
       const encoded = domainFirst.artifacts.find((entry) => entry.path === 'plugins/kstack/scripts/kstack-domain-schema.mjs');
-      assert.equal(encoded.contentEncoding, 'utf8-equals-segments-v1');
-      const reconstructed = Buffer.from(encoded.contentUtf8EqualsSegments.join(encoded.joinWith), 'utf8');
+      assert.equal(encoded.contentEncoding, 'base64-v1');
+      const reconstructed = Buffer.from(encoded.contentBase64, 'base64');
       assert.equal(reconstructed.length, encoded.bytes);
     }
     const domainOut = path.join(root, `${groupId}.json`);

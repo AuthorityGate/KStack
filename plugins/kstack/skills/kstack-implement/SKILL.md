@@ -9,7 +9,9 @@ Implement only an approved, review-ready design.
 
 ## Entry gate
 
-1. Validate `.kstack/config.json`.
+1. Validate `.kstack/config.json`. Read `../../references/SKILL_SCOPE.md` and
+   keep implementation inside the behavior and boundaries an agent skill can
+   own.
 2. Identify the approved objective, design, decisions, implementation sequence,
    and verification matrix. If they are absent or materially stale, return to
    `kstack-review`.
@@ -18,10 +20,11 @@ Implement only an approved, review-ready design.
    `../../scripts/kstack-workflow-contract.mjs backlog`. Add `--jira-required`
    when Jira tracking is enabled. Design approval without a passing complete
    backlog is not an implementation entry condition.
-3. Read the design gate artifact and require `READY_FOR_USER_APPROVAL`, at
-   least the configured combined-confidence threshold (minimum 90), zero failed
-   checks, zero security findings, zero material dissent, and a digest matching
-   the approved design.
+3. Read the design gate artifact and require `READY_FOR_USER_APPROVAL`, the
+   configured clean primary readiness result, an accepted independent final
+   result at or above 81, a digest matching the approved design, and a complete
+   disposition/backlog mapping for accepted findings. Do not require the final
+   reviewer to be finding-free when `revise` is accepted as bug-fix intake.
 4. Confirm the current repository state has not invalidated the design.
 5. Apply both host permissions and the KStack authority matrix. The more
    restrictive rule wins.
@@ -67,7 +70,9 @@ Implement only an approved, review-ready design.
    most one block may be active throughout the loop.
 4. Use repository-native wrappers, toolchains, tests, and release conventions.
 5. Verify behavior, not only compilation. Exercise failure, recovery,
-   compatibility, migration, and rollback paths named in the design.
+   compatibility, migration, and rollback paths named in the design. Do not
+   add infrastructure-grade defenses or qualifications that belong to the host
+   application and are not part of the approved product objective.
    For user-facing work, read `../../references/PRODUCT_EXPERIENCE.md`, validate
    the exact experience contract, reuse its admitted tokens/components before
    introducing primitives, and implement every applicable journey/state and

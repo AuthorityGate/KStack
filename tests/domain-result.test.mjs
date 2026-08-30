@@ -44,6 +44,27 @@ function raw(value) {
   return sha(Buffer.from(value));
 }
 
+function trustedTimeBinding(now = NOW, trustedTimeReceiptDigest = raw('evidence-trusted-time-receipt')) {
+  return {
+    now, trustedTimeReceiptDigest, useReceiptDigest: raw(`time-use:${now}:${trustedTimeReceiptDigest}`),
+    policyDigest: raw('trusted-time-policy'), anchorDigest: raw('trusted-time-anchor'),
+    qualified: true, rollbackDetected: false
+  };
+}
+
+function trustedTimeAuthority(overrides = {}) {
+  return {
+    confirmCurrent(binding) {
+      return {
+        current: true, trustedTimeReceiptDigest: binding.trustedTimeReceiptDigest,
+        useReceiptDigest: binding.useReceiptDigest, policyDigest: binding.policyDigest,
+        anchorDigest: binding.anchorDigest, checkpointDigest: raw('trusted-time-checkpoint'),
+        rollbackDetected: false, protected: true, repositoryResident: false, ...overrides
+      };
+    }
+  };
+}
+
 function code(expected, action) {
   assert.throws(action, (error) => error?.code === expected, `expected ${expected}`);
 }
@@ -204,22 +225,38 @@ function signRecord(privateKey, domain, record) {
 
 async function buildFixture(options = {}) {
   const selected = await buildSelection();
+  const additionalQuestion = options.emptyEvidenceQuestion
+    ? { id: 'empty-evidence', text: 'Can this be supported without evidence?', answerKind: 'status-evidence', evidenceIds: [] }
+    : options.zeroMinimumQuestion
+      ? { id: 'zero-minimum', text: 'Can a zero minimum support this?', answerKind: 'status-evidence', evidenceIds: ['optional-proof'] }
+      : null;
+  const questions = [
+    { id: 'health', text: 'Is the service healthy?', answerKind: 'status-evidence', evidenceIds: ['health-proof'] },
+    ...(additionalQuestion ? [additionalQuestion] : [])
+  ];
   const content = createD5Artifact({
     artifactType: 'kstack-pack-content', schemaVersion: 1,
     sections: [{
       id: 'readiness', appliesTo: ['objective'],
-      questions: [{ id: 'health', text: 'Is the service healthy?', answerKind: 'status-evidence', evidenceIds: ['health-proof'] }]
+      questions
     }]
   });
   const contentBytes = content.canonicalBytes;
   const evidenceSchema = createD5Artifact({
     artifactType: 'kstack-pack-evidence-schema', schemaVersion: 1,
-    requirements: [{
-      evidenceId: 'health-proof', allowedSourceClasses: ['health-observation'],
-      allowedObservationKinds: ['absence', 'asserts', 'refutes'],
-      minimumCount: 1, maximumCount: 2, freshnessPolicyId: 'release-immediate',
-      requiredFor: ['contradicted', 'supported']
-    }]
+    requirements: [
+      {
+        evidenceId: 'health-proof', allowedSourceClasses: ['health-observation'],
+        allowedObservationKinds: ['absence', 'asserts', 'refutes'],
+        minimumCount: 1, maximumCount: 2, freshnessPolicyId: 'release-immediate',
+        requiredFor: ['contradicted', 'supported']
+      },
+      ...(options.zeroMinimumQuestion ? [{
+        evidenceId: 'optional-proof', allowedSourceClasses: ['health-observation'],
+        allowedObservationKinds: ['asserts'], minimumCount: 0, maximumCount: 1,
+        freshnessPolicyId: 'release-immediate', requiredFor: ['supported']
+      }] : [])
+    ]
   });
   const compatibilityBytes = Buffer.from('compatibility-matrix');
   const baseBriefBytes = Buffer.from('base brief\n');
@@ -231,7 +268,10 @@ async function buildFixture(options = {}) {
     compatibilityMatrixDigest: sha(compatibilityBytes), baseBriefDigest: sha(baseBriefBytes),
     baseLaneContractDigest: sha(baseLaneBytes),
     orderedPacks: [{ packId: 'assurance', version: '1.0.0', bundleDigest: sha(selected.bundleBytes), contentDigest: content.artifactDigest, evidenceSchemaDigest: evidenceSchema.artifactDigest }],
-    renderedInventory: [{ packId: 'assurance', sectionId: 'readiness', questionId: 'health', orderedEvidenceIds: ['health-proof'] }],
+    renderedInventory: questions.map((question) => ({
+      packId: 'assurance', sectionId: 'readiness', questionId: question.id,
+      orderedEvidenceIds: question.evidenceIds
+    })),
     basePromptBytes: baseBriefBytes, orderedPackPromptBytes: [packPromptBytes],
     tokenizerReceiptDigest: sha(tokenizerBytes),
     subordinateArtifacts: {
@@ -329,7 +369,13 @@ async function buildFixture(options = {}) {
     artifactType: 'kstack-pack-analysis-result', schemaVersion: 1,
     compositionReceiptDigest: composition.receiptDigest, dispatchReceiptDigest: dispatch.receiptDigest,
     providerResponseDigest: sha(providerResponse), subjectDigest: selected.admission.projection.subjectDigest,
-    answers: [{ packId: 'assurance', sectionId: 'readiness', questionId: 'health', disposition: options.disposition ?? 'supported', evidenceIds: ['health-proof'], observationDigest: sha(observation) }]
+    answers: [
+      { packId: 'assurance', sectionId: 'readiness', questionId: 'health', disposition: options.disposition ?? 'supported', evidenceIds: ['health-proof'], observationDigest: sha(observation) },
+      ...(additionalQuestion ? [{
+        packId: 'assurance', sectionId: 'readiness', questionId: additionalQuestion.id,
+        disposition: 'supported', evidenceIds: [], observationDigest: sha(observation)
+      }] : [])
+    ]
   });
   const artifacts = [
     resultEntry(createResultArtifact(composition.receipt)), resultEntry(createResultArtifact(dispatch.receipt)), resultEntry(analysis),
@@ -353,7 +399,7 @@ async function buildFixture(options = {}) {
     producerTrustRootBytes: hostCanonicalBytes(producerTrustRoot),
     producerTrustRootProtection: { source: 'external-broker', repositoryResident: false, protected: true },
     expectedProducerTrustRootDigest: trustRootResult.producerTrustRootDigest,
-    trustedTime: { now: NOW, sourceProfileDigest: '3'.repeat(64), attestationDigest: '4'.repeat(64), qualified: true, rollbackDetected: false },
+    trustedTime: trustedTimeBinding(), trustedTimeAuthority: trustedTimeAuthority(),
     freshnessPolicyProjection: {
       policyDigest: raw('evidence-freshness-policy'), trustedTimeReceiptDigest: raw('evidence-trusted-time-receipt'),
       qualified: true, rollbackDetected: false, maxFutureSkewMs: 1_000,
@@ -493,6 +539,30 @@ test('D10 authenticates workflow-owned evidence and pure validation emits suppor
   assert.deepEqual(contradiction.decision.orderedDispositions[0].reasonCodes, ['CONTRADICTORY_EVIDENCE_AUTHENTICATED']);
   const unsupportedContradiction = await buildFixture({ disposition: 'contradicted', observationKind: 'asserts' });
   assert.equal(validateResultCandidate(unsupportedContradiction.candidateInput).decision.orderedDispositions[0].disposition, 'unknown');
+});
+
+test('D4 never emits supported without at least one authenticated asserting descriptor', async () => {
+  const empty = await buildFixture({ emptyEvidenceQuestion: true });
+  const emptyDecision = validateResultCandidate(empty.candidateInput);
+  assert.equal(emptyDecision.decision.orderedDispositions[1].disposition, 'unknown');
+  assert.deepEqual(emptyDecision.decision.orderedDispositions[1].reasonCodes, ['SUPPORTED_EVIDENCE_UNSATISFIED']);
+
+  const zeroMinimum = await buildFixture({ zeroMinimumQuestion: true });
+  const zeroMinimumDecision = validateResultCandidate(zeroMinimum.candidateInput);
+  assert.equal(zeroMinimumDecision.decision.orderedDispositions[1].disposition, 'unknown');
+  assert.deepEqual(zeroMinimumDecision.decision.orderedDispositions[1].reasonCodes, ['SUPPORTED_EVIDENCE_UNSATISFIED']);
+});
+
+test('D4 rejects caller-asserted trusted time without a protected current authority binding', async () => {
+  const fixture = await buildFixture();
+  code('EVIDENCE_TRUSTED_TIME_UNAVAILABLE', () => validateResultCandidate({
+    ...fixture.candidateInput,
+    trustedTimeAuthority: trustedTimeAuthority({ protected: false, repositoryResident: true })
+  }));
+  code('EVIDENCE_TRUSTED_TIME_UNAVAILABLE', () => validateResultCandidate({
+    ...fixture.candidateInput,
+    trustedTimeAuthority: trustedTimeAuthority({ trustedTimeReceiptDigest: raw('different-time-receipt') })
+  }));
 });
 
 test('evidence broker rejects unadmitted dispatches, cross-bound descriptors, unverified native evidence, and unqualified producers', async () => {

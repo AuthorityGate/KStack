@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { confirmTrustedTimeBinding } from './kstack-domain-time-binding.mjs';
 
 export const D5_SCHEMA_TYPES = Object.freeze([
   'kstack-pack-activation-receipt',
@@ -1219,14 +1220,13 @@ export function validatePackCatalogGraph(input) {
     'schemaRegistry', 'operationInventoryBytes', 'expectedOperationInventoryDigest',
     'artifactSources', 'expectedSnapshotDigest', 'projectId', 'repositoryImmutableId',
     'materialGraphs', 'expectedComposerImplementationDigest', 'expectedKernelSchemaDigest',
-    'expectedBaseLaneContractDigest', 'requiredValidatorTargets', 'trustedTime'
+    'expectedBaseLaneContractDigest', 'requiredValidatorTargets', 'trustedTime', 'trustedTimeAuthority'
   ], code);
   if (!input.schemaRegistry || !VALIDATED_REGISTRIES.has(input.schemaRegistry)) fail(code);
   const schemaRegistry = validatePackSchemaRegistry(input.schemaRegistry.revalidationInput);
   sameDigest(schemaRegistry.schemaRegistryDigest, input.schemaRegistry.schemaRegistryDigest, code);
-  exact(input.trustedTime, ['now', 'qualified', 'rollbackDetected'], code);
-  if (input.trustedTime.qualified !== true || input.trustedTime.rollbackDetected !== false) fail(code);
-  const now = Date.parse(instant(input.trustedTime.now, code));
+  const time = confirmTrustedTimeBinding(input.trustedTime, input.trustedTimeAuthority, code);
+  const now = Date.parse(time.now);
   const projectId = checkedString(input.projectId, GENERAL_ID, code, 256);
   const repositoryImmutableId = checkedString(input.repositoryImmutableId, GENERAL_ID, code, 256);
   const expectedComposerImplementationDigest = digest(input.expectedComposerImplementationDigest, code);

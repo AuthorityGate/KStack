@@ -359,7 +359,7 @@ function compose(input, dispatchRecheck = false) {
     }
     if (renderedSections.length === 0) fail('PACK_SELECTION_INVALID');
     const prefix = Buffer.from(`[KSTACK-PACK:${selectedEntry.packId}:${selectedEntry.materialDigest}]\n`, 'utf8');
-    const suffix = Buffer.from(`\n[/KSTACK-PACK:${selectedEntry.packId}]`, 'utf8');
+    const suffix = Buffer.from(`\n[/KSTACK-PACK:${selectedEntry.packId}:${selectedEntry.materialDigest}]`, 'utf8');
     const body = Buffer.concat([prefix, ...renderedSections.flatMap((entry, index) => index === 0 ? [entry.bytes] : [Buffer.from('\n'), entry.bytes]), suffix]);
     const actualBytes = body.length;
     const allowance = Math.min(material.manifest.record.maxUtf8Bytes, budgetCaps.repositoryPerPackCapBytes,

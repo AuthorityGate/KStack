@@ -98,3 +98,11 @@ The input uses `kstack-jira-outbox-event-v1` semantics and contains exactly:
 Do not collapse a multi-item ledger into one Jira issue merely to reduce issue
 count. The root item can remain an umbrella, but each independently actionable
 item must be separately visible and independently closable.
+
+Keep design lineage categories distinct in that projection. An accepted design
+stays on its parent item and is bound to the accepted digest. An owner-authorized
+material amendment is a separately identified, parent-linked design item. An
+`IN_SCOPE_BUG` from accepted review intake is a separately closable defect item,
+using a project-supported issue type. Future design evolution is a new design
+item, not a bug and not a silent reopen of the accepted parent. Never represent
+one category as another merely to keep the parent In Progress.

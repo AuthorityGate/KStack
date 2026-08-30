@@ -17,7 +17,7 @@ or deployment plan in this phase.
    agent and the second is the independent final reviewer. The default is
    Codex then Opus, but Opus then Codex is equally valid. Role selection does
    not change the shared authority matrix.
-3. Read `../../references/DUAL_REVIEW.md`, `../../references/SAFETY.md`,
+3. Read `../../references/SKILL_SCOPE.md`, `../../references/DUAL_REVIEW.md`, `../../references/SAFETY.md`,
    `../../references/ARTIFACTS.md`, and
    `../../references/DESIGN_ALTITUDE.md` relative to this skill directory. Also read
    `../../references/JIRA_TRACKING.md` when Jira continuous tracking is enabled.
@@ -86,16 +86,34 @@ or deployment plan in this phase.
    would exceed `maxRounds`. Return `USER_DECISION_REQUIRED` so the owner can
    narrow scope, accept a residual, change the design, or explicitly amend the
    configuration; never silently extend the loop.
+   Create `.kstack/decisions/<thread-id>-design-lineage.json` before cycle 1
+   with `kstack-design-lineage.mjs init`. Before every later full-design cycle,
+   write a proposal containing a testable `hypothesis`, exact
+   `changedClausePaths`, and the applicable accepted and rejected evidence IDs
+   from that lineage, then run `kstack-design-lineage.mjs preflight`. A failed
+   preflight consumes zero reviewer invocations. After each completed cycle,
+   run `kstack-design-lineage.mjs advance` with the exact review result. This is
+   part of design, not optional reporting: a new cycle cannot blindly try a
+   different edit without stating what it retained from successful attempts and
+   what failed evidence it will not repeat.
+   If lineage advancement emits `EARLY_WARNING_REQUIRED` after the configured
+   cycle 5-8 boundary, immediately dispatch one lightweight staged advisory
+   review using the recorded stalled/regressed-cycle evidence. It is automatic
+   under the selected workflow, cannot edit the design or satisfy final review,
+   and does not remove the later full independent final gate.
 8. Apply `workflow.designGate.reviewSequence.finalAcceptanceConfidence`
    separately to the independent final reviewer (81 by default), regardless of
    cycle number. A final `approve` or `revise` at or above 81 completes the
    review. Convert every final failed check, security finding, material dissent
-   item, unresolved question, and otherwise-unexplained `revise` verdict into a
-   distinct mandatory bug-fix/backlog item and move forward; do not reopen the
-   full design loop for that intake. If the final returns `block` or falls below
-   81, return ownership to the primary. The primary repairs and re-establishes
-   a fresh clean >=93 result before another fresh final review. Do not use the
-   final reviewer as a co-author on every repair cycle. Synthesize agreement
+   item, unresolved question, and otherwise-unexplained `revise` verdict through
+   the disposition rules in `SKILL_SCOPE.md`. Create a distinct mandatory
+   bug-fix/backlog item only for an `IN_SCOPE_BUG`, then move forward; do not
+   reopen the full design loop for accepted intake or expand KStack into the
+   host application's responsibilities. If the final returns `block` or falls
+   below 81 after a clean primary result of at least 93, freeze that exact
+   digest as the accepted high-water parent and enter bounded targeted final
+   remediation. Do not reopen unrestricted design. Do not use the final
+   reviewer as a co-author on every repair cycle. Synthesize agreement
    and dissent only after both reports exist. Resolve factual conflicts from
    primary artifacts and follow the unavailable-provider behavior.
 9. Immediately after the first completed staged final-review synthesis for a design
@@ -142,6 +160,14 @@ or deployment plan in this phase.
     regression, switch to the default-on per-item ledger below and grade one
     item per round against its own specific finding rather than the aggregate
     score, which can move for reasons unrelated to that item.
+    In targeted final remediation, record immutable finding IDs, allowed clause
+    paths, and a semantic delta budget. Change and independently grade one item
+    at a time. A cleared item stays cleared even if a later whole-document score
+    is lower. Reject an unrelated clause delta and retain the prior baseline.
+    Two failed isolated attempts on one item require an owner decision or a
+    nonblocking cross-model consultation without adding scope. A later
+    full-design continuation from the frozen parent is invalid; there is no
+    valid "continue cycle 45" path.
 11. Produce deterministic checks bound to the current design digest. For a
    user-facing repository, first run
    `node ../../scripts/kstack-experience.mjs phase-gate --project-root . --contract .kstack/experience.json --phase design`.

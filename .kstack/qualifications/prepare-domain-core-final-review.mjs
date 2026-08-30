@@ -12,7 +12,11 @@ const COMMON = Object.freeze([
   '.kstack/qualifications/domain-implementation-validation-evidence.json',
   '.kstack/qualifications/domain-implementation-inventory.mjs',
   '.kstack/qualifications/runtime-host-domain-completion-audit.json',
-  '.kstack/roadmaps/runtime-maturity-focused-2026-08-28.json'
+  '.kstack/roadmaps/runtime-maturity-focused-2026-08-28.json',
+  'plugins/kstack/scripts/kstack-host-contract.mjs',
+  'plugins/kstack/scripts/kstack-host-profile.mjs',
+  'plugins/kstack/scripts/kstack-host-package.mjs',
+  'plugins/kstack/scripts/kstack-kcrp-json.mjs'
 ]);
 const GROUPS = Object.freeze({
   'domain-foundation': Object.freeze({
@@ -47,6 +51,7 @@ const GROUPS = Object.freeze({
       'plugins/kstack/scripts/kstack-domain-budget.mjs',
       'plugins/kstack/scripts/kstack-domain-evaluation.mjs',
       'plugins/kstack/scripts/kstack-domain-time.mjs',
+      'plugins/kstack/scripts/kstack-domain-time-binding.mjs',
       'tests/domain-result.test.mjs', 'tests/domain-schema.test.mjs',
       'tests/domain-evaluation.test.mjs', 'tests/domain-time.test.mjs'
     ]),
@@ -64,6 +69,15 @@ const GROUPS = Object.freeze({
     maximumClaim: 'OFFLINE_ACQUISITION_TRIAL_ONLY_NO_RUNTIME_ACTIVATION'
   })
 });
+const ADMITTED_FALSE_POSITIVES = Object.freeze({
+  'plugins/kstack/scripts/kstack-domain-schema.mjs': Object.freeze([
+    Object.freeze({ matcherId: 'generic-assignment', sha256: '9933e719689ac9891dc4f41887c3235630e86fba86acf7956b32e9b1a06467b5' })
+  ]),
+  'plugins/kstack/scripts/kstack-host-package.mjs': Object.freeze([
+    Object.freeze({ matcherId: 'generic-assignment', sha256: 'f031e5b2ecc040bcedce65c3f24fe0b5eeb11495f5221a838201fd50b2734990' }),
+    Object.freeze({ matcherId: 'generic-assignment', sha256: 'ddddf26116b75479b359760b7960cebf836f887c36ac0d724405a306081a7238' })
+  ])
+});
 
 function sha256(value) { return crypto.createHash('sha256').update(value).digest('hex'); }
 function definition(groupId) {
@@ -77,23 +91,25 @@ function readArtifact(relativePath) {
   const stat = fs.lstatSync(absolute);
   if (!stat.isFile() || stat.isSymbolicLink()) throw new Error('DOMAIN_REVIEW_ARTIFACT_REJECTED');
   const bytes = fs.readFileSync(absolute);
-  const match = findOutboundSecret(bytes, { byteDomain: true });
-  if (!match) return Object.freeze({ path: relativePath, bytes: bytes.length, sha256: sha256(bytes), contentEncoding: 'utf8-v1', contentUtf8: bytes.toString('utf8') });
-  const admittedFalsePositive = relativePath === 'plugins/kstack/scripts/kstack-domain-schema.mjs'
-    && match.matcherId === 'generic-assignment'
-    && bytes.subarray(match.offset, match.offset + match.length).equals(Buffer.from('token = this.text.slice', 'utf8'));
-  if (!admittedFalsePositive) throw new Error('DOMAIN_REVIEW_ARTIFACT_SECRET_REJECTED');
-  const masked = Buffer.from(bytes);
-  masked.fill(0x20, match.offset, match.offset + match.length);
-  if (findOutboundSecret(masked, { byteDomain: true })) throw new Error('DOMAIN_REVIEW_ARTIFACT_ADDITIONAL_SECRET_REJECTED');
-  return Object.freeze({
-    path: relativePath,
-    bytes: bytes.length,
-    sha256: sha256(bytes),
-    contentEncoding: 'utf8-equals-segments-v1',
-    joinWith: '=',
-    contentUtf8EqualsSegments: bytes.toString('utf8').split('=')
-  });
+  const scanBytes = Buffer.from(bytes);
+  const observed = [];
+  let match = findOutboundSecret(scanBytes, { byteDomain: true });
+  while (match) {
+    observed.push({
+      matcherId: match.matcherId,
+      sha256: sha256(bytes.subarray(match.offset, match.offset + match.length))
+    });
+    scanBytes.fill(0x20, match.offset, match.offset + match.length);
+    match = findOutboundSecret(scanBytes, { byteDomain: true });
+  }
+  const expected = ADMITTED_FALSE_POSITIVES[relativePath] ?? [];
+  const key = (entry) => `${entry.matcherId}:${entry.sha256}`;
+  if (JSON.stringify(observed.map(key).sort()) !== JSON.stringify(expected.map(key).sort())) {
+    throw new Error('DOMAIN_REVIEW_ARTIFACT_SECRET_REJECTED');
+  }
+  return observed.length > 0
+    ? Object.freeze({ path: relativePath, bytes: bytes.length, sha256: sha256(bytes), contentEncoding: 'base64-v1', contentBase64: bytes.toString('base64') })
+    : Object.freeze({ path: relativePath, bytes: bytes.length, sha256: sha256(bytes), contentEncoding: 'utf8-v1', contentUtf8: bytes.toString('utf8') });
 }
 
 export function buildDomainCoreFinalReviewPayload(groupId) {
@@ -151,7 +167,7 @@ export function buildDomainCoreFinalReviewPayload(groupId) {
     instructions: [
       'Act as the independent final reviewer after the Codex primary assessment reached 95.',
       'Use only the embedded artifacts. Do not inspect files, call tools, use network access, or request credentials.',
-      'For an artifact with contentEncoding utf8-equals-segments-v1, reconstruct the exact UTF-8 source by joining contentUtf8EqualsSegments with joinWith; verify its byte count and SHA-256 before review.',
+      'For an artifact with contentEncoding base64-v1, decode contentBase64 to the exact source bytes and verify its byte count and SHA-256 before review.',
       `Review only group ${groupId} and the maximum claim ${group.maximumClaim}.`,
       'Verify closed schemas, exact identity/binding, fail-closed authority boundaries, replay/ambiguity behavior, implementation-to-test coverage, and whether each scoped row is ready to satisfy its independent-final-review requirement.',
       'Do not qualify or activate candidate packs, authorize provider trials, choose an owner disposition, close Jira, or broaden the maximum claim.',

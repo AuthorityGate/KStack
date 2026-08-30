@@ -96,6 +96,10 @@ function walkFiles(repositoryRoot, relativeRoot, predicate) {
 
 function governingDependencies(repositoryRoot) {
   const files = new Set(CURRENT_EVIDENCE);
+  files.add('plugins/kstack/scripts/kstack-host-contract.mjs');
+  files.add('plugins/kstack/scripts/kstack-domain-evaluation.mjs');
+  files.add('tests/helpers/runtime-final-review-freeze.mjs');
+  files.add('tests/runtime-final-review-freeze.test.mjs');
   const decisionName = /^(?:host|domain|openclaw|gstack-hermes|kcrp|token-reduction|adaptive-secondary|staged-primary|runtime-maturity-focused).+\.(?:md|json)$/u;
   for (const relativePath of walkFiles(repositoryRoot, '.kstack/decisions', (entry) => decisionName.test(path.posix.basename(entry)))) {
     files.add(relativePath);

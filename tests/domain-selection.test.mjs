@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test from 'node:test';
 import {
+  PACK_APPROVAL_AUTHORITY_SCOPE,
   APPROVAL_CLASSES,
   REVIEW_CHECKS,
   REVIEWER_CLASSES,
@@ -268,6 +269,32 @@ test('D2 inventory and artifact parsing reject duplicate keys, wrong types, byte
   }));
 });
 
+test('D2 declared selection, inventory, and artifact ceilings are reachable and fail with PACK codes', () => {
+  const graph = buildGraph();
+  const entries = Array.from({ length: 12 }, (_, index) => ({
+    ...graph.snapshot.record.entries[0],
+    packId: `pack-${String(index).padStart(2, '0')}`
+  }));
+  assert.equal(createPackArtifact({ ...graph.snapshot.record, entries }).record.entries.length, 12);
+  code('PACK_SNAPSHOT_INVALID', () => createPackArtifact({
+    ...graph.snapshot.record,
+    entries: [...entries, { ...entries[0], packId: 'pack-12' }]
+  }));
+
+  code('PACK_ARTIFACT_INVALID', () => parsePackArtifact(
+    Buffer.alloc(12_001, 0x20), 'kstack-pack-material'
+  ));
+
+  const overfull = structuredClone(graph.inventory.record);
+  overfull.entries = Array.from({ length: 61 }, () => overfull.entries[0]);
+  code('PACK_INVENTORY_INVALID', () => validateApprovalGraph({
+    inventoryBytes: hostCanonicalBytes(overfull),
+    expectedInventoryDigest: graph.inventory.inventoryDigest,
+    expectedOperationReceiptDigest: OPERATION,
+    expectedApprovalDigest: graph.approval.artifactDigest
+  }));
+});
+
 test('D2-F3 admits one exact selection and binds it into composition and dispatch receipts', async () => {
   const graph = buildGraph();
   const acceptance = await ownerAcceptance(graph.selection.artifactDigest);
@@ -275,6 +302,7 @@ test('D2-F3 admits one exact selection and binds it into composition and dispatc
   assert.equal(admitted.projection.selectionDigest, graph.selection.artifactDigest);
   assert.equal(admitted.projection.snapshotDigest, graph.snapshot.artifactDigest);
   assert.equal(admitted.projection.approvalPolicyBindings[0].reviewPolicyDigest, graph.reviewPolicy.artifactDigest);
+  assert.equal(admitted.projection.approvalAuthorityScope, PACK_APPROVAL_AUTHORITY_SCOPE);
   assert.notEqual(admitted.compositionReceiptDigest, admitted.dispatchReceiptDigest);
 });
 

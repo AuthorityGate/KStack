@@ -1,7 +1,7 @@
 {
   "schema": "kstack-domain-implementation-validation-v1",
-  "startedAt": "2026-08-30T20:16:08.262Z",
-  "completedAt": "2026-08-30T20:17:03.175Z",
+  "startedAt": "2026-08-30T22:13:04.624Z",
+  "completedAt": "2026-08-30T22:13:55.953Z",
   "inventory": [
     {
       "itemId": "domain-d0-catalog-runtime",
@@ -9,14 +9,27 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-catalog.mjs",
-          "sha256": "c77163cb3299acc191b27614fcce6fcc4b5970a3b7743be9b027cb77d0552795"
+          "sha256": "d331f5bb0e6a46fcd283973b8f129c078c92ddd78d30b4a15a20a4d7baf6825d"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-profile.mjs",
+          "sha256": "b53193595f9223d775a6d3a152296c0a0c9f983ac84457f5f31269552da304a7"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-package.mjs",
+          "sha256": "45215a491daa550f597843c9f82045d3dbfa00f5271e51e5a34686b9bf2fe3c7"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-catalog.test.mjs",
-          "sha256": "e44c17b375a4be4c4f3b95847de209575f42e3930639c64ce06c91b0dcc92b1d"
+          "sha256": "826a2c7cc207710370dd7ba53e3dc33c8dea32d20855e0c9aed233bacdbae4c2"
         }
+      ],
+      "validationCasePrefixes": [
+        "catalog and pack schemas",
+        "selection is exact",
+        "one host-neutral selection"
       ]
     },
     {
@@ -26,6 +39,14 @@
         {
           "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
           "sha256": "1c374a8caed62bd3db86d51d9ef447709a31a20e7f8f2577cf7bd18ce50aafae"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-kcrp-json.mjs",
+          "sha256": "f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
+          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
         }
       ],
       "validationFiles": [
@@ -33,6 +54,13 @@
           "file": "tests/domain-identity.test.mjs",
           "sha256": "f5fd9bbb534b1bc26cdd98c225d9fce3909141be19b8ac9a953652a51d0b1400"
         }
+      ],
+      "validationCasePrefixes": [
+        "D1 ",
+        "GitHub protected review",
+        "broker retains",
+        "concurrent reuse",
+        "missing trusted time"
       ]
     },
     {
@@ -41,14 +69,30 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
-          "sha256": "2a58bb66380d2f8bd9c1dd09aef0d12818bf60c10bb4dcb172a04b672abd7200"
+          "sha256": "6e34f539539229a7747a151a4632d7d8789cd8641965c99756a7ae37df35d26c"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
+          "sha256": "1c374a8caed62bd3db86d51d9ef447709a31a20e7f8f2577cf7bd18ce50aafae"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-kcrp-json.mjs",
+          "sha256": "f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
+          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-selection.test.mjs",
-          "sha256": "864d0bf9db1c94930a68153a453ed8345eb9bcbc10cb1ccf84189d1ee5acbf3c"
+          "sha256": "0fd951d4ccfe7b2ac78cc667466709bcfc2b82bd69c1995eb656bd7f10860ace"
         }
+      ],
+      "validationCasePrefixes": [
+        "D2-F1 ",
+        "D2 inventory"
       ]
     },
     {
@@ -57,14 +101,29 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
-          "sha256": "2a58bb66380d2f8bd9c1dd09aef0d12818bf60c10bb4dcb172a04b672abd7200"
+          "sha256": "6e34f539539229a7747a151a4632d7d8789cd8641965c99756a7ae37df35d26c"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
+          "sha256": "1c374a8caed62bd3db86d51d9ef447709a31a20e7f8f2577cf7bd18ce50aafae"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-kcrp-json.mjs",
+          "sha256": "f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
+          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-selection.test.mjs",
-          "sha256": "864d0bf9db1c94930a68153a453ed8345eb9bcbc10cb1ccf84189d1ee5acbf3c"
+          "sha256": "0fd951d4ccfe7b2ac78cc667466709bcfc2b82bd69c1995eb656bd7f10860ace"
         }
+      ],
+      "validationCasePrefixes": [
+        "D2-F2 "
       ]
     },
     {
@@ -73,14 +132,29 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
-          "sha256": "2a58bb66380d2f8bd9c1dd09aef0d12818bf60c10bb4dcb172a04b672abd7200"
+          "sha256": "6e34f539539229a7747a151a4632d7d8789cd8641965c99756a7ae37df35d26c"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
+          "sha256": "1c374a8caed62bd3db86d51d9ef447709a31a20e7f8f2577cf7bd18ce50aafae"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-kcrp-json.mjs",
+          "sha256": "f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
+          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-selection.test.mjs",
-          "sha256": "864d0bf9db1c94930a68153a453ed8345eb9bcbc10cb1ccf84189d1ee5acbf3c"
+          "sha256": "0fd951d4ccfe7b2ac78cc667466709bcfc2b82bd69c1995eb656bd7f10860ace"
         }
+      ],
+      "validationCasePrefixes": [
+        "D2-F3 "
       ]
     },
     {
@@ -89,14 +163,29 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-separation.mjs",
-          "sha256": "a4883bb84722f90043e867a4840cee6f989b30095a5c5c5b441018a5f0e59990"
+          "sha256": "2dc51215178e020e19ec8a61fd4a7339d5c2d12a43460a4c29dd19cd57b351bb"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
+          "sha256": "1c374a8caed62bd3db86d51d9ef447709a31a20e7f8f2577cf7bd18ce50aafae"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-kcrp-json.mjs",
+          "sha256": "f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
+          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-separation.test.mjs",
-          "sha256": "00de18b7ff99aa353231cc7b9aa1af4fd187d28f4d1fce85a6b7dc34c36cdc59"
+          "sha256": "ee2f32c5d024cd696a48b1552dcdd2d2cf165975b9b667e3bd4c24910d95c79e"
         }
+      ],
+      "validationCasePrefixes": [
+        "D3 "
       ]
     },
     {
@@ -105,18 +194,52 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-result.mjs",
-          "sha256": "332138bf9a3278c62d1c0ad969ca73639e702d8884ba0a155c8cfed05d6399aa"
+          "sha256": "3056a08227031454993a1d46a6623045c641127f4696e96eefb6044ae55c1041"
         },
         {
           "file": "plugins/kstack/scripts/kstack-domain-result-broker.mjs",
           "sha256": "4ff7ca24d9febdb4098268108a12d98fa8a97d360a80ecb827eb8f5542dd60e5"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
+          "sha256": "6e34f539539229a7747a151a4632d7d8789cd8641965c99756a7ae37df35d26c"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
+          "sha256": "1c374a8caed62bd3db86d51d9ef447709a31a20e7f8f2577cf7bd18ce50aafae"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-kcrp-json.mjs",
+          "sha256": "f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
+          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-schema.mjs",
+          "sha256": "803ba74444672d184856ca8087e70c5a316eb07d4dce04bd71912b3c69f1e341"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-time-binding.mjs",
+          "sha256": "885faaa7e42a30fa27eb12a09ea2e4535df99c953580984525efa51a1edd1f37"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-result.test.mjs",
-          "sha256": "58d86ef3a7c93500f127e388b93750afd6c09e42762dd41f3cf0677094930d92"
+          "sha256": "999371e55f535d25bb00847962c5753e08cf2007bbfb6ea46782f69174a9fede"
         }
+      ],
+      "validationCasePrefixes": [
+        "producer trust",
+        "D4 ",
+        "D10 ",
+        "evidence broker",
+        "pure validation",
+        "commit coordinator",
+        "commit recovery",
+        "coordinator rejects"
       ]
     },
     {
@@ -125,14 +248,26 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-schema.mjs",
-          "sha256": "a29b254f617eaf71ec0c2685f984810844f245c8f16e0e060c2d7795b5d9c8cd"
+          "sha256": "803ba74444672d184856ca8087e70c5a316eb07d4dce04bd71912b3c69f1e341"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-time-binding.mjs",
+          "sha256": "885faaa7e42a30fa27eb12a09ea2e4535df99c953580984525efa51a1edd1f37"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-schema.test.mjs",
-          "sha256": "6e94c792901722d6e7f6715075f9faf07216e29998c169498bfdb60662ec76ea"
+          "sha256": "f8371b5f9e6f986ec492dfb62e6bc8aaca588cf5b3f374d528a4875e26429871"
         }
+      ],
+      "validationCasePrefixes": [
+        "D5 canonical",
+        "D5 repaired",
+        "D5 bundle",
+        "D5 schema registry",
+        "D5 schema documents",
+        "D5 catalog graph"
       ]
     },
     {
@@ -141,14 +276,45 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-activation.mjs",
-          "sha256": "2ed086bdd1bf3d261068a65db1300177bbbc2e9a5163cdb388e8fdd9625a8e00"
+          "sha256": "1ac0dc428b396ddf605c023ce56d821cbb5757923ab0596ecf07b285c1130bf8"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
+          "sha256": "1c374a8caed62bd3db86d51d9ef447709a31a20e7f8f2577cf7bd18ce50aafae"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-kcrp-json.mjs",
+          "sha256": "f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
+          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-separation.mjs",
+          "sha256": "2dc51215178e020e19ec8a61fd4a7339d5c2d12a43460a4c29dd19cd57b351bb"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
+          "sha256": "6e34f539539229a7747a151a4632d7d8789cd8641965c99756a7ae37df35d26c"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-schema.mjs",
+          "sha256": "803ba74444672d184856ca8087e70c5a316eb07d4dce04bd71912b3c69f1e341"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-time-binding.mjs",
+          "sha256": "885faaa7e42a30fa27eb12a09ea2e4535df99c953580984525efa51a1edd1f37"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-schema.test.mjs",
-          "sha256": "6e94c792901722d6e7f6715075f9faf07216e29998c169498bfdb60662ec76ea"
+          "sha256": "f8371b5f9e6f986ec492dfb62e6bc8aaca588cf5b3f374d528a4875e26429871"
         }
+      ],
+      "validationCasePrefixes": [
+        "D5 activation"
       ]
     },
     {
@@ -157,14 +323,41 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-budget.mjs",
-          "sha256": "a1d15b62ef54b7d950cf3846b68f81f271e949275ff0f144009e28ed203308f6"
+          "sha256": "36006da986518e1e2d9d4b0ad8485b1b8a4736aea087004793bbf41621f84dea"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
+          "sha256": "6e34f539539229a7747a151a4632d7d8789cd8641965c99756a7ae37df35d26c"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
+          "sha256": "1c374a8caed62bd3db86d51d9ef447709a31a20e7f8f2577cf7bd18ce50aafae"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-kcrp-json.mjs",
+          "sha256": "f27f42839dcacd2cb6909fdb74747a3497d80538e7df8dd39287aee6f57eae99"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
+          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-schema.mjs",
+          "sha256": "803ba74444672d184856ca8087e70c5a316eb07d4dce04bd71912b3c69f1e341"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-time-binding.mjs",
+          "sha256": "885faaa7e42a30fa27eb12a09ea2e4535df99c953580984525efa51a1edd1f37"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-schema.test.mjs",
-          "sha256": "6e94c792901722d6e7f6715075f9faf07216e29998c169498bfdb60662ec76ea"
+          "sha256": "f8371b5f9e6f986ec492dfb62e6bc8aaca588cf5b3f374d528a4875e26429871"
         }
+      ],
+      "validationCasePrefixes": [
+        "D6 "
       ]
     },
     {
@@ -181,6 +374,10 @@
           "file": "tests/domain-evaluation.test.mjs",
           "sha256": "0448467f59e206ebc491d3c59fd861722a8ca6a654fe2fa0fdb559293a68b089"
         }
+      ],
+      "validationCasePrefixes": [
+        "D7 ",
+        "each candidate pack"
       ]
     },
     {
@@ -189,14 +386,25 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-time.mjs",
-          "sha256": "99c96c0e24d4ebbcbfa979a5bb2c41c6b53ad15abe0d821ff870e31a390ee2cb"
+          "sha256": "a21a4c26033a88e30123893c95e60ac020853f5246cad8d1a57f422971a62784"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-schema.mjs",
+          "sha256": "803ba74444672d184856ca8087e70c5a316eb07d4dce04bd71912b3c69f1e341"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-time-binding.mjs",
+          "sha256": "885faaa7e42a30fa27eb12a09ea2e4535df99c953580984525efa51a1edd1f37"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-time.test.mjs",
-          "sha256": "e450ecad360d1230c47f1ff6bc3d142f317f6726da4b77d6fe669ba0edab4fe1"
+          "sha256": "66aab8f2a1c8ee7fc20c2e92d060c1ed36a194c0ba5a56f05442f7b4ff2f469a"
         }
+      ],
+      "validationCasePrefixes": [
+        "D8 "
       ]
     },
     {
@@ -237,6 +445,12 @@
           "file": "tests/domain-pack-candidates.test.mjs",
           "sha256": "52f5bcdf6d865edeb998596eebfec7e2b36dddde036e42e1730f4e09aac794bd"
         }
+      ],
+      "validationCasePrefixes": [
+        "each governed pack candidate",
+        "pack candidates",
+        "candidate regeneration",
+        "every evaluation corpus"
       ]
     },
     {
@@ -277,6 +491,12 @@
           "file": "tests/domain-pack-candidates.test.mjs",
           "sha256": "52f5bcdf6d865edeb998596eebfec7e2b36dddde036e42e1730f4e09aac794bd"
         }
+      ],
+      "validationCasePrefixes": [
+        "each governed pack candidate",
+        "pack candidates",
+        "candidate regeneration",
+        "every evaluation corpus"
       ]
     },
     {
@@ -317,6 +537,12 @@
           "file": "tests/domain-pack-candidates.test.mjs",
           "sha256": "52f5bcdf6d865edeb998596eebfec7e2b36dddde036e42e1730f4e09aac794bd"
         }
+      ],
+      "validationCasePrefixes": [
+        "each governed pack candidate",
+        "pack candidates",
+        "candidate regeneration",
+        "every evaluation corpus"
       ]
     },
     {
@@ -357,6 +583,12 @@
           "file": "tests/domain-pack-candidates.test.mjs",
           "sha256": "52f5bcdf6d865edeb998596eebfec7e2b36dddde036e42e1730f4e09aac794bd"
         }
+      ],
+      "validationCasePrefixes": [
+        "each governed pack candidate",
+        "pack candidates",
+        "candidate regeneration",
+        "every evaluation corpus"
       ]
     },
     {
@@ -373,6 +605,14 @@
           "file": "tests/domain-acquisition.test.mjs",
           "sha256": "106a5cbce787826b831782225696edf5e0b96f6de9f6a47179c3830b1202eef2"
         }
+      ],
+      "validationCasePrefixes": [
+        "the acquisition source set",
+        "saved verification",
+        "pinned offline bytes",
+        "translation sealing",
+        "offline verification",
+        "qualification is all-required"
       ]
     }
   ],
@@ -389,19 +629,46 @@
     "tests/domain-time.test.mjs"
   ],
   "testExecution": {
+    "command": [
+      "/usr/bin/node",
+      "--test",
+      "tests/domain-acquisition.test.mjs",
+      "tests/domain-catalog.test.mjs",
+      "tests/domain-evaluation.test.mjs",
+      "tests/domain-identity.test.mjs",
+      "tests/domain-pack-candidates.test.mjs",
+      "tests/domain-result.test.mjs",
+      "tests/domain-schema.test.mjs",
+      "tests/domain-selection.test.mjs",
+      "tests/domain-separation.test.mjs",
+      "tests/domain-time.test.mjs"
+    ],
+    "runtime": {
+      "nodeVersion": "v24.12.0",
+      "platform": "linux",
+      "arch": "x64"
+    },
     "status": 0,
     "signal": null,
     "errorCode": "EPERM",
+    "testCount": null,
+    "tapAssertionCount": null,
+    "passCount": null,
+    "failCount": null,
+    "cancelledCount": null,
+    "skippedCount": null,
+    "todoCount": null,
     "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
-  "testExecutionDigest": "b2a7d34a95a471c47c809c29cb9b53a685f4905dd6dd01f78d853f3056622b7c",
+  "testExecutionDigest": "d896fef85bdf213317adb37ebbe6f746e03a4723bf4f32074872f0c1b320d730",
   "rows": [
     {
       "itemId": "domain-d0-catalog-runtime",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "9c39dc3713d572de799c18a7e63b6bfccdfe7799c0a7617db8ee2aeec0de2882",
-      "validationReceiptDigest": "e3229baa861f60716cc4eff39dd2a29b3fb0be70d9e6bccc827e47bf3eb7d7b8",
+      "implementationDigest": "0481463cb0392085494493954c274d07463f421b3ce4b37f8f34d7e06f2d2ffe",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "d8fec258077551d157577b07186387a45870a208500e1237230a953750690c3a",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -410,8 +677,9 @@
     {
       "itemId": "domain-d1-identity",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "7140d69694738a4658f0e6ec5e51b60e6ed87a0a1830e2a01bb5c77cfd4a618e",
-      "validationReceiptDigest": "eb4a7b0bc36f878c1ee047ae5a348c27b45ca9d7a55d5303580f746f106ab2a0",
+      "implementationDigest": "d3ecf3f9b77b78cc94bfac04550436b8e60b45473897b003edb791c2ed551d52",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "01473447e89337edab7180c14d1df089ae7515e68c055f5a5a36117cb941d12e",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -420,8 +688,9 @@
     {
       "itemId": "domain-d2f1-inventory",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "99f61a468e4855be9404df6a55e7622e22cddc84ca162b7d45e22fd2cf2fa928",
-      "validationReceiptDigest": "f8d950f188c2faffeb42ee3e8dc715a2e1af8f9972014d5c12781a66a6e0378d",
+      "implementationDigest": "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "35d91b4993dc53191b43958b8d30934c87348a4d929ae7c9754da7a2688f16d1",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -430,8 +699,9 @@
     {
       "itemId": "domain-d2f2-policy",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "99f61a468e4855be9404df6a55e7622e22cddc84ca162b7d45e22fd2cf2fa928",
-      "validationReceiptDigest": "57f2a4616745b1e6ee473de551f913fddbce6be87328100867241a418ac8b73c",
+      "implementationDigest": "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "417d044a303b9f15a89e57ec100235dd846efcaaaa4705059f9cbc5e9ac50da0",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -440,8 +710,9 @@
     {
       "itemId": "domain-d2f3-selection",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "99f61a468e4855be9404df6a55e7622e22cddc84ca162b7d45e22fd2cf2fa928",
-      "validationReceiptDigest": "1b4325abaeb287e104adcf3c4b50dae3ecd32b188df1c03664035f42cfe5d5fa",
+      "implementationDigest": "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "1e13480cc1e0ff3dc297fbd0df4e73eb3a8e8cb409797f40ef7b5a312e3b5a74",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -450,8 +721,9 @@
     {
       "itemId": "domain-d3-separation",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "1f221d49482e15a97008c09ba82cf1aa726cba713b518fcc56777802124c2c4d",
-      "validationReceiptDigest": "61dfe77cdbdfb4ee216561bd20f0f329bda509ac3342c9d5f71975cd0b09487e",
+      "implementationDigest": "24be07b6d930c35bcc9478c2dc21b1f4ca561ec715ec92d8cdd73400df4160c1",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "89eae18844ee4e77feb146bc960186d74ca6838e2fea8ad959fec7a922c712ff",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -460,8 +732,9 @@
     {
       "itemId": "domain-d4d10-evidence",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "328e99d8afba314994865202c2a17e9221ca5b9c730789f1190980a006a8118b",
-      "validationReceiptDigest": "6c88dbf091ef0d12dbb064ccc5103a4bdb8151ca8e23f74a09e5e44b237be33d",
+      "implementationDigest": "4f166b9e7a267fe1ead15a7c4decf8fd90974a18212b96013d16d37d33f0c93d",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "906efc10bf16d32ebbb0d7fe836fb9d109b1965bdce03a4c25f8d2039e9fbd3b",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -470,8 +743,9 @@
     {
       "itemId": "domain-d5f1-schemas",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "78ca8e49dab30c2e56356b62bd40b43206b2ab2652b34ef655e232188a1bf46f",
-      "validationReceiptDigest": "32db727fa1fdcbe7ea17e608bd8e00e858cd4e0171e84e0bdec492245e6c4d2c",
+      "implementationDigest": "a5792fd14d1a67ab2212ed37a9b3dcd5a73f0ded75a57f250582fd0dad6f038b",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "0665c13cb9865b57bc57c3d0529815e540c29d2090a1c5b3b5434c5280e2a61f",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -480,8 +754,9 @@
     {
       "itemId": "domain-d5f2-activation",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "12a3c94aad44e243297d0d7361902fd5c9da00e8e13993de5fc285dbb52cb75d",
-      "validationReceiptDigest": "f79b71c229838fe4f28ab16e6ca63d20e956dfe91bb5da6a8d03e417bdbe95c9",
+      "implementationDigest": "ad3966b4b2ae739220fd3c2f8b2fee2f0bfe8080933ca176e6e97ceb50489c00",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "dda602e3a4cd6f433e53dd2cd42811d75a1023f344fcfc3faf1ca92ec30effac",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -490,8 +765,9 @@
     {
       "itemId": "domain-d6-budgets",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "a7ac1b239ea24d24a883cded42541a9c82c0fbe8692460d6f912bc41c2dbacd9",
-      "validationReceiptDigest": "f1df852d0fbb5c7e31abf335163d2bfb99cd260771b2024f7c87ed7cd23f1b15",
+      "implementationDigest": "64807878e845980b9204ce87a5e83e9bd0f3032c8bac9ef73cc91c4c15f40436",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "26b3f7c73a496537e5eb4224daf637f4220af71e8b2a03124bc3625fd138e6f8",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -501,7 +777,8 @@
       "itemId": "domain-d7-evaluation",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "1ac8465b752c5e25709e8eeb993833f267b46599d9d34cbe74d6d12cc21a0ab9",
-      "validationReceiptDigest": "4c8d9daf73d3c6532ddc01f20d4fded465a21c291b04fc3137fb4c932e47ebc7",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "561e3320ef4208b1e5c4142cddb365114f4f62a6c18fdf15613f2ad3bc64f246",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -510,8 +787,9 @@
     {
       "itemId": "domain-d8-time",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "073ff5f12832fd19838c983d7d6895da3bd3b9506c880e97ab167bc7fe7af5a8",
-      "validationReceiptDigest": "147fbc19ff35d3fa8e6bc5d052212fbd4f545f3570722b0ded12fcceb37f27ab",
+      "implementationDigest": "fc398be477a03d18d85bc43cbe48463f51d4d79bb06d1bd9cd253bc0f0238eea",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "cc56416b33b7a522c29b165db20b6d3d9364720809f9f180db990a5e465d636f",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -521,7 +799,8 @@
       "itemId": "pack-release-operations",
       "maturity": "CANDIDATE_ONLY",
       "implementationDigest": "716e1b498d0efaefcfdac64fe6e174bb287c779e02171dbe0f103cd460cd59c6",
-      "validationReceiptDigest": "5b83edf918cdc287957a951775bab5e4d08140ae9a57ba213bca7c562bc6f1ee",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "2686cc5fee434cafa278d8b20739c4afe38440a5679ab35b7bf54e7ba57525d1",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -531,7 +810,8 @@
       "itemId": "pack-product-experience",
       "maturity": "CANDIDATE_ONLY",
       "implementationDigest": "e8e7785c5d0b878a72ce9153a12faea5cc1ec3fdd41607cd2f9f065727ba2a7b",
-      "validationReceiptDigest": "b5da23f684a59f9294f532b6ed6f49fd3604eea977664ff69c40e94a73e17fb4",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "a64e09ef36ba37e7993cb932158ceccd08b2a07f0a6b7d27e26e8913e050e33b",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -541,7 +821,8 @@
       "itemId": "pack-assurance",
       "maturity": "CANDIDATE_ONLY",
       "implementationDigest": "fc7b682baaafcdcd8bf2d57f93137195b8eb45b2106dbf8df78751cfd06cac2e",
-      "validationReceiptDigest": "8756ae4a33325529e4be3a509fa91864bd7ea30d0ef7992e74a73d70fbfb41cd",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "79defb20337c12daf2d4be673fbc6f1d4013ac52326b633041e56837cfa45eb4",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -551,7 +832,8 @@
       "itemId": "pack-research-knowledge",
       "maturity": "CANDIDATE_ONLY",
       "implementationDigest": "069eae5978b4d25851dc7147826aa6f4292e94b5a6df199f40e91c41259d5ed5",
-      "validationReceiptDigest": "93b45b85c9a47db6902a4e3aa961034509ea65e31a7c15a109a601cce4572937",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "9383263a69047e242a46fe79a887d2d069070f9e6fa1e73fb03268cd522b8f5e",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -561,7 +843,8 @@
       "itemId": "domain-acquisition-trial",
       "maturity": "OFFLINE_TRIAL_IMPLEMENTED",
       "implementationDigest": "30235799aecab11e164525a025d89b4a2fbefcbec677a615740e30e4d1519bc2",
-      "validationReceiptDigest": "e9185016a3b757ede5d3f4c8bcef72bb11040961d5cf8651bfbfe65db8748d24",
+      "validationCaseNames": [],
+      "validationReceiptDigest": "6da1c578c02c92f89ec51a852ff85192f375024b96447cd781318a865eebf7f9",
       "implemented": true,
       "current": false,
       "qualified": false,
@@ -569,5 +852,5 @@
     }
   ],
   "aggregate": "FAIL",
-  "evidenceDigest": "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae"
+  "evidenceDigest": "3243c559fbb371004cb9bbc0ffeac310fcfa7bb534378406e3443df17d95e498"
 }

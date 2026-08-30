@@ -69,6 +69,58 @@ function domainSha(domain, bytes) {
   return crypto.createHash('sha256').update(Buffer.from(domain)).update(bytes).digest('hex');
 }
 
+function trustedTimeBinding(now, trustedTimeReceiptDigest = sha(Buffer.from('trusted-time-receipt'))) {
+  return {
+    now, trustedTimeReceiptDigest,
+    useReceiptDigest: sha(Buffer.from(`time-use:${now}:${trustedTimeReceiptDigest}`)),
+    policyDigest: sha(Buffer.from('trusted-time-policy')),
+    anchorDigest: sha(Buffer.from('trusted-time-anchor')),
+    qualified: true, rollbackDetected: false
+  };
+}
+
+function activationPolicyBinding(requiredPacks = ['assurance']) {
+  const record = {
+    artifactType: 'kstack-policy-state', schemaVersion: 1,
+    requiredPacks: [...requiredPacks].sort(), requiredLanes: ['qc', 'security'],
+    minimumReviewerCount: 2, minimumConfidence: 93, requiredEvidenceCount: 4,
+    freshnessSecondsMaximum: 3600, blockOnSecurityFinding: true,
+    minimumAuthorityCount: 2, rollbackRequired: true, retentionDaysMinimum: 30,
+    failureMode: 'closed', waiverScopePacks: [], waiverExpiresAt: '2026-08-30T00:00:00.000Z',
+    catalogGeneration: 10, quarantinedPacks: []
+  };
+  const policyStateBytes = hostCanonicalBytes(record);
+  const expectedPolicyStateDigest = domainSha('KSTACK-POLICY-STATE-V1\n', policyStateBytes);
+  return {
+    policyStateBytes,
+    policyStateProtection: { source: 'external-broker', repositoryResident: false, protected: true },
+    expectedPolicyStateDigest,
+    policyStateAuthority: {
+      async confirmCurrent({ policyStateDigest }) {
+        return {
+          current: true, policyStateDigest,
+          checkpointDigest: sha(Buffer.from(`policy-state-checkpoint:${policyStateDigest}`)),
+          rollbackDetected: false, protected: true, repositoryResident: false
+        };
+      }
+    }
+  };
+}
+
+function trustedTimeAuthority(overrides = {}) {
+  return {
+    confirmCurrent(binding) {
+      return {
+        current: true, trustedTimeReceiptDigest: binding.trustedTimeReceiptDigest,
+        useReceiptDigest: binding.useReceiptDigest, policyDigest: binding.policyDigest,
+        anchorDigest: binding.anchorDigest,
+        checkpointDigest: sha(Buffer.from('trusted-time-authority-checkpoint')),
+        rollbackDetected: false, protected: true, repositoryResident: false, ...overrides
+      };
+    }
+  };
+}
+
 function code(expected, action) {
   assert.throws(action, (error) => error?.code === expected, `expected ${expected}`);
 }
@@ -289,6 +341,16 @@ async function catalogWeakeningAuthorization({ beforeDigest, afterDigest, action
     policyAuthority: {
       async confirmCurrent(policyDigest) {
         return { current: true, policyDigest, checkpointDigest: '7'.repeat(64), rollbackDetected: false };
+      }
+    },
+    inventory: {
+      async retain(record) {
+        return {
+          retained: true,
+          inventoryDigest: sha(Buffer.concat([
+            Buffer.from('KSTACK-WEAKENING-EVIDENCE-INVENTORY-V1\n'), hostCanonicalBytes(record)
+          ]))
+        };
       }
     },
     ledger: {
@@ -722,7 +784,8 @@ export function buildCatalogGraphFixture(
     expectedKernelSchemaDigest: kernelSchemaDigest,
     expectedBaseLaneContractDigest: baseLaneContractDigest,
     requiredValidatorTargets: ['linux-x64'],
-    trustedTime: { now: '2026-08-29T18:01:00.000Z', qualified: true, rollbackDetected: false }
+    trustedTime: trustedTimeBinding('2026-08-29T18:01:00.000Z'),
+    trustedTimeAuthority: trustedTimeAuthority()
   };
   const graph = validatePackCatalogGraph(graphInput);
   return { graph, graphInput, snapshot, schemaRegistry, policy, available, d2Material };
@@ -775,10 +838,8 @@ async function readCatalogHead(snapshot, overrides = {}) {
     projectId: 'project', repositoryImmutableId: 'repository-1',
     readerNonce: sha(Buffer.from(`nonce:${overrides.label ?? crypto.randomUUID()}`)),
     priorHighWater: overrides.priorHighWater ?? null,
-    trustedTime: {
-      now: '2026-08-29T18:01:00.000Z', trustedTimeReceiptDigest: '9'.repeat(64),
-      qualified: true, rollbackDetected: false
-    },
+    trustedTime: trustedTimeBinding('2026-08-29T18:01:00.000Z', '9'.repeat(64)),
+    trustedTimeAuthority: trustedTimeAuthority(),
     ledger: {
       async capabilities() { return { serializableRead: true, monotoneRevision: true, checkpointContinuity: true, durable: true }; },
       async readCurrent() { return live; }
@@ -840,7 +901,7 @@ test('D5 activation classifies every transition and refuses stale, untrusted, or
     let historyCalls = 0;
     const prepared = await preparePackActivation({
       currentHead: head, candidateGraph: candidate.graph, transitionKind: row.kind,
-      changedPackIds: ['assurance'], requiredPackIds: ['assurance'],
+      changedPackIds: ['assurance'], ...activationPolicyBinding(),
       stagingId: `transition-staging-${index}`, contentStore: durableActivationStore(),
       historyAuthority: row.kind === 'rollback' ? {
         async confirmRetained({ packId, catalogEntry }) {
@@ -863,12 +924,67 @@ test('D5 activation classifies every transition and refuses stale, untrusted, or
   const head = await readCatalogHead(before, { label: 'durability-base' });
   await assert.rejects(() => preparePackActivation({
     currentHead: head, candidateGraph: candidate.graph, transitionKind: 'activate',
-    changedPackIds: ['assurance'], requiredPackIds: ['assurance'], stagingId: 'bad-capability',
+    changedPackIds: ['assurance'], ...activationPolicyBinding(), stagingId: 'bad-capability',
     contentStore: {
       async capabilities() { return { immutableByDigest: true, durable: false, retentionPins: true, readAfterWrite: true, atomicPromotion: true }; },
       async stage() { throw new Error('unreachable'); }, async confirmStaged() { throw new Error('unreachable'); }
     }, historyAuthority: null
   }), (error) => error?.code === 'PACK_ACTIVATION_STAGING_NOT_DURABLE');
+
+  await assert.rejects(() => preparePackActivation({
+    currentHead: head, candidateGraph: candidate.graph, transitionKind: 'activate',
+    changedPackIds: ['assurance'], requiredPackIds: [], ...activationPolicyBinding(),
+    stagingId: 'caller-required-pack-override', contentStore: durableActivationStore(), historyAuthority: null
+  }), (error) => error?.code === 'PACK_ACTIVATION_DIFF_INVALID');
+
+  const fakeMaterialDigest = 'f'.repeat(64);
+  const historicalWithForeignApplicability = createD5Artifact({
+    ...before.record,
+    applicabilityEntries: [{
+      packMaterialDigest: fakeMaterialDigest, sectionId: 'readiness',
+      artifactClasses: ['implementation-plan']
+    }]
+  });
+  const candidateWithForeignBase = buildCatalogGraphFixture(historicalWithForeignApplicability.artifactDigest);
+  const foreignRows = [
+    ...candidateWithForeignBase.snapshot.record.applicabilityEntries,
+    {
+      packMaterialDigest: fakeMaterialDigest, sectionId: 'readiness',
+      artifactClasses: ['implementation-plan', 'qc-report']
+    }
+  ].sort((left, right) => Buffer.compare(
+    Buffer.from(`${left.packMaterialDigest}\u0000${left.sectionId}`),
+    Buffer.from(`${right.packMaterialDigest}\u0000${right.sectionId}`)
+  ));
+  const alteredSnapshot = createD5Artifact({
+    ...candidateWithForeignBase.snapshot.record,
+    applicabilityEntries: foreignRows
+  });
+  const alteredArtifacts = candidateWithForeignBase.graphInput.artifactSources
+    .filter((entry) => entry.role !== 'snapshot')
+    .map(({ role, artifactType, digest, bytes }) => ({ role, artifactType, digest, bytes }));
+  alteredArtifacts.push({
+    role: 'snapshot', artifactType: alteredSnapshot.record.artifactType,
+    digest: alteredSnapshot.artifactDigest, bytes: alteredSnapshot.canonicalBytes
+  });
+  const alteredInventory = createPackOperationInventory({
+    operationId: 'alter-foreign-applicability', artifacts: alteredArtifacts
+  });
+  const alteredGraph = validatePackCatalogGraph({
+    ...candidateWithForeignBase.graphInput,
+    operationInventoryBytes: alteredInventory.canonicalBytes,
+    expectedOperationInventoryDigest: alteredInventory.artifactDigest,
+    artifactSources: alteredArtifacts.map((entry) => ({
+      ...entry, regular: true, linkCount: 1, identityStable: true
+    })),
+    expectedSnapshotDigest: alteredSnapshot.artifactDigest
+  });
+  const foreignHead = await readCatalogHead(historicalWithForeignApplicability, { label: 'foreign-applicability' });
+  await assert.rejects(() => preparePackActivation({
+    currentHead: foreignHead, candidateGraph: alteredGraph, transitionKind: 'activate',
+    changedPackIds: ['assurance'], ...activationPolicyBinding(),
+    stagingId: 'foreign-applicability', contentStore: durableActivationStore(), historyAuthority: null
+  }), (error) => error?.code === 'PACK_ACTIVATION_DIFF_INVALID');
 
   for (const [label, overrides, expected] of [
     ['high-water', { priorHighWater: { ledgerEpoch: 2, ledgerRevision: 11 } }, 'PACK_ACTIVATION_STALE'],
@@ -1005,6 +1121,10 @@ test('D5 catalog graph proves the complete available-pack tuple from one closed 
     artifactSources: graphInput.artifactSources.map((entry) => entry.role === 'assurance-content'
       ? { ...entry, bytes: Buffer.from(entry.bytes).fill(0, 0, 1) } : entry)
   }));
+  code('PACK_ACTIVATION_GRAPH_INVALID', () => validatePackCatalogGraph({
+    ...graphInput,
+    trustedTimeAuthority: trustedTimeAuthority({ protected: false, repositoryResident: true })
+  }));
 });
 
 test('D6 exact budget binds catalog applicability, whole-request tokens, all caps, and dispatch recheck', async () => {
@@ -1024,6 +1144,10 @@ test('D6 exact budget binds catalog applicability, whole-request tokens, all cap
     }
   };
   const composed = composePackBudget(baseInput);
+  const rendered = composed.finalRequestBytes.toString('utf8');
+  const selectedDigest = selection.projection.orderedEntries[0].materialDigest;
+  assert.match(rendered, new RegExp(`\\[/KSTACK-PACK:assurance:${selectedDigest}\\]`, 'u'));
+  assert.doesNotMatch(rendered, /\[\/KSTACK-PACK:assurance\](?:\n|$)/u);
   assert.equal(composed.receipt.requestTokens, Math.ceil(composed.finalRequestBytes.length / 4));
   assert.equal(composed.receipt.matchedSections[0].sectionId, 'readiness');
   assert.equal(composed.receipt.artifactClass, 'release-plan');
@@ -1151,7 +1275,8 @@ test('D5 activation challenge, staging, authenticated CAS, and exact recovery ar
   const headInput = {
     projectId: 'project', repositoryImmutableId: 'repository-1', readerNonce: '8'.repeat(64),
     priorHighWater: null,
-    trustedTime: { now: '2026-08-29T18:01:00.000Z', trustedTimeReceiptDigest: '9'.repeat(64), qualified: true, rollbackDetected: false },
+    trustedTime: trustedTimeBinding('2026-08-29T18:01:00.000Z', '9'.repeat(64)),
+    trustedTimeAuthority: trustedTimeAuthority(),
     ledger: {
       async capabilities() { return { serializableRead: true, monotoneRevision: true, checkpointContinuity: true, durable: true }; },
       async readCurrent() {
@@ -1178,6 +1303,10 @@ test('D5 activation challenge, staging, authenticated CAS, and exact recovery ar
     }
   };
   const head = await readCurrentPackHead(headInput);
+  await assert.rejects(() => readCurrentPackHead({
+    ...headInput, readerNonce: '7'.repeat(64),
+    trustedTimeAuthority: trustedTimeAuthority({ rollbackDetected: true })
+  }), (error) => error?.code === 'PACK_ACTIVATION_LEDGER_UNAVAILABLE');
   assert.equal(head.snapshotDigest, genesis.artifactDigest);
   await assert.rejects(() => readCurrentPackHead(headInput), (error) => error?.code === 'PACK_ACTIVATION_REPLAYED');
 
@@ -1196,7 +1325,7 @@ test('D5 activation challenge, staging, authenticated CAS, and exact recovery ar
   };
   const prepared = await preparePackActivation({
     currentHead: head, candidateGraph: candidate.graph, transitionKind: 'activate',
-    changedPackIds: ['assurance'], requiredPackIds: ['assurance'], stagingId: 'staging-1',
+    changedPackIds: ['assurance'], ...activationPolicyBinding(), stagingId: 'staging-1',
     contentStore, historyAuthority: null
   });
   assert.equal(prepared.classification.weakeningRequired, false);
@@ -1249,21 +1378,50 @@ test('D5 activation challenge, staging, authenticated CAS, and exact recovery ar
   const ledger = new ActivationLedger();
   const commitInput = {
     prepared, requestBytes: request.canonicalBytes, expectedRequestDigest: request.artifactDigest,
-    d1Activation, identityPolicyDigest, d3AuthorizationUse: null,
-    trustedTime: { now: '2026-08-29T18:02:00.000Z', trustedTimeReceiptDigest: '6'.repeat(64), qualified: true, rollbackDetected: false },
+    d1Activation, identityPolicyDigest,
+    ...activationPolicyBinding(),
+    identityPolicyAuthority: {
+      async confirmCurrent(value) {
+        return {
+          current: true, policyDigest: value.policyDigest,
+          checkpointDigest: sha(Buffer.from('identity-policy-checkpoint')),
+          rollbackDetected: false, protected: true, repositoryResident: false
+        };
+      }
+    },
+    d3AuthorizationUse: null,
+    trustedTime: trustedTimeBinding('2026-08-29T18:02:00.000Z', '6'.repeat(64)),
+    trustedTimeAuthority: trustedTimeAuthority(),
     commitTransactionId: 'activation-transaction-1', ledger, contentStore
   };
   const committed = await commitPackActivation(commitInput);
   assert.equal(committed.outcome, 'committed');
   assert.equal(committed.receipt.newSnapshotDigest, candidate.graph.snapshotDigest);
+  assert.equal(ledger.lastRecord.policyStateDigest, commitInput.expectedPolicyStateDigest);
+  assert.match(ledger.lastRecord.policyStateCheckpointDigest, /^[a-f0-9]{64}$/u);
   const recovered = await commitPackActivation(commitInput);
   assert.equal(recovered.outcome, 'recovered');
   assert.equal(recovered.receiptDigest, committed.receiptDigest);
+  await assert.rejects(() => commitPackActivation({
+    ...commitInput,
+    identityPolicyAuthority: {
+      async confirmCurrent(value) {
+        return {
+          current: true, policyDigest: value.policyDigest,
+          checkpointDigest: sha(Buffer.from('identity-policy-checkpoint')),
+          rollbackDetected: false, protected: false, repositoryResident: true
+        };
+      }
+    }
+  }), (error) => error?.code === 'PACK_ACTIVATION_AUTH_INVALID');
+  await assert.rejects(() => commitPackActivation({
+    ...commitInput, trustedTimeAuthority: trustedTimeAuthority({ protected: false, repositoryResident: true })
+  }), (error) => error?.code === 'PACK_ACTIVATION_AUTH_INVALID');
 
   const readActivatedHead = async (readerNonce, ledgerRevision) => readCurrentPackHead({
     ...headInput, readerNonce,
     priorHighWater: { ledgerEpoch: 1, ledgerRevision: 7 },
-    trustedTime: { now: '2026-08-29T18:03:00.000Z', trustedTimeReceiptDigest: '9'.repeat(64), qualified: true, rollbackDetected: false },
+    trustedTime: trustedTimeBinding('2026-08-29T18:03:00.000Z', '9'.repeat(64)),
     ledger: {
       async capabilities() { return { serializableRead: true, monotoneRevision: true, checkpointContinuity: true, durable: true }; },
       async readCurrent() {
@@ -1347,7 +1505,8 @@ test('D5 activation challenge, staging, authenticated CAS, and exact recovery ar
     expectedKernelSchemaDigest: sha(Buffer.from('kernel-schema-v1')),
     expectedBaseLaneContractDigest: sha(Buffer.from('base-lane-v1')),
     requiredValidatorTargets: ['linux-x64'],
-    trustedTime: { now: '2026-08-29T18:03:00.000Z', qualified: true, rollbackDetected: false }
+    trustedTime: trustedTimeBinding('2026-08-29T18:03:00.000Z'),
+    trustedTimeAuthority: trustedTimeAuthority()
   });
   const disabledHead = await readCatalogHead(disabledSnapshot, { label: 'disabled-head' });
   code('PACK_SELECTION_STALE', () => confirmD2PackSnapshotCurrent({
@@ -1355,7 +1514,7 @@ test('D5 activation challenge, staging, authenticated CAS, and exact recovery ar
   }));
   const disablePrepared = await preparePackActivation({
     currentHead: activatedHead, candidateGraph: disabledGraph, transitionKind: 'disable',
-    changedPackIds: ['assurance'], requiredPackIds: ['assurance'], stagingId: 'staging-2',
+    changedPackIds: ['assurance'], ...activationPolicyBinding(), stagingId: 'staging-2',
     contentStore, historyAuthority: null
   });
   assert.equal(disablePrepared.classification.weakeningRequired, true);
@@ -1378,6 +1537,11 @@ test('D5 activation challenge, staging, authenticated CAS, and exact recovery ar
     expectedRequestDigest: disableRequest.artifactDigest, d1Activation: disableD1,
     commitTransactionId: 'disable-transaction-2'
   }), (error) => error?.code === 'PACK_ACTIVATION_WEAKENING_AUTH_REQUIRED');
+  await assert.rejects(() => commitPackActivation({
+    ...commitInput, prepared: disablePrepared, requestBytes: disableRequest.canonicalBytes,
+    expectedRequestDigest: disableRequest.artifactDigest, d1Activation: disableD1,
+    ...activationPolicyBinding(['product-experience']), commitTransactionId: 'disable-transaction-policy-substitution'
+  }), (error) => error?.code === 'PACK_ACTIVATION_AUTH_INVALID');
 
   const d3AuthorizationUse = await catalogWeakeningAuthorization({
     beforeDigest: disableProjection.fromSnapshotDigest,

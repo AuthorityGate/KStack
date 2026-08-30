@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { HOST_PROFILES } from '../plugins/kstack/scripts/kstack-host-profile.mjs';
 import {
+  DOMAIN_RENDERING_SCOPE,
   buildDomainPack,
   renderDomainSelection,
   selectDomainMethods,
@@ -80,6 +81,7 @@ test('one host-neutral selection renders natively for Hermes and OpenClaw withou
   assert.equal(openclaw.artifacts[0].instructionFile, 'AGENTS.md');
   assert.notEqual(hermes.renderingDigest, openclaw.renderingDigest);
   for (const rendered of [hermes, openclaw]) {
+    assert.equal(rendered.authorityScope, DOMAIN_RENDERING_SCOPE);
     assert.match(rendered.artifacts[0].content, /native-analysis/u);
     assert.match(rendered.artifacts[0].content, /read-only/u);
     assert.match(rendered.artifacts[0].content, /Analysis only/u);

@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { hostCanonicalBytes, parseHostCanonicalJson } from './kstack-host-contract.mjs';
 import { parsePackArtifact } from './kstack-domain-selection.mjs';
 import { parseD5Artifact } from './kstack-domain-schema.mjs';
+import { confirmTrustedTimeBinding } from './kstack-domain-time-binding.mjs';
 
 export const RESULT_DISPOSITIONS = Object.freeze(['contradicted', 'supported', 'unknown']);
 export const EVIDENCE_SOURCE_CLASSES = Object.freeze([
@@ -543,13 +544,6 @@ function verifyEd25519(publicKeyBase64, domain, record, signatureBase64, code) {
   } catch { fail(code); }
 }
 
-function trustedTime(input) {
-  const code = 'EVIDENCE_TRUSTED_TIME_UNAVAILABLE';
-  exact(input, ['now', 'sourceProfileDigest', 'attestationDigest', 'qualified', 'rollbackDetected'], code);
-  if (input.qualified !== true || input.rollbackDetected !== false) fail(code);
-  return { now: instant(input.now, code), sourceProfileDigest: digest(input.sourceProfileDigest, code), attestationDigest: digest(input.attestationDigest, code) };
-}
-
 function freshnessPolicyProjection(input) {
   const code = 'EVIDENCE_FRESHNESS_POLICY_UNAVAILABLE';
   exact(input, ['policyDigest', 'trustedTimeReceiptDigest', 'qualified', 'rollbackDetected', 'maxFutureSkewMs', 'policies'], code);
@@ -579,8 +573,10 @@ function inputSetDigest(inventory, trustRootDigest, time, freshness, request) {
     expectedCompositionDigest: request.expectedCompositionDigest,
     expectedDispatchDigest: request.expectedDispatchDigest,
     expectedAnalysisResultDigest: request.expectedAnalysisResultDigest,
-    trustedTimeSourceProfileDigest: time.sourceProfileDigest,
-    trustedTimeAttestationDigest: time.attestationDigest,
+    trustedTimePolicyDigest: time.policyDigest,
+    trustedTimeAnchorDigest: time.anchorDigest,
+    trustedTimeUseReceiptDigest: time.useReceiptDigest,
+    trustedTimeAuthorityCheckpointDigest: time.checkpointDigest,
     trustedNow: time.now,
     freshnessPolicyProjection: freshness,
     validatorImplementationDigest: request.validatorImplementationDigest,
@@ -596,11 +592,12 @@ export function validateResultCandidate(input) {
     'inventoryBytes', 'expectedInventoryDigest', 'expectedOperationReceiptDigest',
     'expectedCompositionDigest', 'expectedDispatchDigest', 'expectedAnalysisResultDigest',
     'producerTrustRootBytes', 'producerTrustRootProtection', 'expectedProducerTrustRootDigest',
-    'trustedTime', 'freshnessPolicyProjection', 'validatorImplementationDigest', 'validatorSchemaDigest',
+    'trustedTime', 'trustedTimeAuthority', 'freshnessPolicyProjection', 'validatorImplementationDigest', 'validatorSchemaDigest',
     'coordinatorPolicyDigest', 'transactionId'
   ], code);
-  const time = trustedTime(input.trustedTime);
+  const time = confirmTrustedTimeBinding(input.trustedTime, input.trustedTimeAuthority, 'EVIDENCE_TRUSTED_TIME_UNAVAILABLE');
   const freshness = freshnessPolicyProjection(input.freshnessPolicyProjection);
+  sameDigest(freshness.trustedTimeReceiptDigest, time.trustedTimeReceiptDigest, 'EVIDENCE_FRESHNESS_POLICY_UNAVAILABLE');
   const nowMs = Date.parse(time.now);
   const inventory = openInventory(input.inventoryBytes, input.expectedInventoryDigest, input.expectedOperationReceiptDigest);
   const compositionResult = inventory.resolve('kstack-pack-composition-receipt', input.expectedCompositionDigest);
@@ -771,16 +768,18 @@ export function validateResultCandidate(input) {
     }
     let disposition = answer.disposition;
     const reasons = [];
+    const verified = [...cited.values()].flat();
     if (answer.disposition === 'supported') {
       const required = schema.requirements.filter((entry) => entry.requiredFor.includes('supported') && question.orderedEvidenceIds.includes(entry.evidenceId));
       if (required.some((entry) => (cited.get(entry.evidenceId)?.length ?? 0) < entry.minimumCount)
-          || [...cited.values()].flat().some((entry) => entry.observationKind !== 'asserts')) {
+          || !verified.some((entry) => entry.observationKind === 'asserts')
+          || verified.some((entry) => entry.observationKind !== 'asserts')) {
         disposition = 'unknown'; reasons.push('SUPPORTED_EVIDENCE_UNSATISFIED');
       } else reasons.push('SUPPORTED_EVIDENCE_AUTHENTICATED');
     } else if (answer.disposition === 'contradicted') {
       const required = schema.requirements.filter((entry) => entry.requiredFor.includes('contradicted') && question.orderedEvidenceIds.includes(entry.evidenceId));
       if (required.some((entry) => (cited.get(entry.evidenceId)?.length ?? 0) < entry.minimumCount)
-          || ![...cited.values()].flat().some((entry) => entry.observationKind === 'refutes')) {
+          || !verified.some((entry) => entry.observationKind === 'refutes')) {
         disposition = 'unknown'; reasons.push('CONTRADICTORY_EVIDENCE_UNSATISFIED');
       } else reasons.push('CONTRADICTORY_EVIDENCE_AUTHENTICATED');
     } else reasons.push('RESULT_REMAINS_UNKNOWN');

@@ -13,7 +13,8 @@ Locate `.kstack/config.json`. If it does not exist, read the sibling
 `kstack-init/SKILL.md` and conduct that initialization conversation before
 continuing. Do not silently accept defaults.
 
-Read `../../references/SAFETY.md`, `../../references/ARTIFACTS.md`, and, when
+Read `../../references/SKILL_SCOPE.md`, `../../references/SAFETY.md`,
+`../../references/ARTIFACTS.md`, and, when
 Jira continuous tracking is enabled, `../../references/JIRA_TRACKING.md`
 relative to this skill directory.
 Also read `../../references/DESIGN_ALTITUDE.md`; its phase boundaries are
@@ -77,6 +78,10 @@ accepted final score of at least 81 does not restart design: carry its failed
 checks, findings, dissent, and questions into mandatory bug-fix backlog intake.
 Supply the operator-tracked round to the gate and never infer skill class from
 thread content.
+
+Disposition accepted final findings through `SKILL_SCOPE.md`. Only
+`IN_SCOPE_BUG` items become mandatory KStack backlog work; host-owned and
+out-of-scope findings do not expand the product.
 
 Treat selection of this configured workflow as standing authorization for every
 qualifying independent final-review packet. Do not request or wait for a

@@ -82,7 +82,7 @@ function fixture(policyOverrides = {}) {
   return { classifier, policy, policyResult, request, identityRequest };
 }
 
-function identityVerification(identityRequest, providerPrincipalId, pullRequestNumber) {
+function identityVerification(identityRequest, providerPrincipalId, pullRequestNumber, allowedActions = ['policy-weakening']) {
   const commit = providerPrincipalId[0].repeat(40);
   const root = {
     artifactType: 'kstack-identity-trust-root', schemaVersion: 1,
@@ -92,7 +92,7 @@ function identityVerification(identityRequest, providerPrincipalId, pullRequestN
       adapterVersion: GITHUB_PROTECTED_REVIEW_ADAPTER.adapterVersion,
       trustMaterialDigest: 'b'.repeat(64),
       allowedProviderPrincipalIds: ['1111111111', '2222222222'],
-      allowedActions: ['policy-weakening']
+      allowedActions
     }], policyVersion: 1, createdAt: '2026-08-01T00:00:00.000Z'
   };
   const evidence = {
@@ -166,12 +166,22 @@ function authorizationInput(value, ledger = new PairLedger()) {
     weakeningRequestBytes: value.request.canonicalBytes,
     expectedWeakeningRequestDigest: value.request.weakeningRequestDigest,
     classifier: value.classifier,
-    requesterVerification: identityVerification(value.identityRequest, '1111111111', 71),
-    independentApproverVerification: identityVerification(value.identityRequest, '2222222222', 72),
+    requesterVerification: identityVerification(value.identityRequest, '1111111111', 71, value.allowedActions),
+    independentApproverVerification: identityVerification(value.identityRequest, '2222222222', 72, value.allowedActions),
     trustedTime: { now: NOW, sourceProfileDigest: 'f'.repeat(64), attestationDigest: '9'.repeat(64), qualified: true, rollbackDetected: false },
     policyAuthority: {
       async confirmCurrent(policyDigest) {
         return { current: true, policyDigest, checkpointDigest: '7'.repeat(64), rollbackDetected: false };
+      }
+    },
+    inventory: {
+      async retain(record) {
+        return {
+          retained: true,
+          inventoryDigest: hash(Buffer.concat([
+            Buffer.from('KSTACK-WEAKENING-EVIDENCE-INVENTORY-V1\n'), hostCanonicalBytes(record)
+          ]))
+        };
       }
     },
     ledger
@@ -207,6 +217,23 @@ test('D3 classifier makes every weakening class and unknown transition fail into
   assert.deepEqual(unknown.receipt.reasonCodes, ['UNKNOWN_OR_INVALID_TRANSITION']);
 });
 
+test('D3 failure modes have an explicit openness order and non-closed weakening cannot bypass quorum', () => {
+  const opened = classifyWeakeningTransition(
+    hostCanonicalBytes(state({ failureMode: 'degrade' })),
+    hostCanonicalBytes(state({ failureMode: 'continue' }))
+  );
+  assert.equal(opened.receipt.classification, 'weakening');
+  assert.equal(opened.receipt.action, 'policy-weakening');
+  assert.deepEqual(opened.receipt.reasonCodes, ['FAILURE_MODE_OPENED']);
+
+  const tightened = classifyWeakeningTransition(
+    hostCanonicalBytes(state({ failureMode: 'continue' })),
+    hostCanonicalBytes(state({ failureMode: 'degrade' }))
+  );
+  assert.equal(tightened.receipt.classification, 'non-weakening');
+  assert.deepEqual(tightened.receipt.reasonCodes, []);
+});
+
 test('D3 external separation policy is closed, ordered, complete, and never repository resident', () => {
   const policy = separationPolicy();
   const result = parseSeparationPolicy(hostCanonicalBytes(policy), { source: 'external-broker', repositoryResident: false, protected: true }, { projectId: PROJECT, repositoryImmutableId: REPOSITORY });
@@ -232,6 +259,47 @@ test('D3 authorizes one exact two-person, two-group, role-separated pair and bin
     trustedTime: { now: '2026-08-29T17:01:00.000Z', sourceProfileDigest: '1'.repeat(64), attestationDigest: '2'.repeat(64), qualified: true, rollbackDetected: false }
   });
   assert.equal(use.compareAndSwapRequired, true);
+});
+
+test('D3 retains the exact two-review evidence inventory before consuming the pair', async () => {
+  const value = fixture();
+  let consumeCalls = 0;
+  const ledger = new PairLedger();
+  const originalConsume = ledger.consumePairOnce.bind(ledger);
+  ledger.consumePairOnce = async (record) => { consumeCalls += 1; return originalConsume(record); };
+  await asyncCode('WEAKENING_EVIDENCE_RETENTION_FAILED', () => authorizeWeakening({
+    ...authorizationInput(value, ledger),
+    inventory: { async retain() { return { retained: false, inventoryDigest: ZERO }; } }
+  }));
+  assert.equal(consumeCalls, 0);
+  await asyncCode('WEAKENING_EVIDENCE_RETENTION_FAILED', () => authorizeWeakening({
+    ...authorizationInput(value, ledger),
+    inventory: { async retain() { return { retained: true, inventoryDigest: 'f'.repeat(64) }; } }
+  }));
+  assert.equal(consumeCalls, 0);
+});
+
+test('D3 compound transitions require every represented weakening action', async () => {
+  const value = fixture();
+  value.classifier = classifyWeakeningTransition(
+    hostCanonicalBytes(state()),
+    hostCanonicalBytes(state({ minimumConfidence: 92, quarantinedPacks: [] }))
+  );
+  value.request = createWeakeningRequest({
+    ...value.request.request,
+    action: value.classifier.receipt.action,
+    beforeDigest: value.classifier.receipt.beforeDigest,
+    afterDigest: value.classifier.receipt.afterDigest,
+    affectedPackIds: value.classifier.receipt.affectedPackIds,
+    classifierReceiptDigest: value.classifier.classifierReceiptDigest
+  });
+  value.identityRequest = createIdentityActionRequest({
+    ...value.identityRequest.request,
+    action: value.request.request.action,
+    targetDigest: value.request.weakeningRequestDigest
+  });
+  value.allowedActions = ['quarantine-reversal'];
+  await asyncCode('WEAKENING_RECEIPT_DISAGREEMENT', () => authorizeWeakening(authorizationInput(value)));
 });
 
 test('D3 gridlock rejects one person, one group, role substitution, and receipt disagreement', async () => {

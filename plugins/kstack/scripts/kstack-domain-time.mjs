@@ -707,5 +707,17 @@ export function guardTrustedTimeUse(input) {
     anchorDigest: input.publication.anchorDigest, policyDigest: input.publication.policy.policyDigest,
     lowerUtcNs: lower.toString(), upperUtcNs: upper.toString(), predicate, pass: true
   };
-  return immutable({ record, useReceiptDigest: domainDigest('KSTACK-TRUSTED-TIME-USE-V1\n', record) });
+  const useReceiptDigest = domainDigest('KSTACK-TRUSTED-TIME-USE-V1\n', record);
+  const nowMs = upper / 1_000_000n;
+  if (nowMs < -8_640_000_000_000_000n || nowMs > 8_640_000_000_000_000n) fail(code);
+  return immutable({
+    record, useReceiptDigest,
+    binding: {
+      now: new Date(Number(nowMs)).toISOString(),
+      trustedTimeReceiptDigest: input.publication.receiptDigest,
+      useReceiptDigest, policyDigest: input.publication.policy.policyDigest,
+      anchorDigest: input.publication.anchorDigest,
+      qualified: true, rollbackDetected: false
+    }
+  });
 }

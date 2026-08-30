@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { assertConsumedIdentityActionResult } from './kstack-domain-identity.mjs';
-import { validateWeakeningTransitionUse } from './kstack-domain-separation.mjs';
+import { parseProtectedPolicyState, validateWeakeningTransitionUse } from './kstack-domain-separation.mjs';
+import { confirmTrustedTimeBinding } from './kstack-domain-time-binding.mjs';
 import { createPackArtifact, validateApprovalGraph } from './kstack-domain-selection.mjs';
 import {
   activationBodyDigest,
@@ -105,22 +106,16 @@ export function createCurrentPackPointerRecord(input) {
   });
 }
 
-function trustedTime(input, code) {
-  exact(input, ['now', 'trustedTimeReceiptDigest', 'qualified', 'rollbackDetected'], code);
-  if (input.qualified !== true || input.rollbackDetected !== false) fail(code);
-  return { now: instant(input.now, code), trustedTimeReceiptDigest: digest(input.trustedTimeReceiptDigest, code) };
-}
-
 export async function readCurrentPackHead(input) {
   const code = 'PACK_ACTIVATION_LEDGER_UNAVAILABLE';
   exact(input, [
     'projectId', 'repositoryImmutableId', 'readerNonce', 'priorHighWater',
-    'trustedTime', 'ledger', 'snapshotAuthority', 'brokerTrustAuthority', 'nonceLedger'
+    'trustedTime', 'trustedTimeAuthority', 'ledger', 'snapshotAuthority', 'brokerTrustAuthority', 'nonceLedger'
   ], code);
   const projectId = string(input.projectId, ID, code);
   const repositoryImmutableId = string(input.repositoryImmutableId, ID, code);
   const readerNonce = string(input.readerNonce, NONCE, code, 64);
-  const time = trustedTime(input.trustedTime, code);
+  const time = confirmTrustedTimeBinding(input.trustedTime, input.trustedTimeAuthority, code);
   for (const [authority, methods] of [
     [input.ledger, ['capabilities', 'readCurrent']],
     [input.snapshotAuthority, ['readByDigest']],
@@ -311,22 +306,45 @@ function classifyTransition(before, after, transitionKind, requiredPackIds) {
   return { transitionKind, weakeningRequired, weakeningAction };
 }
 
+async function confirmActivationPolicyState(input, projectId, repositoryImmutableId) {
+  const code = 'PACK_ACTIVATION_POLICY_STATE_INVALID';
+  const parsed = parseProtectedPolicyState(input.policyStateBytes, input.policyStateProtection);
+  sameDigest(parsed.policyStateDigest, input.expectedPolicyStateDigest, code);
+  if (!input.policyStateAuthority || typeof input.policyStateAuthority.confirmCurrent !== 'function') fail(code);
+  const confirmation = await input.policyStateAuthority.confirmCurrent({
+    policyStateDigest: parsed.policyStateDigest,
+    projectId,
+    repositoryImmutableId
+  });
+  exact(confirmation, [
+    'current', 'policyStateDigest', 'checkpointDigest', 'rollbackDetected',
+    'protected', 'repositoryResident'
+  ], code);
+  if (confirmation.current !== true || confirmation.rollbackDetected !== false
+      || confirmation.protected !== true || confirmation.repositoryResident !== false) fail(code);
+  sameDigest(confirmation.policyStateDigest, parsed.policyStateDigest, code);
+  digest(confirmation.checkpointDigest, code);
+  return { ...parsed, checkpointDigest: confirmation.checkpointDigest };
+}
+
 export async function preparePackActivation(input) {
   const code = 'PACK_ACTIVATION_DIFF_INVALID';
   exact(input, [
     'currentHead', 'candidateGraph', 'transitionKind', 'changedPackIds',
-    'requiredPackIds', 'stagingId', 'contentStore', 'historyAuthority'
+    'policyStateBytes', 'policyStateProtection', 'expectedPolicyStateDigest', 'policyStateAuthority',
+    'stagingId', 'contentStore', 'historyAuthority'
   ], code);
   if (!input.currentHead || !VALIDATED_HEADS.has(input.currentHead)) fail('PACK_ACTIVATION_STALE');
   const candidateGraph = assertValidatedPackCatalogGraph(input.candidateGraph);
-  if (!Array.isArray(input.changedPackIds) || input.changedPackIds.length !== 1
-      || !Array.isArray(input.requiredPackIds) || new Set(input.requiredPackIds).size !== input.requiredPackIds.length) fail(code);
+  if (!Array.isArray(input.changedPackIds) || input.changedPackIds.length !== 1) fail(code);
   const changedPackId = string(input.changedPackIds[0], LOWER_ID, code, 64);
-  const requiredPackIds = input.requiredPackIds.map((entry) => string(entry, LOWER_ID, code, 64));
   const before = input.currentHead.snapshot;
   const after = candidateGraph.snapshot;
   if (candidateGraph.projectId !== input.currentHead.pointer.projectId
       || candidateGraph.repositoryImmutableId !== input.currentHead.pointer.repositoryImmutableId) fail(code);
+  const policyState = await confirmActivationPolicyState(
+    input, candidateGraph.projectId, candidateGraph.repositoryImmutableId
+  );
   sameDigest(after.predecessorSnapshotDigest, input.currentHead.snapshotDigest, code);
   if (after.generation !== input.currentHead.generation + 1
       || after.schemaRegistryDigest !== before.schemaRegistryDigest
@@ -339,7 +357,20 @@ export async function preparePackActivation(input) {
   const beforeCompatibility = before.compatibilityEntries.filter((entry) => entry.packId !== changedPackId);
   const afterCompatibility = after.compatibilityEntries.filter((entry) => entry.packId !== changedPackId);
   if (!packCanonicalBytes(beforeCompatibility).equals(packCanonicalBytes(afterCompatibility))) fail(code);
-  const classification = classifyTransition(beforeEntry, afterEntry, input.transitionKind, requiredPackIds);
+  const changedMaterialDigests = new Set([beforeEntry, afterEntry]
+    .filter((entry) => entry.state !== 'roadmap-only')
+    .map((entry) => createPackArtifact({
+      artifactType: 'kstack-pack-material', schemaVersion: 1,
+      packId: entry.packId, version: entry.version, bundleDigest: entry.bundleDigest
+    }).artifactDigest));
+  const beforeApplicability = before.applicabilityEntries
+    .filter((entry) => !changedMaterialDigests.has(entry.packMaterialDigest));
+  const afterApplicability = after.applicabilityEntries
+    .filter((entry) => !changedMaterialDigests.has(entry.packMaterialDigest));
+  if (!packCanonicalBytes(beforeApplicability).equals(packCanonicalBytes(afterApplicability))) fail(code);
+  const classification = classifyTransition(
+    beforeEntry, afterEntry, input.transitionKind, policyState.record.requiredPacks
+  );
   if (input.transitionKind === 'rollback') {
     if (!input.historyAuthority || typeof input.historyAuthority.confirmRetained !== 'function') fail(code);
     const retained = await input.historyAuthority.confirmRetained({ packId: changedPackId, catalogEntry: afterEntry });
@@ -371,7 +402,9 @@ export async function preparePackActivation(input) {
   sameDigest(confirmed.stagingDigest, staged.stagingDigest, 'PACK_ACTIVATION_STAGING_NOT_DURABLE');
   const output = immutable({
     currentHead: input.currentHead, candidateGraph, changedPackIds: [changedPackId],
-    classification, stagingId, stagingDigest: staged.stagingDigest,
+    classification, policyStateDigest: policyState.policyStateDigest,
+    policyStateCheckpointDigest: policyState.checkpointDigest,
+    stagingId, stagingDigest: staged.stagingDigest,
     leaseExpiresAt: staged.leaseExpiresAt
   });
   PREPARED_ACTIVATIONS.add(output);
@@ -382,16 +415,27 @@ export async function commitPackActivation(input) {
   const code = 'PACK_ACTIVATION_AUTH_INVALID';
   exact(input, [
     'prepared', 'requestBytes', 'expectedRequestDigest', 'd1Activation',
-    'identityPolicyDigest', 'd3AuthorizationUse', 'trustedTime',
+    'identityPolicyDigest', 'identityPolicyAuthority', 'd3AuthorizationUse', 'trustedTime', 'trustedTimeAuthority',
+    'policyStateBytes', 'policyStateProtection', 'expectedPolicyStateDigest', 'policyStateAuthority',
     'commitTransactionId', 'ledger', 'contentStore'
   ], code);
   if (!input.prepared || !PREPARED_ACTIVATIONS.has(input.prepared)) fail(code);
   const prepared = input.prepared;
-  const time = trustedTime(input.trustedTime, code);
+  const time = confirmTrustedTimeBinding(input.trustedTime, input.trustedTimeAuthority, code);
   const nowMs = Date.parse(time.now);
   const request = parseD5Artifact(input.requestBytes, 'kstack-pack-activation-request', input.expectedRequestDigest);
   const record = request.record;
   const changedPackId = prepared.changedPackIds[0];
+  const policyState = await confirmActivationPolicyState(
+    input, record.projectId, record.repositoryImmutableId
+  );
+  sameDigest(policyState.policyStateDigest, prepared.policyStateDigest, code);
+  const beforeEntry = prepared.currentHead.snapshot.catalogEntries.find((entry) => entry.packId === changedPackId);
+  const afterEntry = prepared.candidateGraph.snapshot.catalogEntries.find((entry) => entry.packId === changedPackId);
+  const liveClassification = classifyTransition(
+    beforeEntry, afterEntry, record.transitionKind, policyState.record.requiredPacks
+  );
+  if (!packCanonicalBytes(liveClassification).equals(packCanonicalBytes(prepared.classification))) fail(code);
   const compatibilityReviewDigest = prepared.candidateGraph.materialProofs
     .find((entry) => entry.packId === changedPackId)?.reviewArtifactDigest
     ?? prepared.currentHead.snapshot.catalogEntries.find((entry) => entry.packId === changedPackId)?.reviewArtifactDigest;
@@ -407,6 +451,19 @@ export async function commitPackActivation(input) {
       || !packCanonicalBytes(record.changedPackIds).equals(packCanonicalBytes(prepared.changedPackIds))
       || Date.parse(record.notBefore) > nowMs || Date.parse(record.expiresAt) <= nowMs) fail(code);
   const bodyDigest = activationBodyDigest(record);
+  if (!input.identityPolicyAuthority || typeof input.identityPolicyAuthority.confirmCurrent !== 'function') fail(code);
+  const identityPolicy = await input.identityPolicyAuthority.confirmCurrent({
+    policyDigest: digest(input.identityPolicyDigest, code), projectId: record.projectId,
+    repositoryImmutableId: record.repositoryImmutableId, now: time.now
+  });
+  exact(identityPolicy, [
+    'current', 'policyDigest', 'checkpointDigest', 'rollbackDetected',
+    'protected', 'repositoryResident'
+  ], code);
+  if (identityPolicy.current !== true || identityPolicy.rollbackDetected !== false
+      || identityPolicy.protected !== true || identityPolicy.repositoryResident !== false) fail(code);
+  sameDigest(identityPolicy.policyDigest, input.identityPolicyDigest, code);
+  digest(identityPolicy.checkpointDigest, code);
   const d1 = assertConsumedIdentityActionResult(input.d1Activation, {
     action: 'catalog-activation', targetDigest: bodyDigest,
     policyDigest: input.identityPolicyDigest, now: time.now
@@ -414,7 +471,7 @@ export async function commitPackActivation(input) {
   sameDigest(record.d1ActivationAttestationDigest, d1.receiptDigest, code);
   let d3Digest = null;
   let d3ConsumptionNonce = null;
-  if (prepared.classification.weakeningRequired) {
+  if (liveClassification.weakeningRequired) {
     if (!input.d3AuthorizationUse) fail('PACK_ACTIVATION_WEAKENING_AUTH_REQUIRED');
     exact(input.d3AuthorizationUse, ['authorization', 'authorizationDigest', 'requestBytes'], code);
     const use = validateWeakeningTransitionUse({
@@ -422,7 +479,7 @@ export async function commitPackActivation(input) {
       authorizationDigest: input.d3AuthorizationUse.authorizationDigest,
       requestBytes: input.d3AuthorizationUse.requestBytes,
       liveBeforeDigest: record.fromSnapshotDigest, candidateAfterDigest: record.toSnapshotDigest,
-      action: prepared.classification.weakeningAction, affectedPackIds: record.changedPackIds,
+      action: liveClassification.weakeningAction, affectedPackIds: record.changedPackIds,
       trustedTime: {
         now: time.now, sourceProfileDigest: time.trustedTimeReceiptDigest,
         attestationDigest: time.trustedTimeReceiptDigest, qualified: true, rollbackDetected: false
@@ -434,7 +491,7 @@ export async function commitPackActivation(input) {
   } else if (record.d3WeakeningAuthorizationDigest !== null || input.d3AuthorizationUse !== null) fail(code);
   const rerun = validatePackCatalogGraph({
     ...prepared.candidateGraph.revalidationInput,
-    trustedTime: { now: time.now, qualified: true, rollbackDetected: false }
+    trustedTime: { ...input.trustedTime }, trustedTimeAuthority: input.trustedTimeAuthority
   });
   sameDigest(rerun.snapshotDigest, prepared.candidateGraph.snapshotDigest, 'PACK_ACTIVATION_GRAPH_INVALID');
   if (!input.contentStore || typeof input.contentStore.confirmStaged !== 'function') fail('PACK_ACTIVATION_STAGING_NOT_DURABLE');
@@ -474,6 +531,10 @@ export async function commitPackActivation(input) {
     expectedPointerRecordDigest: prepared.currentHead.pointerRecordDigest,
     expectedSnapshotDigest: record.fromSnapshotDigest, expectedGeneration: record.fromGeneration,
     requestDigest: request.artifactDigest, requestNonce: record.requestNonce,
+    policyStateDigest: policyState.policyStateDigest,
+    policyStateCheckpointDigest: policyState.checkpointDigest,
+    identityPolicyDigest: input.identityPolicyDigest,
+    identityPolicyCheckpointDigest: identityPolicy.checkpointDigest,
     d1ConsumptionNonce: d1.receipt.nonce,
     d3ConsumptionNonce, transactionId, stagingId: prepared.stagingId,
     stagingDigest: prepared.stagingDigest, candidateSnapshotDigest: record.toSnapshotDigest,
