@@ -138,6 +138,40 @@ test('canonical replay reconstructs every Memory and ECR evidence identity and c
   assert.equal(ecr.reducedArmAvailable, false);
 });
 
+test('Host and Domain implementation packets replay byte-identically without provider claims', () => {
+  const cases = [
+    {
+      configRelativePath: 'tests/fixtures/kcrp-host-hb-tc06-byte-replay-v1.json',
+      includedItemIds: ['HOST_HB06_DESIGN', 'HOST_HB06_IMPLEMENTATION', 'HOST_HB06_PROGRESS', 'HOST_HB06_TEST'],
+      omittedItemIds: ['HOST_LINUX_UNRELATED']
+    },
+    {
+      configRelativePath: 'tests/fixtures/kcrp-domain-d7-byte-replay-v1.json',
+      includedItemIds: ['DOMAIN_D7_DESIGN', 'DOMAIN_D7_IMPLEMENTATION', 'DOMAIN_D7_TEST'],
+      omittedItemIds: ['DOMAIN_ASSURANCE_UNRELATED']
+    }
+  ];
+
+  for (const fixture of cases) {
+    const first = replayMemory({ configRelativePath: fixture.configRelativePath });
+    const second = replayMemory({ configRelativePath: fixture.configRelativePath });
+    assert.deepEqual(first.closure.includedItemIds, fixture.includedItemIds);
+    assert.deepEqual(first.closure.omittedItemIds, fixture.omittedItemIds);
+    assert.equal(first.closure.route, 'reduced');
+    assert.equal(first.reportBytes.equals(second.reportBytes), true);
+    assert.equal(first.reportSha256, second.reportSha256);
+    assert.equal(first.report.full.totalBytes > first.report.treatment.totalBytes, true);
+    assert.deepEqual(first.report.providerUsage, {
+      U: null, W: null, R: null, P: null,
+      closedReason: 'OFFLINE_SUBSET_NO_AUTHENTICATED_PROVIDER_RECEIPT'
+    });
+    assert.deepEqual(first.report.providerClaims, {
+      tokenSavings: null, costSavings: null, quality: null,
+      closedReason: 'OFFLINE_CANONICAL_BYTE_BENCHMARK_ONLY'
+    });
+  }
+});
+
 test('two independent helper executions are canonical and byte-identical', () => {
   const first = replayAll();
   const second = replayAll();

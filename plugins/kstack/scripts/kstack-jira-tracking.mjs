@@ -5,6 +5,7 @@ import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 import { canonicalJson } from './kstack-safety-broker.mjs';
 import { acquireDeliveryLock, releaseDeliveryLock } from './kstack-jira-bootstrap.mjs';
 import {
@@ -717,11 +718,11 @@ async function verifyTrackingIssue(jiraState, credentials, event, draft, expecte
   const issue = await jiraJson(jiraState, credentials, `/rest/api/3/issue/${encodeURIComponent(candidate.key)}?fields=${encodeURIComponent(requestedFields)}`);
   if (String(issue.id) !== String(candidate.id) || issue.key !== candidate.key || !/^[1-9][0-9]*$/u.test(String(issue.id)) || !ISSUE_KEY.test(issue.key)) fail('KSTACK_JIRA_TRACKING_ADOPTION_MISMATCH', 'Jira issue identity differs from marker-search evidence');
   const fields = issue.fields;
-  if (!fields || fields.project?.key !== event.projectKey || fields.issuetype?.name !== draft.issueType || fields.summary !== expectedFields.summary || JSON.stringify(fields.description) !== JSON.stringify(expectedFields.description)) fail('KSTACK_JIRA_TRACKING_ADOPTION_MISMATCH', 'Jira issue project, type, summary, or description differs from the frozen tracking draft');
+  if (!fields || fields.project?.key !== event.projectKey || fields.issuetype?.name !== draft.issueType || fields.summary !== expectedFields.summary || !isDeepStrictEqual(fields.description, expectedFields.description)) fail('KSTACK_JIRA_TRACKING_ADOPTION_MISMATCH', 'Jira issue project, type, summary, or description differs from the frozen tracking draft');
   if (!Array.isArray(fields.labels) || !expectedFields.labels.every((label) => fields.labels.includes(label)) || fields.labels.filter((label) => /^kstack-draft-/u.test(label)).some((label) => label !== draft.idempotencyLabel)) fail('KSTACK_JIRA_TRACKING_ADOPTION_MISMATCH', 'Jira issue labels differ from the frozen tracking identity');
   for (const [field, expected] of Object.entries(expectedFields)) {
     if (['project', 'issuetype', 'summary', 'description', 'labels'].includes(field)) continue;
-    if (JSON.stringify(fields[field]) !== JSON.stringify(expected)) fail('KSTACK_JIRA_TRACKING_ADOPTION_MISMATCH', `Jira issue field ${field} differs from the frozen tracking draft`);
+    if (!isDeepStrictEqual(fields[field], expected)) fail('KSTACK_JIRA_TRACKING_ADOPTION_MISMATCH', `Jira issue field ${field} differs from the frozen tracking draft`);
   }
   return { id: String(issue.id), key: issue.key };
 }

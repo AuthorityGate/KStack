@@ -1,0 +1,59 @@
+{
+  "schema": "kstack-linux-current-cell-evidence-v1",
+  "cell": {
+    "schemaVersion": 1,
+    "cellId": "ubuntu-lts-wsl2-x64",
+    "distributionId": "ubuntu",
+    "distributionVersion": "24.04.3",
+    "distributionFamily": "ubuntu",
+    "distributionEvidenceDigest": "3e5851448bae5b36f351becde037a8b13b77307279f484eda808f8177d9a4293",
+    "environment": "wsl2",
+    "architecture": "x86_64",
+    "kernelRelease": "6.18.33.2-microsoft-standard-WSL2",
+    "kernelEvidenceDigest": "c6c4476e3ee889d303b364385b38904d0d28f883a04c12b0ff081e20246e0ff7",
+    "filesystemType": "ext4",
+    "filesystemNative": true,
+    "filesystemEvidenceDigest": "ca3f5070c196bf9a9a667dee15bc65d43d9b2736ccdaba7f98e21d38c6eeff92",
+    "initSystem": "systemd",
+    "initOperational": true,
+    "initEvidenceDigest": "393fa83d510ce4a11f0c3c0606df48a18056a80f6f17fa15a4205df4935de939",
+    "packageManager": "apt",
+    "packageManagerEvidenceDigest": "62614c8443b2ca3516ba8253d39c9bfa64615211180cb9197d7d693ac8418865",
+    "observedAt": "2026-08-29T21:09:54.000Z",
+    "expiresAt": "2026-09-28T21:09:54.000Z"
+  },
+  "backends": {
+    "schemaVersion": 1,
+    "cellId": "ubuntu-lts-wsl2-x64",
+    "kernelRelease": "6.18.33.2-microsoft-standard-WSL2",
+    "effectiveCapabilities": [],
+    "probes": [
+      {
+        "backendId": "cgroup-v2",
+        "disposition": "SEAM_TESTED",
+        "featurePresent": true,
+        "privilegedExecutionObserved": false,
+        "evidenceDigest": "1bee786f02cbf2f41b09ff1d3215fafd39e9e6f386b7a3d02c1bfde12b3ee13e",
+        "limitation": "The native WSL2 systemd environment exposes a read-write cgroup2 mount and controllers, but the probe has zero effective and permitted capabilities and no privileged controller mutation was authorized."
+      },
+      {
+        "backendId": "ebpf",
+        "disposition": "UNAVAILABLE",
+        "featurePresent": true,
+        "privilegedExecutionObserved": false,
+        "evidenceDigest": "3e27229efe9f6863780cdb9de036385bc4d0a5b4e6a7b1a5c15dd56d0cd2be3d",
+        "limitation": "Kernel BTF is a readable regular file and unprivileged BPF mode is 2, but the probe has zero effective and permitted capabilities and therefore no CAP_BPF or CAP_SYS_ADMIN execution."
+      },
+      {
+        "backendId": "pidfd",
+        "disposition": "SEAM_TESTED",
+        "featurePresent": true,
+        "privilegedExecutionObserved": false,
+        "evidenceDigest": "6785ce4942995902326c44a26ac519cd14118571f57b5a24e22b8ece730a5316",
+        "limitation": "pidfd_open succeeded for the current process, but no privileged cross-principal lifecycle was authorized or observed."
+      }
+    ],
+    "observedAt": "2026-08-29T21:09:54.000Z",
+    "expiresAt": "2026-09-28T21:09:54.000Z"
+  }
+}

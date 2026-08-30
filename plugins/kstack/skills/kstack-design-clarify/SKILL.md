@@ -9,6 +9,14 @@ Eliminate round-one uncertainty with the project owner before design iteration
 can amplify it. This is a direct human questionnaire and decision-locking gate,
 not another model review.
 
+Read `../../references/DESIGN_ALTITUDE.md` and keep every question at the
+10,000-foot design altitude. Ask the owner to resolve outcomes, architecture,
+boundaries, block decomposition, dependencies, risk, and verification or
+recovery intent. Do not ask the owner for exact files, code, commands,
+migrations, provider payloads, or deployment steps unless the exact detail is
+the material architecture decision; otherwise record it under deferred block
+refinement.
+
 ## Entry gate
 
 1. Enter only after one design thread has a completed first round: one neutral

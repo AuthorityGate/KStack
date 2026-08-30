@@ -1,7 +1,7 @@
 {
   "name": "kstack",
   "version": "0.1.0",
-  "description": "KStack workflows with bounded safety hooks and Playwright post-deploy validation.",
+  "description": "KStack workflows with per-project Jira space provisioning, bounded safety hooks, opaque-handle secret migration, product-experience governance, and Playwright post-deploy validation.",
   "author": {
     "name": "AuthorityGate"
   }

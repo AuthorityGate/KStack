@@ -32,9 +32,24 @@
       "panels": {}
     },
     "designGate": {
-      "minimumConfidence": 90,
-      "minimumConfidenceRound11Plus": 80,
+      "minimumConfidence": 93,
+      "minimumConfidenceRound11Plus": 81,
       "minimumConfidenceSkillClass": 70,
+      "reviewSequence": {
+        "mode": "primary-then-independent-final",
+        "primaryReadinessConfidence": 93,
+        "finalAcceptanceConfidence": 81
+      },
+      "secondaryReview": {
+        "mode": "triggered",
+        "primaryReadinessConfidence": 93,
+        "finalAcceptanceConfidence": 81,
+        "requireFinalReview": true,
+        "requireDifferentAgent": true,
+        "requireDifferentProviderFamilyForHighRisk": true,
+        "auditSamplePermille": 0,
+        "materialDesignRiskClass": "high"
+      },
       "reviewBudget": {
         "maxRounds": 20,
         "maxElapsedMinutes": 120,
@@ -107,20 +122,31 @@
     "deploy": "deny",
     "deviceInstall": "deny",
     "destructive": "ask",
-    "externalTicketCreation": "ask"
+    "externalTicketCreation": "allow",
+    "jiraAdministration": "ask"
   },
   "jira": {
-    "enabled": false,
-    "siteUrl": null,
+    "enabled": true,
+    "siteUrl": "https://authoritygate.atlassian.net",
+    "apiBaseUrl": "https://api.atlassian.com/ex/jira/ba41d897-4290-40f9-9886-bd4f2601d96a",
+    "deliveryRecordPath": null,
     "projects": [
       { "key": "KSTK", "issueTypes": ["Task"], "defaultFields": {} }
     ],
     "credentialSource": {
-      "type": "env",
-      "emailEnvVar": "JIRA_EMAIL",
-      "tokenEnvVar": "JIRA_API_TOKEN"
+      "type": "file",
+      "path": "/home/lr427/.config/kstack/jira-credentials.json",
+      "allowInsecurePermissions": false
     },
     "staticLabels": [],
+    "tracking": {
+      "mode": "automatic",
+      "required": true,
+      "repositoryNamespace": "AuthorityGate/KStack",
+      "projectKey": "KSTK",
+      "automaticVersionAssignment": false,
+      "releaseVersions": []
+    },
     "timeoutMs": 15000,
     "maxAttempts": 3,
     "approvalTtlMs": 86400000,

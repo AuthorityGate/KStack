@@ -3,7 +3,7 @@ import fs from 'node:fs';
 
 const input = fs.readFileSync(0, 'utf8');
 const grounding = input.includes('<<<KSTACK:PACKET:BEGIN:');
-const quote = ['A genuinely wired citation decision packet.', 'A uniquely citable design line.'].find((candidate) => input.includes(candidate));
+const quote = ['Use a staged workflow with explicit phase boundaries and durable evidence.', 'A genuinely wired citation decision packet.', 'A uniquely citable design line.'].find((candidate) => input.includes(candidate));
 
 const review = {
   decision: 'approve',

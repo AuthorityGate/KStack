@@ -1,16 +1,15 @@
 {
   "name": "kstack",
-  "version": "0.1.0+codex.20260812133549",
-  "description": "Explicit objective, design, implementation, QC, Jira, and post-deploy validation workflows for Codex and Claude Code.",
+  "version": "0.1.0+codex.20260830011109",
+  "description": "Explicit objective, design, implementation, QC, product-experience, per-project Jira provisioning, and post-deploy validation workflows for Codex and Claude Code.",
   "author": {
     "name": "AuthorityGate"
   },
-  "hooks": "./hooks/hooks.json",
   "skills": "./skills/",
   "interface": {
     "displayName": "KStack",
     "shortDescription": "Cooperative design, implementation, and QC workflows.",
-    "longDescription": "KStack challenges objectives, reviews unfamiliar environments and designs with independent reviewers, interrogates plan changes, enforces post-implementation QC, and offers explicit local PGLite memory with a manually synchronized private body.",
+    "longDescription": "KStack challenges objectives, reviews unfamiliar environments and designs with independent reviewers, provisions a repository-owned Jira project/space and backlog when requested, governs shared product experience and brand evidence, interrogates plan changes, enforces post-implementation and post-deploy QC, and offers explicit local PGLite memory with a manually synchronized private body.",
     "developerName": "AuthorityGate",
     "category": "Productivity",
     "capabilities": [
@@ -22,10 +21,13 @@
       "implementation-interrogation",
       "post-implementation-qc",
       "post-deploy-playwright-validation",
+      "product-experience-governance",
       "blinded-planning-lens-evaluation",
       "explicit-memory",
       "offline-jira-ticket-drafting",
+      "per-project-jira-space-provisioning",
       "bounded-safety-hooks",
+      "opaque-secret-broker",
       "virtual-engineering-panels"
     ],
     "defaultPrompt": "Use $kstack-init to configure KStack for this repository."

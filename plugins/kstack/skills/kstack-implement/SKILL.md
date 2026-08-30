@@ -13,6 +13,11 @@ Implement only an approved, review-ready design.
 2. Identify the approved objective, design, decisions, implementation sequence,
    and verification matrix. If they are absent or materially stale, return to
    `kstack-review`.
+   Read `../../references/DESIGN_ALTITUDE.md`. Require the complete
+   `kstack-delivery-backlog-v1` artifact bound to the approved design and rerun
+   `../../scripts/kstack-workflow-contract.mjs backlog`. Add `--jira-required`
+   when Jira tracking is enabled. Design approval without a passing complete
+   backlog is not an implementation entry condition.
 3. Read the design gate artifact and require `READY_FOR_USER_APPROVAL`, at
    least the configured combined-confidence threshold (minimum 90), zero failed
    checks, zero security findings, zero material dissent, and a digest matching
@@ -28,7 +33,12 @@ Implement only an approved, review-ready design.
 
 ## Implementation loop
 
-1. Read `../../references/JIRA_TRACKING.md`. When Jira continuous tracking is
+1. Read `../../references/JIRA_TRACKING.md`. Select exactly one dependency-ready
+   backlog block. Confirm no other block is `active`, set the backlog to
+   `in-progress` and that block to `active`, and append `ITEM_ACTIVE` before any
+   implementation change. Refine only this block to ground level: exact files,
+   interfaces, migrations, commands, tests, rollback actions, and release
+   consequences. Do not pre-implement or deeply refine later blocks. When Jira continuous tracking is
    enabled, append `ITEM_ACTIVE` before the first implementation change,
    `ITEM_UPDATED` after each material accepted change, and
    `IMPLEMENTATION_VALIDATED` only after repository-native verification passes.
@@ -52,9 +62,17 @@ Implement only an approved, review-ready design.
    visible lookup is separate from optional `kstack-memory` retrieval and does
    not change memory's no-auto-injection boundary.
 3. Work in the smallest coherent increments that preserve a runnable state.
+   Complete repository-native verification and block-level QC, then mark the
+   block `done` or explicitly `blocked` before activating another block. At
+   most one block may be active throughout the loop.
 4. Use repository-native wrappers, toolchains, tests, and release conventions.
 5. Verify behavior, not only compilation. Exercise failure, recovery,
    compatibility, migration, and rollback paths named in the design.
+   For user-facing work, read `../../references/PRODUCT_EXPERIENCE.md`, validate
+   the exact experience contract, reuse its admitted tokens/components before
+   introducing primitives, and implement every applicable journey/state and
+   evidence lane. Do not regenerate visual baselines as an implementation
+   shortcut.
 6. Before acting on an implementation issue, user prompt, workaround,
    dependency/toolchain change, discovered constraint, proposed deviation, or
    QC remediation that changes the approved plan, run the sibling
@@ -83,11 +101,24 @@ Invoke the sibling `kstack-post-deploy/SKILL.md` with the exact deployment,
 commit, artifact, environment, and URL binding. Its Playwright observation is
 separate test authority; product-data mutations inside a browser suite require
 their own authorization. A skipped or unavailable observation is not a pass.
+For a user-facing post-deploy v2 plan, the repository suite must write the
+exact contract/release-bound experience result supplied by the runtime. A
+generic clean Playwright result cannot substitute for that evidence.
 
 ## Post-implementation QC
 
-After repository-native verification, run the sibling `kstack-qc/SKILL.md`
-with the configured QC role. High-risk work uses both Codex and Opus. A
+After repository-native verification, a user-facing repository must pass
+`node ../../scripts/kstack-experience.mjs phase-gate --project-root . --contract .kstack/experience.json --phase implementation`
+and record its contract/source digest. Then run the sibling `kstack-qc/SKILL.md`
+with the configured QC role. Do not dispatch the independent second final
+review until a primary completion assessment of the exact implementation and
+verification evidence is at least 93. The 93 score is only a dispatch gate; it
+is not completion and does not lower the QC pass threshold. KStack requires the
+second final review whenever an independent route is available; outside KStack,
+recommend the same route strongly. Keep earlier secondary-model consultations
+for roadblocks explicitly separate: they are optional, are not required every
+round, and never count as the fresh final review. High-risk work uses a fresh
+non-authoring reviewer from a different provider family. A
 `FIX_REQUIRED` result permits a bounded remediation and a new QC pass; if that
 remediation changes the plan, interrogate it first. `FULL_DESIGN_REQUIRED`
 returns to design. Never describe implementation as complete until current

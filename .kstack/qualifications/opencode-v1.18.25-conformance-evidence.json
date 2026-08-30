@@ -1,0 +1,2582 @@
+{
+  "schema": "kstack-opencode-v1.18.25-protected-conformance-v1",
+  "sourceEvidence": {
+    "releaseTag": "v1.18.25",
+    "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+    "provenanceDigest": "sha256:62314c7054739af1f43799aa683a4f26c0eecd4b1bdb68c61bdedbedf265eb04"
+  },
+  "isolation": {
+    "environmentFacts": {
+      "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+      "runningHostBuildDigest": "sha256:b0e3724218f7df5a2ac0cec548c051ccc44ffa0d696acdece528706a32469d90",
+      "adapterDigest": "sha256:5f908ff798b79ef77438f9573aff09f1d941aa3bc1069b54ca60b9a498ccdd8b",
+      "conformanceDigest": "sha256:8fd412b4ee6d2dd62d35f278a42d626d8bf491d9d401374274cb545f3135d0b9",
+      "providerScriptDigest": "sha256:3cde7f47bc29dab5dee8cd548f4edaf70d6d496cb9c37bc1047794ddf967ae30",
+      "pid1ReaperSourceDigest": "sha256:6cd19410eb124db0ee7664b01f3761c122dc02ef6a876257604bc6c190343b01",
+      "platform": "linux-x64",
+      "networkInterfaces": [
+        "lo"
+      ],
+      "nativePermission": {
+        "*": "deny",
+        "skill": "allow"
+      },
+      "providerMode": "SYNTHETIC_LOOPBACK_NO_CREDENTIAL",
+      "externalPlugins": false,
+      "sessionPersistence": false,
+      "namespaces": {
+        "user": "user:[4026532237]",
+        "net": "net:[4026532240]",
+        "mount": "mnt:[4026532238]",
+        "pid": "pid:[4026532239]"
+      }
+    },
+    "cleanupEvidence": {
+      "fixtureCount": 20,
+      "fixtureCleanupPassed": true,
+      "liveBeforeProviderStop": [],
+      "liveAfterProviderStop": [],
+      "providerStopped": true,
+      "loopbackOnly": true
+    },
+    "credentialsPresent": false,
+    "productionTargetsPresent": false
+  },
+  "dependencyGateSet": {
+    "schemaId": "kstack.opencode-conformance-dependency-gate-set.v1",
+    "schemaVersion": 1,
+    "operationProfileId": "opencode.native-skill-advisory.v1",
+    "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+    "operationFamily": "ADVISORY",
+    "rows": [
+      {
+        "schemaId": "kstack.opencode-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC01",
+        "requiredImplementationDigest": "sha256:d46e8dc2fa919b5c67c252b856107e076e423a7ae52d3453b538dec0d47af8eb",
+        "requiredValidationReceiptDigest": "sha256:b885e5a518be4e5261ca71125c671f72b353bfba5d4860e28ca6e5c3eadc44b7",
+        "activeSetMembershipProofDigest": "sha256:030891d2bc0152c75344ad7a27bd405ff1f85eabaaf38c8195a329bd5f5f420e",
+        "currentnessEvidenceDigest": "sha256:984133fd662c33ba293e44c23135659116360277bf5d571f8fe9e7c5e4247787",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC02",
+        "requiredImplementationDigest": "sha256:e8d15b85d1669711eceaa37d1df4340189a01bff05c0886810928433476a3bbb",
+        "requiredValidationReceiptDigest": "sha256:bd3a902315a980b779d5bf51a66e9408e11bbfef046c4cc86d9be37c3ab8de77",
+        "activeSetMembershipProofDigest": "sha256:535ec34de5cf8365648430b67fa31524102cd008e97e26a2f9010e43fcabf656",
+        "currentnessEvidenceDigest": "sha256:d8a1daf75c0bf29bdd2b816ad346d5702bc598cd411f4d1d8ddb2fbc2c3c2ec4",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC03",
+        "requiredImplementationDigest": "sha256:0b4368848075fbca6ac9615bdb931ae7a71aa0ae3cb41d8323a6d8664c08b3f9",
+        "requiredValidationReceiptDigest": "sha256:af579c317826f407b8a587021a7ac87fa85af7413c8f0fa6c7b7c07b3de30823",
+        "activeSetMembershipProofDigest": "sha256:e4cb27e225b9ad94e482fa6f965897ba70147c6a7f62b7e3cc66a8ba2d210291",
+        "currentnessEvidenceDigest": "sha256:2fee6bea89e813a9cdc1d31d2f1b111f2a707c19a5e6746c53de7f3edd7448b3",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC04",
+        "requiredImplementationDigest": "sha256:8d53e91cb5b20e257f490d67365795a0cbdc10e71b2eabd3e1fdf568f207a431",
+        "requiredValidationReceiptDigest": "sha256:0a65edead7ff75b53bf468546033e7dddee723e774273704b89fbfe2c2e55ac3",
+        "activeSetMembershipProofDigest": "sha256:dab71c389c6d05118f72ca4de6189137c164347df1d29249c234588ccd9d9a89",
+        "currentnessEvidenceDigest": "sha256:45bd3d00b90197df263cf2111ec33bfcf9f945da4bd1739eb78b2f6baf165b62",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC05",
+        "requiredImplementationDigest": "sha256:816b27652a2a1918e1e1d10139910f9fcb73d308292bbcf4b7e8cc7aa1bac08e",
+        "requiredValidationReceiptDigest": "sha256:3e90003c7e2f33de455e67e81c91dea5c91527f51d50f78c1d16e00ec992280b",
+        "activeSetMembershipProofDigest": "sha256:1f9de19bcde0b8f46d98dff26003cede0646d4bd62f55bf38ccff34c423722c2",
+        "currentnessEvidenceDigest": "sha256:e0d77d1fdac28de2e7b972018572c803c8170ca725c968c9537d5335788d147d",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC06",
+        "requiredImplementationDigest": "sha256:91752c91571b2130d513e4563910235a432745ee5e1a88e083009d7081c6e00c",
+        "requiredValidationReceiptDigest": "sha256:58327f5a10485788a78c0c38d2349be79a96fd43ebf63ca14a5387aad3cd8ce4",
+        "activeSetMembershipProofDigest": "sha256:a8f7bd3ef183fed503dc7279e4fd5af3982a1017c6d589fbe2e2fe1936b43e37",
+        "currentnessEvidenceDigest": "sha256:5a4501e07808e02cd09d14614e038ed14c01039be8bb2fd9dc7a89ef6104d7a5",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC11",
+        "requiredImplementationDigest": "sha256:9c8b03f49bcae1a822a8af3e4c99c3e11fe4f4773fd4b7ccd3095b4736565252",
+        "requiredValidationReceiptDigest": "sha256:93114974559149b9f6a697b6c6a2959e1cd16ad62fe433793c11f472464306fb",
+        "activeSetMembershipProofDigest": "sha256:ef46f796c3c91ecf7deabb259ca06e6f9bb3637bf761e3e52e8b0e23150a096f",
+        "currentnessEvidenceDigest": "sha256:1efcc41b0ed363b2cc1661d6e4e909648b3d6e63ddecad06681b7594832fc27b",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      }
+    ],
+    "evaluatedAt": "2026-08-30T04:35:46.611Z",
+    "expiresAt": "2026-09-06T04:35:46.611Z",
+    "executable": true,
+    "reasonCodes": []
+  },
+  "dependencyGateSetDigest": "sha256:87a0542b4f1b736a3072d17be24ceeee41d6f9d6a0ccf40288b9f04b08163831",
+  "plan": {
+    "schemaId": "kstack.opencode-conformance-plan.v1",
+    "schemaVersion": 1,
+    "hostId": "opencode",
+    "runningHostBuildDigest": "sha256:b0e3724218f7df5a2ac0cec548c051ccc44ffa0d696acdece528706a32469d90",
+    "hostExecutableIdentityDigest": "sha256:d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+    "adapterDigest": "sha256:5f908ff798b79ef77438f9573aff09f1d941aa3bc1069b54ca60b9a498ccdd8b",
+    "activeSetDigest": "sha256:b0d0a7558e43579665fc52052dc3458d41d5aaca729d8b96eba2169cacd02295",
+    "policyDigest": "sha256:142995f14a3b5017d38871048360db4b7d67d41ba3cc36579fa92c997669b591",
+    "registrySetDigest": "sha256:8fd412b4ee6d2dd62d35f278a42d626d8bf491d9d401374274cb545f3135d0b9",
+    "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+    "dependencyGateSetDigest": "sha256:87a0542b4f1b736a3072d17be24ceeee41d6f9d6a0ccf40288b9f04b08163831",
+    "environmentMeasurementProfileDigest": "sha256:0dcab246e7d5a5b86a736a51b87ade4fdfc83856174e17c98ab8b8e1ee853611",
+    "harnessDigest": "sha256:280754418cf3a8503636e8ba3d62ab5feda99e6a29d3e78dac87cf02a239239a",
+    "observerSetDigest": "sha256:451d28276ab2f669b0e12c40465af4a17a37c7d60dbfb7aed0a6dc5f1d7b2b14",
+    "fixtureSetDigest": "sha256:c4a259039cc0efee5f2632bd8a7310d0efd470d0ddb0c6d903714ded06b3759c",
+    "bypassInventoryDigest": "sha256:703f7b8928ef41b927179f5d072b493358c33ff09a4f51f64d65b3c6f33b73dd",
+    "isolationTargetDigest": "sha256:11e4aa7b60be44d2fd735c5c6917bd4e8e2de4d75837c83ce84b1e419e546527",
+    "sideEffectBudgetDigest": "sha256:c5c23c00364d99460f82b12fc97f92a01e843556545208bd105d6e59d3fbf2ef",
+    "authoritativeClockDigest": "sha256:b1e927dd8d7f21b4f9b85715afc930de71eb992760996ad818350ba8399f0f5d",
+    "plannedAt": "2026-08-30T04:35:46.614Z",
+    "expiresAt": "2026-09-06T04:35:46.611Z"
+  },
+  "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+  "fixtureSet": {
+    "schemaId": "kstack.opencode-conformance-fixture-set.v1",
+    "schemaVersion": 1,
+    "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+    "requiredGroupIds": [
+      "approval-broker",
+      "background-lifecycle",
+      "hostile-data",
+      "identity-currentness",
+      "instruction-package",
+      "native-permissions",
+      "preservation",
+      "public-mcp-facade",
+      "receipt-ambiguity",
+      "workspace"
+    ],
+    "fixtures": [
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "approval-broker.negative.v1",
+        "fixtureGroupId": "approval-broker",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:cc920dae7264a919cd8856c5cdde1e0ff4ef097632ad3be0e2bf2d1c9ea244dc",
+        "inputArtifactDigests": [
+          "sha256:01328b5d7c4cc6fe3e1122547e0303220cff1083249636fc86d97b8791c1e654"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_VERSION_OBSERVED",
+          "BROKER_TICKET_REJECTED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:58d412755e793c5e0f8747889584ad41a845eb07c0c062b0795f932e7dcf4c24"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:9f898c4cb1981a4911c56f87e5b2a2f8d7d15d46c7761d11bbcc9c6818e7c371",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:5f09360af2b94cb309ecaa8ef92d2117fc17d8d3f56c38d55445104d5080535a",
+        "stableFailureCodes": [
+          "APPROVAL_BROKER_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "approval-broker.positive.v1",
+        "fixtureGroupId": "approval-broker",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:f69bc1978dfe798eb4ee3ab0b28e2c7fd213293827df2de6075ff174c9ca6639",
+        "inputArtifactDigests": [
+          "sha256:7ffd62a03cf608668f6d57b57307cd1b07ed0603553f6e5f23f55cf2ae539aa1"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_VERSION_OBSERVED",
+          "BROKER_TICKET_VERIFIED",
+          "NATIVE_SKILL_ALLOWED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:f0764de6103af463a886e8b1defffa52c188be145fe1430880691f6fd04be903"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:bf378d53de26df10698bc81b60abff73d81ffb2c8a85041cf81a3b2f7c71856f",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:5f09360af2b94cb309ecaa8ef92d2117fc17d8d3f56c38d55445104d5080535a",
+        "stableFailureCodes": [
+          "APPROVAL_BROKER_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "background-lifecycle.negative.v1",
+        "fixtureGroupId": "background-lifecycle",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:44171ce8e65869d090b511a332472b81c31b0ad53e708c63760eb9245d97c9f4",
+        "inputArtifactDigests": [
+          "sha256:9ddd586b86570079634ff778544983245f378cc65b06758ea302b71a3a0af055"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_PROCESS_STARTED",
+          "DEADLINE_EXPIRED",
+          "HOST_PROCESS_CANCELLED",
+          "ZERO_ORPHANS_OBSERVED"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:4ecd4a5a46518db67509f0f31d37cf4cf9376c2842028842a042c92610c1c427"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:d09eb476247e60cbe3d24bc95d3d92d2fe9d410f0a525ccd442a602b4138d9e6",
+        "deadlineMs": 30000,
+        "cleanupContractDigest": "sha256:d4563a347b6bddf5f22651f5f007988be4bd3a9e4b6dd7ade24011ee8c835f74",
+        "stableFailureCodes": [
+          "BACKGROUND_LIFECYCLE_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "background-lifecycle.positive.v1",
+        "fixtureGroupId": "background-lifecycle",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:ac300cf49f252f1e3e9acbd4ac5b5276dec6ae7396e490a0d510c18c45723558",
+        "inputArtifactDigests": [
+          "sha256:df8a6302e8c383f243375e0d92b86894badbad1658565e9607cbe1ddc5720181"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_PROCESS_STARTED",
+          "HOST_PROCESS_EXITED",
+          "ZERO_ORPHANS_OBSERVED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:3a52310f101e58df28bcf90c52bba475a90938033be8ea45b38aa5a1d3e86d7d"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:daff887e18a43305c1a92c4051fe56f053dc3b1b9eef3564257f8029b959d17b",
+        "deadlineMs": 30000,
+        "cleanupContractDigest": "sha256:d4563a347b6bddf5f22651f5f007988be4bd3a9e4b6dd7ade24011ee8c835f74",
+        "stableFailureCodes": [
+          "BACKGROUND_LIFECYCLE_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "hostile-data.negative.v1",
+        "fixtureGroupId": "hostile-data",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:3a1541c78c7ccb3572c74f994d2f1a0dc9d90abc566d63ded25a2d030f625e74",
+        "inputArtifactDigests": [
+          "sha256:f952536c2e07e240aad991535fdf508e65c0ca706f2767ca0266d75f91633daa"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_SKILL_ALLOWED",
+          "HOSTILE_OUTPUT_REJECTED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:9b15d6410cdeccd4d614fe30e2a764ce410df444a2f25f108faab9548bcb9f8f"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:d8699f04c875ba2356dc07e89a3fc8c3cf41f95a6bfd4e31a6069bc2319ff070",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:b34c98ce9ff239d39509d0c8da5227af2e32b7bb39a7160431c8bffe467f7d85",
+        "stableFailureCodes": [
+          "HOSTILE_DATA_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "hostile-data.positive.v1",
+        "fixtureGroupId": "hostile-data",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:3bfb701175acc07689bcd1e7ae973f163816053d686a1ed5fdd3a8a9fcb82400",
+        "inputArtifactDigests": [
+          "sha256:03a36d51e4c4d90729f7e107f8f8c71b54bff3ad242b63993232233928c426cc"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_SKILL_ALLOWED",
+          "STRUCTURED_OUTPUT_ACCEPTED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:d215485873ee2b5321e9343eb20454913bf59fd6c67a1eead0c8bfecb631836e"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:8c60314a446c3f35951cddd440caddcad6330a6320360d5154ad17485e551c47",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:b34c98ce9ff239d39509d0c8da5227af2e32b7bb39a7160431c8bffe467f7d85",
+        "stableFailureCodes": [
+          "HOSTILE_DATA_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "identity-currentness.negative.v1",
+        "fixtureGroupId": "identity-currentness",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:7414560c5f5aaff264e886876b1d14174c05480d7285a29ac0ba6dc8f4aa5171",
+        "inputArtifactDigests": [
+          "sha256:d97b42950f54aa54f3ecfdecb3ab34516720ed6cdb35323548c4f1868128f48f"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_VERSION_OBSERVED",
+          "CURRENTNESS_MISMATCHED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:419dbadb46197337003befe71bc1a58e218c3f72ef6794f5f39a3ef8114f63fc"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:0eeeaad3b2e5e2bbee9ce4cdb2017494969864dd082829746ece1c3f71f4c02c",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:0ead47b2b7031f67d561592e1828b5660434034a6a7dd070fcb05129fede709d",
+        "stableFailureCodes": [
+          "IDENTITY_CURRENTNESS_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "identity-currentness.positive.v1",
+        "fixtureGroupId": "identity-currentness",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:70bdef0cc3079765543f07d1e2e3e6ff07c2f579fca2b73e1ecac6e869bdc789",
+        "inputArtifactDigests": [
+          "sha256:e53f14e8c8c3afbf4577e9088b90453295006b32323288d219e255f08218aa78"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_VERSION_OBSERVED",
+          "CURRENTNESS_MATCHED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:bbf496f0a6e782a3c873c9c6a249f88f854c118d2ec15335a8309c452e7718b8"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:aff0cdd02c47bb55c58b10ee25c3c9cf5887352ca61a6b0b0541aa396078fea7",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:0ead47b2b7031f67d561592e1828b5660434034a6a7dd070fcb05129fede709d",
+        "stableFailureCodes": [
+          "IDENTITY_CURRENTNESS_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "instruction-package.negative.v1",
+        "fixtureGroupId": "instruction-package",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:8ee010a330c2838979a913dc5e3b8b85d0cb74b9459293d8b017bb7d96df3ed7",
+        "inputArtifactDigests": [
+          "sha256:be53ae03a9950429ad6c4e3f9375247bee7878cd2d50b077e20ad5855a958057"
+        ],
+        "expectedNativeEventSequence": [
+          "DUPLICATE_SKILL_DISCOVERED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:78d77554d3183d6933fef7d7dff1209d758d0a9d891d8072de64e0e36a18d30f"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:02861bca9d81d3bd2d74d4b388f5642067cdbd734eac7d78d85fa94f39c81a6a",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:ef89b4262b1132bbe8ab29aaeb1c19b940cedda42793ca1ac323023bf7e67563",
+        "stableFailureCodes": [
+          "INSTRUCTION_PACKAGE_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "instruction-package.positive.v1",
+        "fixtureGroupId": "instruction-package",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:cda3d5bd9dfcab1414d342c851bcac8a4d1d5f281ab2f15daf9d884384108625",
+        "inputArtifactDigests": [
+          "sha256:0dadf9778d28438291c549b3504e629e5df57019ba3a472400f8087e9be7242e"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_SKILL_DISCOVERED",
+          "NATIVE_SKILL_ALLOWED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:0118aa94f56214b453d6fd953e1cd3f2442e74eba5e7bf7e6e34717e4bfda048"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:b95b07d3f04e322a803fbf1c5ba7fce02a0c61d48b1fcd3433d4c127da951e97",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:ef89b4262b1132bbe8ab29aaeb1c19b940cedda42793ca1ac323023bf7e67563",
+        "stableFailureCodes": [
+          "INSTRUCTION_PACKAGE_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "native-permissions.negative.v1",
+        "fixtureGroupId": "native-permissions",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:edcefddafce9b1d0750dbaca4ae07022864ce06e90371d21575746d66fbc5665",
+        "inputArtifactDigests": [
+          "sha256:c40b927b1217df6b912f26a0a48190865485e2ea0838303272acc28719848190"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_TOOL_DENIED",
+          "NATIVE_PERMISSION_MATCHED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:2f43b03062bedff463bc27a10295ed45d830d31ede232153f5be343f76c94a55"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:5f866a4a2bcc39af8a56d797828ea508370de72a2a45fac8b14f137610cf6f19",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:9f77f3f05682c079cb73ffc2418d53e39440239cc15cede26e4e7aad58b628d6",
+        "stableFailureCodes": [
+          "NATIVE_PERMISSIONS_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "native-permissions.positive.v1",
+        "fixtureGroupId": "native-permissions",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:84d3b7bffb8084a15bbe22c2d1b7e9007f213fc06577aa5b3ef5d5d751f79b4f",
+        "inputArtifactDigests": [
+          "sha256:bcafa9278c0eccf4085445c3093d36cf1e17d334d4fd7d83c7a196aae9cf3b92"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_SKILL_ALLOWED",
+          "NATIVE_PERMISSION_MATCHED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:7e060d57cdbed3483c3eb63922fb87c21a1db4392cb9595abdd2a8b0d36e5300"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:50a3eaa09aa5a762fef1ab2d7bedfc3e68e34899d2ac896eddc0d22492d6a662",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:9f77f3f05682c079cb73ffc2418d53e39440239cc15cede26e4e7aad58b628d6",
+        "stableFailureCodes": [
+          "NATIVE_PERMISSIONS_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "preservation.negative.v1",
+        "fixtureGroupId": "preservation",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:51d479786250cc4914b5d2baee27653eef527e3db07f6c72a482b54900b4b17d",
+        "inputArtifactDigests": [
+          "sha256:f75dfacd44a88b5286538031b64de8fcf419407066c7ffaa1e09acf491c43028"
+        ],
+        "expectedNativeEventSequence": [
+          "PRESERVATION_BASELINE_MISMATCHED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:522d371b5a456ea811626d43bdc5f60506ecad338811b52b39cca56dc00ad9c0"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:1c6bca918c68fe30ad47c903798067ac1a88bbefc752169d93ade778b87cf08f",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:1b49cd007323cd34026a00adf3c240c080223ad7cfc6999fda7be4baf1be5987",
+        "stableFailureCodes": [
+          "PRESERVATION_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "preservation.positive.v1",
+        "fixtureGroupId": "preservation",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:ff70cb4db0d57161623d0b2ab70257904d1b4cd0090477f0e0a6c576a0e557ab",
+        "inputArtifactDigests": [
+          "sha256:1326625ca22af4efa188e3287230d6bb48ccf3968f911488d239a51c7c07560e"
+        ],
+        "expectedNativeEventSequence": [
+          "CODEX_BASELINE_MATCHED",
+          "CLAUDE_BASELINE_MATCHED",
+          "OPENCODE_BASELINE_MATCHED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:a1fb2b66490253a5422ec57256588de0f0166b4aad56117dba7715beb469f8aa"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:81bd679bd28248838ef9109330be565f3956e40f2a9bee71ac09199f6cdcedfa",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:1b49cd007323cd34026a00adf3c240c080223ad7cfc6999fda7be4baf1be5987",
+        "stableFailureCodes": [
+          "PRESERVATION_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "public-mcp-facade.negative.v1",
+        "fixtureGroupId": "public-mcp-facade",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:c637ef9d5409165eeeffadb3456a97f43e55f3acd1ddd6a76c3c1ddf15363de7",
+        "inputArtifactDigests": [
+          "sha256:5b83d721991b22e35346c297dd917b50dec99e687ec3fc6979b0a1b48e47b04c"
+        ],
+        "expectedNativeEventSequence": [
+          "PUBLIC_MCP_LEASE_REJECTED",
+          "NO_PROMOTION_OBSERVED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:b633a63698b18498e09568730b227cf4f7f52cb16d335692490182c80a1de84b"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:5a7b1b5946b29631a17fd6ae7b0a7c94eb2d073be5af7715f0c88bcf3cf5901b",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:51c80bab85d4ba6495c8b92d561ae0e556df7272418428069f38d2ea5f44d81e",
+        "stableFailureCodes": [
+          "PUBLIC_MCP_FACADE_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "public-mcp-facade.positive.v1",
+        "fixtureGroupId": "public-mcp-facade",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:24d25c8b153e23f80169ab66a6dfc6ba4c86fce20a508519fb8c8548b16ce005",
+        "inputArtifactDigests": [
+          "sha256:3ec91ca493782482b312c3ccc54dae100f7802782984c5a36b7057136111f287"
+        ],
+        "expectedNativeEventSequence": [
+          "PUBLIC_MCP_LIST_OBSERVED",
+          "PUBLIC_MCP_READ_OBSERVED",
+          "NO_PROMOTION_OBSERVED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:a62cf18d53949946775d6248d0fadb253daa08c922078bb54270fda1dc72f2d2"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:fdec2fb0887e47279cc49d5bfac40d27a2e873e34693964083da551b5fc35621",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:51c80bab85d4ba6495c8b92d561ae0e556df7272418428069f38d2ea5f44d81e",
+        "stableFailureCodes": [
+          "PUBLIC_MCP_FACADE_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "receipt-ambiguity.negative.v1",
+        "fixtureGroupId": "receipt-ambiguity",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:fb2d5599a6dd2054bc46d3ba989069e12c86b21189d93cb908b5ab8cf79e38b1",
+        "inputArtifactDigests": [
+          "sha256:b3028923b52617e3e9018b6358d1784a6eaf10dcff4b199574e9ec1add656778"
+        ],
+        "expectedNativeEventSequence": [
+          "PROVIDER_RESPONSE_LOST",
+          "BLIND_RETRY_ABSENT",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:0e0e39ed94271ba6534e5ae189fcb36b29a5b6cec1cb9c30cee03e0f20f0d448"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:c65ca83ee63358642c54026fb6097a973a93005742de98e65a4cf405862adba3",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:830e72546fef7326ff0dd99c58492d2319535482eb408d5c31636a6253b6d756",
+        "stableFailureCodes": [
+          "RECEIPT_AMBIGUITY_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "receipt-ambiguity.positive.v1",
+        "fixtureGroupId": "receipt-ambiguity",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:e0cd5fb8d053c8601aa45a5697c5dd6988559b2e101c9ca51322706d5249b3e5",
+        "inputArtifactDigests": [
+          "sha256:a9bacdb1cf5368987d900ad49f91327c7d8abb20e4193e7780083214fa9fea9d"
+        ],
+        "expectedNativeEventSequence": [
+          "PROVIDER_REQUEST_OBSERVED",
+          "PROVIDER_RECEIPT_MATCHED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:7018dc45f367a2cfaef84db50ac2d584549ac541ddad263dae15947f92456864"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:9b17d338f6aca7009ea10ef5bf34d8f72b4b90199511ac2e9a32bd3fc58a6229",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:830e72546fef7326ff0dd99c58492d2319535482eb408d5c31636a6253b6d756",
+        "stableFailureCodes": [
+          "RECEIPT_AMBIGUITY_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "workspace.negative.v1",
+        "fixtureGroupId": "workspace",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:3f83737fcfda2f911549421cdd9b8461427521f6736f9a1b1f71be15dc8c30fc",
+        "inputArtifactDigests": [
+          "sha256:219ae2253d314a1ea016a5fb17e4fcb311152b358896d245159e2d2d9828da96"
+        ],
+        "expectedNativeEventSequence": [
+          "WORKSPACE_ALIAS_REJECTED",
+          "REPOSITORY_UNCHANGED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:ee81006fef09886d1367c542b946a1561e52e5e769630faebe4a8f28679cdf2e"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:ab1be005cafc81f2fe35802136ae3c924c31f6a8b2a13f7ebf1d82caf623b6c5",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:40c1c7dc51019d273eea569af4dc83d9e3b133c69ae30e423eda4990e768f82f",
+        "stableFailureCodes": [
+          "WORKSPACE_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.opencode-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "workspace.positive.v1",
+        "fixtureGroupId": "workspace",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:83a82468291a4a7fbf656790483c73d6ca3f80f5da191bff50e6ab84945ec87a",
+        "preconditionDigest": "sha256:2080f602d1f0d76df7583419c6c18d3a0a34ac3527347ad42d203c3ccbd073b0",
+        "inputArtifactDigests": [
+          "sha256:b33989ad0d3d2a4b146062161d34db2c5c44877e62a7db893f3f260fe83a660c"
+        ],
+        "expectedNativeEventSequence": [
+          "WORKSPACE_IDENTITY_MATCHED",
+          "REPOSITORY_UNCHANGED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:3d659e156733b10fc5b8450a4e1a04a486934528dd6ac0ecad1609d43dd0d645"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:719ba77b19797b4efe7e30f226f85b5576d4f43cf31f5c500d60908e25e046e1",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:40c1c7dc51019d273eea569af4dc83d9e3b133c69ae30e423eda4990e768f82f",
+        "stableFailureCodes": [
+          "WORKSPACE_POSITIVE_FAILED"
+        ]
+      }
+    ]
+  },
+  "fixtureSetDigest": "sha256:c4a259039cc0efee5f2632bd8a7310d0efd470d0ddb0c6d903714ded06b3759c",
+  "observerReceipts": [
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "approval-broker.negative.v1",
+      "observerId": "protected.approval-broker.negative",
+      "observerKind": "BROKER_SENTINEL",
+      "observationDigest": "sha256:5c078ecac530e49e0f3ae52f3869c2b046bad0e67e1a0a28787f5cba70224a5c",
+      "observedAt": "2026-08-30T04:35:47.174Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "approval-broker.positive.v1",
+      "observerId": "protected.approval-broker.positive",
+      "observerKind": "BROKER_SENTINEL",
+      "observationDigest": "sha256:a339cd26c6a4dc13e422c49aefeaa4ead76f2e9cac6c8ba87d2c6bc7a5e1bb61",
+      "observedAt": "2026-08-30T04:35:49.495Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "background-lifecycle.negative.v1",
+      "observerId": "protected.background-lifecycle.negative",
+      "observerKind": "PROCESS_LIFECYCLE",
+      "observationDigest": "sha256:763fef385fe3abb02cfb8d41bc33cef4633cae8f1e1b6cf37218bf1334c66408",
+      "observedAt": "2026-08-30T04:35:51.138Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "background-lifecycle.positive.v1",
+      "observerId": "protected.background-lifecycle.positive",
+      "observerKind": "PROCESS_LIFECYCLE",
+      "observationDigest": "sha256:236293c4171e5379b2313e03b1ddc72fb52eb93c7fe812e4daf812e9285f6a51",
+      "observedAt": "2026-08-30T04:35:53.467Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "hostile-data.negative.v1",
+      "observerId": "protected.hostile-data.negative",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:79666f2e90f6c56983bb009b1d4a1a1f1e15afa8bbacb002014b6129b5a55fea",
+      "observedAt": "2026-08-30T04:35:55.774Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "hostile-data.positive.v1",
+      "observerId": "protected.hostile-data.positive",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:befc201c9b0e774f1246d7d12e09ccb60111c33b6c75a0ca6f886553736aa063",
+      "observedAt": "2026-08-30T04:35:58.097Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "identity-currentness.negative.v1",
+      "observerId": "protected.identity-currentness.negative",
+      "observerKind": "ENVIRONMENT_MEASUREMENT",
+      "observationDigest": "sha256:2c0acd134e06611527201c2eb196f0ad4ac605cc55fd0b026451dfd95704618b",
+      "observedAt": "2026-08-30T04:35:58.611Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "identity-currentness.positive.v1",
+      "observerId": "protected.identity-currentness.positive",
+      "observerKind": "ENVIRONMENT_MEASUREMENT",
+      "observationDigest": "sha256:ee1741321331f18dd08437356dfdae50eddcf9e1525579d82829ffa2573ff914",
+      "observedAt": "2026-08-30T04:35:59.124Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "instruction-package.negative.v1",
+      "observerId": "protected.instruction-package.negative",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:e9f2091a03d97bd05bf8525ea122604667d2ed6149310acbb48cd66751fc79a8",
+      "observedAt": "2026-08-30T04:36:00.522Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "instruction-package.positive.v1",
+      "observerId": "protected.instruction-package.positive",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:54a69e3815c8037482165bfb07f596de2651db87a9d4c6fbaecf31f39a67e619",
+      "observedAt": "2026-08-30T04:36:03.655Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "native-permissions.negative.v1",
+      "observerId": "protected.native-permissions.negative",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:37f624cd7699f7335bae1c1b167e98510935626f0a6887e94ba6479c73608d22",
+      "observedAt": "2026-08-30T04:36:06.022Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "native-permissions.positive.v1",
+      "observerId": "protected.native-permissions.positive",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:2528e2b2ac83e4048fd8d6bb49ce9e74617ded560463161342300af524fd0cce",
+      "observedAt": "2026-08-30T04:36:08.393Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "preservation.negative.v1",
+      "observerId": "protected.preservation.negative",
+      "observerKind": "PRESERVATION_BASELINE",
+      "observationDigest": "sha256:5634cd56004fcceb4233f93cd25b4f5e6a53909f69d261056d0dcae31ad605f3",
+      "observedAt": "2026-08-30T04:36:09.905Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "preservation.positive.v1",
+      "observerId": "protected.preservation.positive",
+      "observerKind": "PRESERVATION_BASELINE",
+      "observationDigest": "sha256:d065befa73b86c3bab9963cb81a9d2c93f9a0294a2a681e5f14092ee7bb8f775",
+      "observedAt": "2026-08-30T04:36:11.430Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "observerId": "protected.public-mcp-facade.negative",
+      "observerKind": "MCP_FRAME_COLLECTOR",
+      "observationDigest": "sha256:f11e6c9141d6cc19116cdbc16aaabb9fc9d001cfd9cf45d7a7d22194daa9d756",
+      "observedAt": "2026-08-30T04:36:12.031Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "observerId": "protected.public-mcp-facade.positive",
+      "observerKind": "MCP_FRAME_COLLECTOR",
+      "observationDigest": "sha256:c66a3587b05db35de1a2e4fdd1abdd999d89834621b6906ff8729aada3940280",
+      "observedAt": "2026-08-30T04:36:12.662Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "observerId": "protected.receipt-ambiguity.negative",
+      "observerKind": "PROVIDER_RECEIPT",
+      "observationDigest": "sha256:f746c4630e8f9b4809e99a3956595ebd0dca83be926d313d28bb655f378d3140",
+      "observedAt": "2026-08-30T04:36:13.163Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "observerId": "protected.receipt-ambiguity.positive",
+      "observerKind": "PROVIDER_RECEIPT",
+      "observationDigest": "sha256:8b21c9f6274c638d6d624a827d9501f0c7b2cc241139a3cddd868e0faf331520",
+      "observedAt": "2026-08-30T04:36:15.555Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "workspace.negative.v1",
+      "observerId": "protected.workspace.negative",
+      "observerKind": "FILESYSTEM_IDENTITY",
+      "observationDigest": "sha256:a3e19b0512d8d26925bee4cfe02d96092e10bc99bbadfe74b1338e95cc1f0666",
+      "observedAt": "2026-08-30T04:36:16.070Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "workspace.positive.v1",
+      "observerId": "protected.workspace.positive",
+      "observerKind": "FILESYSTEM_IDENTITY",
+      "observationDigest": "sha256:abd15048a55eda141e5b813662b93486f657bf9db61810edf68503dfb27e46b9",
+      "observedAt": "2026-08-30T04:36:17.489Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    }
+  ],
+  "adjudicationRows": [
+    {
+      "fixtureId": "approval-broker.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "BROKER_TICKET_REJECTED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "approval-broker.negative.v1",
+        "observerId": "protected.approval-broker.negative",
+        "observerKind": "BROKER_SENTINEL",
+        "observationDigest": "sha256:5c078ecac530e49e0f3ae52f3869c2b046bad0e67e1a0a28787f5cba70224a5c",
+        "observedAt": "2026-08-30T04:35:47.174Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.approval-broker.negative.v1.fdf1d115ea16",
+      "startedAt": "2026-08-30T04:35:46.685Z",
+      "completedAt": "2026-08-30T04:35:47.174Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:5c078ecac530e49e0f3ae52f3869c2b046bad0e67e1a0a28787f5cba70224a5c"
+    },
+    {
+      "fixtureId": "approval-broker.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "BROKER_TICKET_VERIFIED",
+        "NATIVE_SKILL_ALLOWED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "approval-broker.positive.v1",
+        "observerId": "protected.approval-broker.positive",
+        "observerKind": "BROKER_SENTINEL",
+        "observationDigest": "sha256:a339cd26c6a4dc13e422c49aefeaa4ead76f2e9cac6c8ba87d2c6bc7a5e1bb61",
+        "observedAt": "2026-08-30T04:35:49.495Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.approval-broker.positive.v1.7e7f26aa542d",
+      "startedAt": "2026-08-30T04:35:47.174Z",
+      "completedAt": "2026-08-30T04:35:49.495Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:a339cd26c6a4dc13e422c49aefeaa4ead76f2e9cac6c8ba87d2c6bc7a5e1bb61"
+    },
+    {
+      "fixtureId": "background-lifecycle.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "HOST_PROCESS_STARTED",
+        "DEADLINE_EXPIRED",
+        "HOST_PROCESS_CANCELLED",
+        "ZERO_ORPHANS_OBSERVED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "background-lifecycle.negative.v1",
+        "observerId": "protected.background-lifecycle.negative",
+        "observerKind": "PROCESS_LIFECYCLE",
+        "observationDigest": "sha256:763fef385fe3abb02cfb8d41bc33cef4633cae8f1e1b6cf37218bf1334c66408",
+        "observedAt": "2026-08-30T04:35:51.138Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.background-lifecycle.negative.v1.645ad45256a1",
+      "startedAt": "2026-08-30T04:35:49.496Z",
+      "completedAt": "2026-08-30T04:35:51.138Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:763fef385fe3abb02cfb8d41bc33cef4633cae8f1e1b6cf37218bf1334c66408"
+    },
+    {
+      "fixtureId": "background-lifecycle.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "HOST_PROCESS_STARTED",
+        "HOST_PROCESS_EXITED",
+        "ZERO_ORPHANS_OBSERVED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "background-lifecycle.positive.v1",
+        "observerId": "protected.background-lifecycle.positive",
+        "observerKind": "PROCESS_LIFECYCLE",
+        "observationDigest": "sha256:236293c4171e5379b2313e03b1ddc72fb52eb93c7fe812e4daf812e9285f6a51",
+        "observedAt": "2026-08-30T04:35:53.467Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.background-lifecycle.positive.v1.496ac10c2388",
+      "startedAt": "2026-08-30T04:35:51.138Z",
+      "completedAt": "2026-08-30T04:35:53.467Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:236293c4171e5379b2313e03b1ddc72fb52eb93c7fe812e4daf812e9285f6a51"
+    },
+    {
+      "fixtureId": "hostile-data.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "HOSTILE_OUTPUT_REJECTED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "hostile-data.negative.v1",
+        "observerId": "protected.hostile-data.negative",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:79666f2e90f6c56983bb009b1d4a1a1f1e15afa8bbacb002014b6129b5a55fea",
+        "observedAt": "2026-08-30T04:35:55.774Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.hostile-data.negative.v1.5561dd272f07",
+      "startedAt": "2026-08-30T04:35:53.468Z",
+      "completedAt": "2026-08-30T04:35:55.774Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:79666f2e90f6c56983bb009b1d4a1a1f1e15afa8bbacb002014b6129b5a55fea"
+    },
+    {
+      "fixtureId": "hostile-data.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "STRUCTURED_OUTPUT_ACCEPTED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "hostile-data.positive.v1",
+        "observerId": "protected.hostile-data.positive",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:befc201c9b0e774f1246d7d12e09ccb60111c33b6c75a0ca6f886553736aa063",
+        "observedAt": "2026-08-30T04:35:58.097Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.hostile-data.positive.v1.42379ffb341a",
+      "startedAt": "2026-08-30T04:35:55.775Z",
+      "completedAt": "2026-08-30T04:35:58.097Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:befc201c9b0e774f1246d7d12e09ccb60111c33b6c75a0ca6f886553736aa063"
+    },
+    {
+      "fixtureId": "identity-currentness.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "CURRENTNESS_MISMATCHED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "identity-currentness.negative.v1",
+        "observerId": "protected.identity-currentness.negative",
+        "observerKind": "ENVIRONMENT_MEASUREMENT",
+        "observationDigest": "sha256:2c0acd134e06611527201c2eb196f0ad4ac605cc55fd0b026451dfd95704618b",
+        "observedAt": "2026-08-30T04:35:58.611Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.identity-currentness.negative.v1.56edc0a548fd",
+      "startedAt": "2026-08-30T04:35:58.098Z",
+      "completedAt": "2026-08-30T04:35:58.611Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:2c0acd134e06611527201c2eb196f0ad4ac605cc55fd0b026451dfd95704618b"
+    },
+    {
+      "fixtureId": "identity-currentness.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "CURRENTNESS_MATCHED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "identity-currentness.positive.v1",
+        "observerId": "protected.identity-currentness.positive",
+        "observerKind": "ENVIRONMENT_MEASUREMENT",
+        "observationDigest": "sha256:ee1741321331f18dd08437356dfdae50eddcf9e1525579d82829ffa2573ff914",
+        "observedAt": "2026-08-30T04:35:59.124Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.identity-currentness.positive.v1.dbe879b0856a",
+      "startedAt": "2026-08-30T04:35:58.612Z",
+      "completedAt": "2026-08-30T04:35:59.124Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:ee1741321331f18dd08437356dfdae50eddcf9e1525579d82829ffa2573ff914"
+    },
+    {
+      "fixtureId": "instruction-package.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "DUPLICATE_SKILL_DISCOVERED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "instruction-package.negative.v1",
+        "observerId": "protected.instruction-package.negative",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:e9f2091a03d97bd05bf8525ea122604667d2ed6149310acbb48cd66751fc79a8",
+        "observedAt": "2026-08-30T04:36:00.522Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.instruction-package.negative.v1.62d07a7fc87c",
+      "startedAt": "2026-08-30T04:35:59.124Z",
+      "completedAt": "2026-08-30T04:36:00.522Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:e9f2091a03d97bd05bf8525ea122604667d2ed6149310acbb48cd66751fc79a8"
+    },
+    {
+      "fixtureId": "instruction-package.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_DISCOVERED",
+        "NATIVE_SKILL_ALLOWED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "instruction-package.positive.v1",
+        "observerId": "protected.instruction-package.positive",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:54a69e3815c8037482165bfb07f596de2651db87a9d4c6fbaecf31f39a67e619",
+        "observedAt": "2026-08-30T04:36:03.655Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.instruction-package.positive.v1.46f5912a6bc7",
+      "startedAt": "2026-08-30T04:36:00.522Z",
+      "completedAt": "2026-08-30T04:36:03.655Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:54a69e3815c8037482165bfb07f596de2651db87a9d4c6fbaecf31f39a67e619"
+    },
+    {
+      "fixtureId": "native-permissions.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "NATIVE_TOOL_DENIED",
+        "NATIVE_PERMISSION_MATCHED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "native-permissions.negative.v1",
+        "observerId": "protected.native-permissions.negative",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:37f624cd7699f7335bae1c1b167e98510935626f0a6887e94ba6479c73608d22",
+        "observedAt": "2026-08-30T04:36:06.022Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.native-permissions.negative.v1.bce3a5c97ba6",
+      "startedAt": "2026-08-30T04:36:03.655Z",
+      "completedAt": "2026-08-30T04:36:06.022Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:37f624cd7699f7335bae1c1b167e98510935626f0a6887e94ba6479c73608d22"
+    },
+    {
+      "fixtureId": "native-permissions.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "NATIVE_PERMISSION_MATCHED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "native-permissions.positive.v1",
+        "observerId": "protected.native-permissions.positive",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:2528e2b2ac83e4048fd8d6bb49ce9e74617ded560463161342300af524fd0cce",
+        "observedAt": "2026-08-30T04:36:08.393Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.native-permissions.positive.v1.7bf7d1fbbcc8",
+      "startedAt": "2026-08-30T04:36:06.023Z",
+      "completedAt": "2026-08-30T04:36:08.393Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:2528e2b2ac83e4048fd8d6bb49ce9e74617ded560463161342300af524fd0cce"
+    },
+    {
+      "fixtureId": "preservation.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "PRESERVATION_BASELINE_MISMATCHED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "preservation.negative.v1",
+        "observerId": "protected.preservation.negative",
+        "observerKind": "PRESERVATION_BASELINE",
+        "observationDigest": "sha256:5634cd56004fcceb4233f93cd25b4f5e6a53909f69d261056d0dcae31ad605f3",
+        "observedAt": "2026-08-30T04:36:09.905Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.preservation.negative.v1.0a0011d5322a",
+      "startedAt": "2026-08-30T04:36:08.393Z",
+      "completedAt": "2026-08-30T04:36:09.905Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:5634cd56004fcceb4233f93cd25b4f5e6a53909f69d261056d0dcae31ad605f3"
+    },
+    {
+      "fixtureId": "preservation.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "CODEX_BASELINE_MATCHED",
+        "CLAUDE_BASELINE_MATCHED",
+        "OPENCODE_BASELINE_MATCHED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "preservation.positive.v1",
+        "observerId": "protected.preservation.positive",
+        "observerKind": "PRESERVATION_BASELINE",
+        "observationDigest": "sha256:d065befa73b86c3bab9963cb81a9d2c93f9a0294a2a681e5f14092ee7bb8f775",
+        "observedAt": "2026-08-30T04:36:11.430Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.preservation.positive.v1.2918125c068f",
+      "startedAt": "2026-08-30T04:36:09.905Z",
+      "completedAt": "2026-08-30T04:36:11.430Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:d065befa73b86c3bab9963cb81a9d2c93f9a0294a2a681e5f14092ee7bb8f775"
+    },
+    {
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "PUBLIC_MCP_LEASE_REJECTED",
+        "NO_PROMOTION_OBSERVED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "public-mcp-facade.negative.v1",
+        "observerId": "protected.public-mcp-facade.negative",
+        "observerKind": "MCP_FRAME_COLLECTOR",
+        "observationDigest": "sha256:f11e6c9141d6cc19116cdbc16aaabb9fc9d001cfd9cf45d7a7d22194daa9d756",
+        "observedAt": "2026-08-30T04:36:12.031Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.public-mcp-facade.negative.v1.7da3fdde4bd3",
+      "startedAt": "2026-08-30T04:36:11.431Z",
+      "completedAt": "2026-08-30T04:36:12.031Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:f11e6c9141d6cc19116cdbc16aaabb9fc9d001cfd9cf45d7a7d22194daa9d756"
+    },
+    {
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "PUBLIC_MCP_LIST_OBSERVED",
+        "PUBLIC_MCP_READ_OBSERVED",
+        "NO_PROMOTION_OBSERVED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "public-mcp-facade.positive.v1",
+        "observerId": "protected.public-mcp-facade.positive",
+        "observerKind": "MCP_FRAME_COLLECTOR",
+        "observationDigest": "sha256:c66a3587b05db35de1a2e4fdd1abdd999d89834621b6906ff8729aada3940280",
+        "observedAt": "2026-08-30T04:36:12.662Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.public-mcp-facade.positive.v1.4f0b5729cbf7",
+      "startedAt": "2026-08-30T04:36:12.031Z",
+      "completedAt": "2026-08-30T04:36:12.662Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:c66a3587b05db35de1a2e4fdd1abdd999d89834621b6906ff8729aada3940280"
+    },
+    {
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "PROVIDER_RESPONSE_LOST",
+        "BLIND_RETRY_ABSENT",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "receipt-ambiguity.negative.v1",
+        "observerId": "protected.receipt-ambiguity.negative",
+        "observerKind": "PROVIDER_RECEIPT",
+        "observationDigest": "sha256:f746c4630e8f9b4809e99a3956595ebd0dca83be926d313d28bb655f378d3140",
+        "observedAt": "2026-08-30T04:36:13.163Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.receipt-ambiguity.negative.v1.3a6fa9c96dfc",
+      "startedAt": "2026-08-30T04:36:12.662Z",
+      "completedAt": "2026-08-30T04:36:13.163Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:f746c4630e8f9b4809e99a3956595ebd0dca83be926d313d28bb655f378d3140"
+    },
+    {
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "PROVIDER_REQUEST_OBSERVED",
+        "PROVIDER_RECEIPT_MATCHED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "receipt-ambiguity.positive.v1",
+        "observerId": "protected.receipt-ambiguity.positive",
+        "observerKind": "PROVIDER_RECEIPT",
+        "observationDigest": "sha256:8b21c9f6274c638d6d624a827d9501f0c7b2cc241139a3cddd868e0faf331520",
+        "observedAt": "2026-08-30T04:36:15.555Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.receipt-ambiguity.positive.v1.b4fa58e784e2",
+      "startedAt": "2026-08-30T04:36:13.163Z",
+      "completedAt": "2026-08-30T04:36:15.555Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:8b21c9f6274c638d6d624a827d9501f0c7b2cc241139a3cddd868e0faf331520"
+    },
+    {
+      "fixtureId": "workspace.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "WORKSPACE_ALIAS_REJECTED",
+        "REPOSITORY_UNCHANGED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "workspace.negative.v1",
+        "observerId": "protected.workspace.negative",
+        "observerKind": "FILESYSTEM_IDENTITY",
+        "observationDigest": "sha256:a3e19b0512d8d26925bee4cfe02d96092e10bc99bbadfe74b1338e95cc1f0666",
+        "observedAt": "2026-08-30T04:36:16.070Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.workspace.negative.v1.fc3870e39596",
+      "startedAt": "2026-08-30T04:36:15.556Z",
+      "completedAt": "2026-08-30T04:36:16.070Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:a3e19b0512d8d26925bee4cfe02d96092e10bc99bbadfe74b1338e95cc1f0666"
+    },
+    {
+      "fixtureId": "workspace.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "WORKSPACE_IDENTITY_MATCHED",
+        "REPOSITORY_UNCHANGED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.opencode-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "workspace.positive.v1",
+        "observerId": "protected.workspace.positive",
+        "observerKind": "FILESYSTEM_IDENTITY",
+        "observationDigest": "sha256:abd15048a55eda141e5b813662b93486f657bf9db61810edf68503dfb27e46b9",
+        "observedAt": "2026-08-30T04:36:17.489Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.workspace.positive.v1.6bd15af31f3c",
+      "startedAt": "2026-08-30T04:36:16.071Z",
+      "completedAt": "2026-08-30T04:36:17.489Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:abd15048a55eda141e5b813662b93486f657bf9db61810edf68503dfb27e46b9"
+    }
+  ],
+  "executions": [
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "approval-broker.negative.v1",
+      "fixtureDigest": "sha256:6a038f2e703b9d6b3aade08f7e76282ec740d98863b5475b8d10697cf5705c8a",
+      "attemptId": "attempt.approval-broker.negative.v1.fdf1d115ea16",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:0f3dbe74a19c7a06b5257a1277240b33f6bb888d56e55827574764a53146cb1f"
+      ],
+      "startedAt": "2026-08-30T04:35:46.685Z",
+      "completedAt": "2026-08-30T04:35:47.174Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "approval-broker.positive.v1",
+      "fixtureDigest": "sha256:9fcff127d9e0bfbc8cdc4ff2d1379b7a7d57351b15976e603da878f6e622c7ac",
+      "attemptId": "attempt.approval-broker.positive.v1.7e7f26aa542d",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:57823de93a366ab5ebb40cf3c3499fff0c490b1d1d95476df99caf2370302253"
+      ],
+      "startedAt": "2026-08-30T04:35:47.174Z",
+      "completedAt": "2026-08-30T04:35:49.495Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "background-lifecycle.negative.v1",
+      "fixtureDigest": "sha256:9b321940ace024cabda1b27b7af4a15ced1159553f333b47762b53153575b013",
+      "attemptId": "attempt.background-lifecycle.negative.v1.645ad45256a1",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:136f5f08be50aff96fb58df43b54473977aabf2568aabef837abdbb6d279f7e8"
+      ],
+      "startedAt": "2026-08-30T04:35:49.496Z",
+      "completedAt": "2026-08-30T04:35:51.138Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "background-lifecycle.positive.v1",
+      "fixtureDigest": "sha256:a4651fc6d3598199a49f5bfd92645d9e456887b81ef2eae63192f7125c094c3b",
+      "attemptId": "attempt.background-lifecycle.positive.v1.496ac10c2388",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:09a4416cff62f3c5775b432e3d00f340b2eba1811a980cdbc1787d43b5aa0913"
+      ],
+      "startedAt": "2026-08-30T04:35:51.138Z",
+      "completedAt": "2026-08-30T04:35:53.467Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "hostile-data.negative.v1",
+      "fixtureDigest": "sha256:caaf72387feeb0d0cb0b2e2f5f0d7daf4264b7583d7d2b734862c5d3ba08d418",
+      "attemptId": "attempt.hostile-data.negative.v1.5561dd272f07",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:3396ce185d6395221500c564987146429a3c833d37fce47a8a0b1e47d081792d"
+      ],
+      "startedAt": "2026-08-30T04:35:53.468Z",
+      "completedAt": "2026-08-30T04:35:55.774Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "hostile-data.positive.v1",
+      "fixtureDigest": "sha256:7a12a39b497896869326421a7678cd3c69e0f5c933209ba76881cff9ecefd715",
+      "attemptId": "attempt.hostile-data.positive.v1.42379ffb341a",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:ce0f0f3b87f0b227fa6c3ac68ee7560d4d7f71e49ac44590ffc9ba0767b7e0f3"
+      ],
+      "startedAt": "2026-08-30T04:35:55.775Z",
+      "completedAt": "2026-08-30T04:35:58.097Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "identity-currentness.negative.v1",
+      "fixtureDigest": "sha256:5a1b12051043d50c9c61050dfbe11348f9eceaf4803a1c53f3d99ab0fd16e511",
+      "attemptId": "attempt.identity-currentness.negative.v1.56edc0a548fd",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:d438215ea7bf45f6ff089aafdfcc7d6f674bf09658738fa163a33bf55d69d014"
+      ],
+      "startedAt": "2026-08-30T04:35:58.098Z",
+      "completedAt": "2026-08-30T04:35:58.611Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "identity-currentness.positive.v1",
+      "fixtureDigest": "sha256:5a926ed28b02b179c2a5bedfbd4de3a25d414c6558b9373e11e6258f839be951",
+      "attemptId": "attempt.identity-currentness.positive.v1.dbe879b0856a",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:64465832b16e6b6dadba05804081beb4149d896431ccbda98fba21cd155c15f2"
+      ],
+      "startedAt": "2026-08-30T04:35:58.612Z",
+      "completedAt": "2026-08-30T04:35:59.124Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "instruction-package.negative.v1",
+      "fixtureDigest": "sha256:87dd28e21f10428a7161544d9b60ef3364cf100a48ccd292ff32357b7df4bb41",
+      "attemptId": "attempt.instruction-package.negative.v1.62d07a7fc87c",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:12bddc858f07fa3d43873b0f54818b1735ab6560b934ae48ab3449613e0bdfbf"
+      ],
+      "startedAt": "2026-08-30T04:35:59.124Z",
+      "completedAt": "2026-08-30T04:36:00.522Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "instruction-package.positive.v1",
+      "fixtureDigest": "sha256:4f06fe3f082aa2512e3f486572bfbafe592f161eda67a75b980f9ac80114f840",
+      "attemptId": "attempt.instruction-package.positive.v1.46f5912a6bc7",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:f975806d6e44faeedbc5a664b33231c99313272cb268295afbc6d24cf5d4bd82"
+      ],
+      "startedAt": "2026-08-30T04:36:00.522Z",
+      "completedAt": "2026-08-30T04:36:03.655Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "native-permissions.negative.v1",
+      "fixtureDigest": "sha256:f15acc40b94da098ae7b765cb54648bdf3435bb87f70272917676212cbd16fb7",
+      "attemptId": "attempt.native-permissions.negative.v1.bce3a5c97ba6",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:fd0dd2532dce2052052a588b268abfaa0201cea02f083851d0796cfafdd7bc6c"
+      ],
+      "startedAt": "2026-08-30T04:36:03.655Z",
+      "completedAt": "2026-08-30T04:36:06.022Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "native-permissions.positive.v1",
+      "fixtureDigest": "sha256:058dde0a8fb4e7d6cb011ea48c24ee788e77982fd0290a97c7a16891e169af29",
+      "attemptId": "attempt.native-permissions.positive.v1.7bf7d1fbbcc8",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:8bdf1a55d4e44b5cf1416c26a56a410e8642a302d8febd32a0d485053156d174"
+      ],
+      "startedAt": "2026-08-30T04:36:06.023Z",
+      "completedAt": "2026-08-30T04:36:08.393Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "preservation.negative.v1",
+      "fixtureDigest": "sha256:616681333d3f5da59ba7b4ede99fad76d0744cc143b8d92c0c4b560de4fa7601",
+      "attemptId": "attempt.preservation.negative.v1.0a0011d5322a",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:fbb588b3b8424e70056c68d7633276b9ef5a540a61340f2d9df1166825ae566a"
+      ],
+      "startedAt": "2026-08-30T04:36:08.393Z",
+      "completedAt": "2026-08-30T04:36:09.905Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "preservation.positive.v1",
+      "fixtureDigest": "sha256:5e559955d848492f87c9573c64fde29b439109e15c223dab110aa49332a7c045",
+      "attemptId": "attempt.preservation.positive.v1.2918125c068f",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:aba057386aeff5bedd263ae24008654e878741b13502b5f47f6da5bbb48ab467"
+      ],
+      "startedAt": "2026-08-30T04:36:09.905Z",
+      "completedAt": "2026-08-30T04:36:11.430Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "fixtureDigest": "sha256:3ff46fa5ed134e1c010eac0634e243e98fadb03f001b13f389f533aae1a8ae72",
+      "attemptId": "attempt.public-mcp-facade.negative.v1.7da3fdde4bd3",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:cae0dc915aed4dbfeee9ef29ecb020123a2e83ce05c7db35c212598404c47c11"
+      ],
+      "startedAt": "2026-08-30T04:36:11.431Z",
+      "completedAt": "2026-08-30T04:36:12.031Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "fixtureDigest": "sha256:b6bcc350398964e0a53727d5ab9787a258099a5233551ae9d7c0a83017e450a6",
+      "attemptId": "attempt.public-mcp-facade.positive.v1.4f0b5729cbf7",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:bd038b4454ea5e6b95b01fef64d6bf9bac4dc25f868bd079bd637b3ee6f6a96f"
+      ],
+      "startedAt": "2026-08-30T04:36:12.031Z",
+      "completedAt": "2026-08-30T04:36:12.662Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "fixtureDigest": "sha256:fb77ccb1577a394fe5659860563168d32708d036c8a685295c53c97a4c1d5f2b",
+      "attemptId": "attempt.receipt-ambiguity.negative.v1.3a6fa9c96dfc",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:d90cb9ad5b720cae4592890c8e5286e30a71eda71660f5fc7556b955f13d71d1"
+      ],
+      "startedAt": "2026-08-30T04:36:12.662Z",
+      "completedAt": "2026-08-30T04:36:13.163Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "fixtureDigest": "sha256:351a56f4dbe944f5ef0ac6fe899332b87b4ce4249c5b6f126ff67183737f544a",
+      "attemptId": "attempt.receipt-ambiguity.positive.v1.b4fa58e784e2",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:e48bbf672b3ca4bb803a489d03919166835b26a4c8ef731715c060596f32fac7"
+      ],
+      "startedAt": "2026-08-30T04:36:13.163Z",
+      "completedAt": "2026-08-30T04:36:15.555Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "workspace.negative.v1",
+      "fixtureDigest": "sha256:eafed9424da3fc54797bac00e43426e5d631221c712c82edc45c2742a18b7a33",
+      "attemptId": "attempt.workspace.negative.v1.fc3870e39596",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:b69dbd320fa7b99819bdd381039210ebe0b1460d83306c4fab47779c69aa726a"
+      ],
+      "startedAt": "2026-08-30T04:36:15.556Z",
+      "completedAt": "2026-08-30T04:36:16.070Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.opencode-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "workspace.positive.v1",
+      "fixtureDigest": "sha256:cacc660bc9e16d9254fd79e314054dcca1ff098d5deeb3a276f00a1a4adae4b9",
+      "attemptId": "attempt.workspace.positive.v1.6bd15af31f3c",
+      "state": "PASS",
+      "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+      "environmentStartDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "environmentEndDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+      "observerReceiptDigests": [
+        "sha256:819fbd6b8637d06d8af6b978dac56891dfe06e115e98af1952e893bd5010802e"
+      ],
+      "startedAt": "2026-08-30T04:36:16.071Z",
+      "completedAt": "2026-08-30T04:36:17.489Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    }
+  ],
+  "evidenceSet": {
+    "schemaId": "kstack.opencode-conformance-evidence-set.v1",
+    "schemaVersion": 1,
+    "planDigest": "sha256:922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+    "fixtureSetDigest": "sha256:c4a259039cc0efee5f2632bd8a7310d0efd470d0ddb0c6d903714ded06b3759c",
+    "executionDigests": [
+      "sha256:009827da96af71654df7167a461cadf24f8080478d953ae1cbc2f588956557e0",
+      "sha256:03dfd5883a7e51a0d0e6a675bed3caf7db203a16d3034d92c287bd8516db6eae",
+      "sha256:06053c970d4fffb29af32731e69a3a67f3a5851118091262267aa0505df08afd",
+      "sha256:0bfa7203adb32a9e9f3839b33c3ee70453573ef3b7e465fe4e8ff0f258b883aa",
+      "sha256:11869a3e6f0a8dc2bab6745c07c558f0dbc67610a11f1c23d8818abb75831e6c",
+      "sha256:11f47ff5780354851d3863590e878d995d4c4d74077fb163edb47fdc1fb9e8ed",
+      "sha256:33d3e880853e6866df8a7e2cd8644aa0e4ebd54b5a4a40a19274aa8d3614e86c",
+      "sha256:3811e03760fd52f7f6385962f22e3686e6953aaec8ccea1d9a273aac30c1f6f5",
+      "sha256:4ba0295622ad69db1c726a52b47f9014339a71d5ad0c6300aa9448937c30142e",
+      "sha256:5d37f6d073f1026f6585018a2f6658ff4717fa9333c4432cb98b21aa85ebe0ed",
+      "sha256:647cc6a6fd0b33491227b19243e3b2f0bf440d302e4999b148f6c03450d2a7c2",
+      "sha256:788c6e0acd62f7e89f2d39d8ebfcc1856200485e5f5aa45123079693410834dd",
+      "sha256:8fbc2334885e508c0218025c47f6d25cf112a1a41463a1b332825d3b98e21e6e",
+      "sha256:90a28f65579f67154d152c44399d4b88c096a8cb33dd80fe88ed29cf5e9aab4a",
+      "sha256:92c7b982535b43883658494a2e3129361770b5e532bcb27e7071ff766f7a4064",
+      "sha256:acbc02b7b9b8ba06b66a464c238f59ab9456b6710513e57b8ddfd0b4afdcbf1a",
+      "sha256:c88b6370c9b94b26279d1c57dc0a1be5733f3607dd48ac02208c40ad5b6df927",
+      "sha256:cac226888843648063c0668d9d63e9580925c6ae91b74b6c4ec84a08cf45e793",
+      "sha256:e05318b15fd0ecae4f3b0acac2235100f177af4c6d3d96ae6d89cc0eb2a329fc",
+      "sha256:e0a6f68abca268a028372a790ab486e3c370f78431e6f58148ddd7b01d569a26"
+    ],
+    "fixtureIds": [
+      "approval-broker.negative.v1",
+      "approval-broker.positive.v1",
+      "background-lifecycle.negative.v1",
+      "background-lifecycle.positive.v1",
+      "hostile-data.negative.v1",
+      "hostile-data.positive.v1",
+      "identity-currentness.negative.v1",
+      "identity-currentness.positive.v1",
+      "instruction-package.negative.v1",
+      "instruction-package.positive.v1",
+      "native-permissions.negative.v1",
+      "native-permissions.positive.v1",
+      "preservation.negative.v1",
+      "preservation.positive.v1",
+      "public-mcp-facade.negative.v1",
+      "public-mcp-facade.positive.v1",
+      "receipt-ambiguity.negative.v1",
+      "receipt-ambiguity.positive.v1",
+      "workspace.negative.v1",
+      "workspace.positive.v1"
+    ],
+    "observerReceiptDigests": [
+      "sha256:09a4416cff62f3c5775b432e3d00f340b2eba1811a980cdbc1787d43b5aa0913",
+      "sha256:0f3dbe74a19c7a06b5257a1277240b33f6bb888d56e55827574764a53146cb1f",
+      "sha256:12bddc858f07fa3d43873b0f54818b1735ab6560b934ae48ab3449613e0bdfbf",
+      "sha256:136f5f08be50aff96fb58df43b54473977aabf2568aabef837abdbb6d279f7e8",
+      "sha256:3396ce185d6395221500c564987146429a3c833d37fce47a8a0b1e47d081792d",
+      "sha256:57823de93a366ab5ebb40cf3c3499fff0c490b1d1d95476df99caf2370302253",
+      "sha256:64465832b16e6b6dadba05804081beb4149d896431ccbda98fba21cd155c15f2",
+      "sha256:819fbd6b8637d06d8af6b978dac56891dfe06e115e98af1952e893bd5010802e",
+      "sha256:8bdf1a55d4e44b5cf1416c26a56a410e8642a302d8febd32a0d485053156d174",
+      "sha256:aba057386aeff5bedd263ae24008654e878741b13502b5f47f6da5bbb48ab467",
+      "sha256:b69dbd320fa7b99819bdd381039210ebe0b1460d83306c4fab47779c69aa726a",
+      "sha256:bd038b4454ea5e6b95b01fef64d6bf9bac4dc25f868bd079bd637b3ee6f6a96f",
+      "sha256:cae0dc915aed4dbfeee9ef29ecb020123a2e83ce05c7db35c212598404c47c11",
+      "sha256:ce0f0f3b87f0b227fa6c3ac68ee7560d4d7f71e49ac44590ffc9ba0767b7e0f3",
+      "sha256:d438215ea7bf45f6ff089aafdfcc7d6f674bf09658738fa163a33bf55d69d014",
+      "sha256:d90cb9ad5b720cae4592890c8e5286e30a71eda71660f5fc7556b955f13d71d1",
+      "sha256:e48bbf672b3ca4bb803a489d03919166835b26a4c8ef731715c060596f32fac7",
+      "sha256:f975806d6e44faeedbc5a664b33231c99313272cb268295afbc6d24cf5d4bd82",
+      "sha256:fbb588b3b8424e70056c68d7633276b9ef5a540a61340f2d9df1166825ae566a",
+      "sha256:fd0dd2532dce2052052a588b268abfaa0201cea02f083851d0796cfafdd7bc6c"
+    ],
+    "startMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+    "endMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+    "currentnessMeasurementDigest": "sha256:981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+    "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+    "expiresAt": "2026-09-06T04:35:46.611Z",
+    "aggregate": "PASS"
+  },
+  "evidenceSetDigest": "sha256:0059d0767ac77370f81079df09d03c6cd0ebfb5e01274521411594668285b5cc",
+  "operationStatus": {
+    "schemaId": "kstack.opencode-operation-status.v1",
+    "schemaVersion": 1,
+    "hostId": "opencode",
+    "maximumClaim": "OPERATION_SCOPED_ONLY",
+    "operationId": "advisory",
+    "operationProfileId": "opencode.native-skill-advisory.v1",
+    "profileClass": "FULL",
+    "registeredAlternate": false,
+    "hostBuildDigest": "sha256:b0e3724218f7df5a2ac0cec548c051ccc44ffa0d696acdece528706a32469d90",
+    "adapterDigest": "sha256:5f908ff798b79ef77438f9573aff09f1d941aa3bc1069b54ca60b9a498ccdd8b",
+    "platformDigest": "sha256:15fe35a5423bc25bb1acd2c5275bf074ed624a1095c2b4b1c2678c3bb15c0ed6",
+    "activeSetDigest": "sha256:b0d0a7558e43579665fc52052dc3458d41d5aaca729d8b96eba2169cacd02295",
+    "policyDigest": "sha256:142995f14a3b5017d38871048360db4b7d67d41ba3cc36579fa92c997669b591",
+    "evidenceSetDigest": "sha256:0059d0767ac77370f81079df09d03c6cd0ebfb5e01274521411594668285b5cc",
+    "fixtureSetDigest": "sha256:c4a259039cc0efee5f2632bd8a7310d0efd470d0ddb0c6d903714ded06b3759c",
+    "observerSetDigest": "sha256:451d28276ab2f669b0e12c40465af4a17a37c7d60dbfb7aed0a6dc5f1d7b2b14",
+    "evaluatedAt": "2026-08-30T04:36:17.501Z",
+    "expiresAt": "2026-09-06T04:35:46.611Z",
+    "aggregate": "PASS",
+    "revoked": false,
+    "drifted": false,
+    "contradicted": false,
+    "missingRequirementIds": [],
+    "bypassIds": [],
+    "status": "FULL",
+    "reasonCodes": []
+  },
+  "operationStatusDigest": "sha256:5a08f0b283a14583c7e569e42e26dcdfbb927f03c2f1c7a71a0016d2643053d5",
+  "providerRequestCount": 16,
+  "providerRequestDigest": "sha256:2dec7a745db884d5c99c328a693c686e4d7557c92cb59705f88d89752af1f2c4",
+  "failedFixtureIds": [],
+  "fixtureDiagnostics": [
+    {
+      "fixtureId": "approval-broker.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "approval-broker.negative.v1",
+        "group": "approval-broker",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "26ae2250d73f0edf3b634998eb00b30fa45d7bd1348c030988651f4b32ed1ebd",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:bfc8bf46125ad61fe20fc413f8833f03d9fe5f7baffb99e7e18faa7ab2940297",
+        "repositoryFinalDigest": "sha256:bfc8bf46125ad61fe20fc413f8833f03d9fe5f7baffb99e7e18faa7ab2940297",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:c0fbe10941185d60e802ad16ea9c06629117a4bdaac4b9f501c5c1a8d02ffefe"
+      }
+    },
+    {
+      "fixtureId": "approval-broker.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "approval-broker.positive.v1",
+        "group": "approval-broker",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "8a09a2d996a2c42b13d395c5105fb4eb0dbc6021cb3006b88be9ddf8b2a4b85a",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:fc2eca5b60680115e69287d5381388da0d3af16d24fccd46de3fa6d7a204adbd",
+        "repositoryFinalDigest": "sha256:fc2eca5b60680115e69287d5381388da0d3af16d24fccd46de3fa6d7a204adbd",
+        "adapterObservationDigest": "63ed58a311651b850490e838ca394b92340b87076493ec2ba7366a70e66a9b84",
+        "providerRequestDigest": "sha256:c498ace820d003caee64d99264f5c0990c135e23844b1e9c78c1ab685075a19e",
+        "groupEvidenceDigest": "sha256:7648afb04dd0349cf3e6c201581ca10afca256386fab4ca5a8b88e0cac16d7dc"
+      }
+    },
+    {
+      "fixtureId": "background-lifecycle.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "background-lifecycle.negative.v1",
+        "group": "background-lifecycle",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "4d7a803fe51921a3be7b6ac5c43125860886ffcd8cbad5620c3c84a99c3c473b",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:be21b3170d8fc84f1cfffcb6f46adbb584ce231128af21f42be9d7f033b045c6",
+        "repositoryFinalDigest": "sha256:be21b3170d8fc84f1cfffcb6f46adbb584ce231128af21f42be9d7f033b045c6",
+        "adapterObservationDigest": "ccd1f6722bdc3c3b067234ecb9fcf0606df6694bf8cfbc47f01bf7d9f54b5664",
+        "providerRequestDigest": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "groupEvidenceDigest": "sha256:b89e4fb7e85b80381d6a035d91771db2a63a8cce7317fdc282021ba29242a2c9",
+        "groupDiagnostics": {
+          "status": null,
+          "signal": "SIGKILL",
+          "deadlineTriggered": true,
+          "elapsedMs": 1022,
+          "liveDescendants": []
+        }
+      }
+    },
+    {
+      "fixtureId": "background-lifecycle.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "background-lifecycle.positive.v1",
+        "group": "background-lifecycle",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "37866c87c30341151a8faef56ebe7af4e0f67ed7e2cfb350d1d5d2ac0eb7cf69",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:a7b056f74efd61a5affa1f58fd20adc657d5455283bfa5fdbba5848ba4c6bbc1",
+        "repositoryFinalDigest": "sha256:a7b056f74efd61a5affa1f58fd20adc657d5455283bfa5fdbba5848ba4c6bbc1",
+        "adapterObservationDigest": "cd99db4f4868edd6d94122b4834a23f5ec1871b89fc49030ba6bcfb37606aa97",
+        "providerRequestDigest": "sha256:0f7cfa671ae6c50e7629ef971aa589d0ac5a9e475041db4a543bb9e71882b700",
+        "groupEvidenceDigest": "sha256:460cda2499fb9c17ac14b1352bac23c7fb2d1d7e1b5afbca10df9a6a51a85e7d",
+        "groupDiagnostics": {
+          "status": 0,
+          "signal": null,
+          "deadlineTriggered": false,
+          "elapsedMs": 1699,
+          "liveDescendants": []
+        }
+      }
+    },
+    {
+      "fixtureId": "hostile-data.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "hostile-data.negative.v1",
+        "group": "hostile-data",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "1967eaa10d5f8098be53fcb7202d68f4c88203ac6999b5a04ad8bdfa69bb6046",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:950f3481fcda110ca84c611309500591e59acc06a9328ca2e52bf73102fe534c",
+        "repositoryFinalDigest": "sha256:950f3481fcda110ca84c611309500591e59acc06a9328ca2e52bf73102fe534c",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": "sha256:f7058eace7d48b837163ab5cfa5e3e27d3fdb871eb2564338b7f1a70aeb023c8",
+        "groupEvidenceDigest": "sha256:fa2ac79b7e9c952804c87ec58452c8a83ffb5c962b473d38c466063bdab010d6"
+      }
+    },
+    {
+      "fixtureId": "hostile-data.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "hostile-data.positive.v1",
+        "group": "hostile-data",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "e9001724f9b1878251e700b9d4ace26ef427bb762e117238e6ee5eeb06477bcc",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:206a6a195493735cea0d518b52d84a30f416eb6ec5745e75f46b32510198e10e",
+        "repositoryFinalDigest": "sha256:206a6a195493735cea0d518b52d84a30f416eb6ec5745e75f46b32510198e10e",
+        "adapterObservationDigest": "952ce0ec6ae409743ec60269d531ed1e5ec6dfc942136a5b640041b9509265a7",
+        "providerRequestDigest": "sha256:b047eb37b76aedf5c79e37adc797b6e5207ce107d0b6c4d1fb15dd90b5b81960",
+        "groupEvidenceDigest": "sha256:f9d3c2859526967f132ad0a1d9e005b284ed9058ea01da5f9d521d2fe2ad0530"
+      }
+    },
+    {
+      "fixtureId": "identity-currentness.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "identity-currentness.negative.v1",
+        "group": "identity-currentness",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "2ee3cb480259ea16bfd2fc6e17140f66b3c561a24b0cfecb622d46870a2b43a8",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:e81b64106fa47b351966b458a7e680b56b230aa04c4354b288630f9d48f750d4",
+        "repositoryFinalDigest": "sha256:e81b64106fa47b351966b458a7e680b56b230aa04c4354b288630f9d48f750d4",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:91dd50f71c03d6ea5789a8fccfc47eae1a52d2889cf7608e66ef22a1d3c673ad"
+      }
+    },
+    {
+      "fixtureId": "identity-currentness.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "identity-currentness.positive.v1",
+        "group": "identity-currentness",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "bdc944e8851f9327ceb114901a3c03d82877ca3bea273332abb9f57763a2d43c",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:8c6cf42f10edc8395b74a3d46afa81f0a499b887bbaa883a38b2caf7a1ee9037",
+        "repositoryFinalDigest": "sha256:8c6cf42f10edc8395b74a3d46afa81f0a499b887bbaa883a38b2caf7a1ee9037",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:7608671b2884abc0b6d12d6de65d051b7e1fdac0960da0ed861ff82dd2547e06"
+      }
+    },
+    {
+      "fixtureId": "instruction-package.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "instruction-package.negative.v1",
+        "group": "instruction-package",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "92094c6e895a2e482ea395720905f439adadae1531caaa2ac5047d23db2bf2bc",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:0a2ce25a6695b9173eab8216ed04a3b5bbc72207302e376eccfd76b112a5c055",
+        "repositoryFinalDigest": "sha256:0a2ce25a6695b9173eab8216ed04a3b5bbc72207302e376eccfd76b112a5c055",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:5d2af47d0be15133f85e8ee58737c15c410a06b47ad7779cc3e8b22f57a6acaa"
+      }
+    },
+    {
+      "fixtureId": "instruction-package.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "instruction-package.positive.v1",
+        "group": "instruction-package",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "83f0a695baba2ec2a2ba39cc87ed31ebb0970c4e57d4b8b4cae5d22529a8467e",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:151e8f514619f1639f3defa45496f180da162b3a8ca06750e48d23c2585cf59a",
+        "repositoryFinalDigest": "sha256:151e8f514619f1639f3defa45496f180da162b3a8ca06750e48d23c2585cf59a",
+        "adapterObservationDigest": "d66c09da4b2a35f72fe36c1c4c7c4cf6fd78fb2d20596d0809905e4989cb93f5",
+        "providerRequestDigest": "sha256:3f43da75fca52c2cfd7d9415a53f4b301046fe64909a9dd27056d658f5153062",
+        "groupEvidenceDigest": "sha256:a5ba7b6fa279660f700a128eaf62fa7d733020abc4649ef916ba875878a0b088"
+      }
+    },
+    {
+      "fixtureId": "native-permissions.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "native-permissions.negative.v1",
+        "group": "native-permissions",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "9e4415537c201c6e5ec193b148bb096779ec3f077e36f7040eec7386cc65f1dd",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:2b405131fd243edc5eadba5bf30f88758f80e8aaf77a0ad7880aec8ed1c5994a",
+        "repositoryFinalDigest": "sha256:2b405131fd243edc5eadba5bf30f88758f80e8aaf77a0ad7880aec8ed1c5994a",
+        "adapterObservationDigest": "e8cf9def2d6fdc34e5e4156eabc0d0d9200b4a6fa5acb2218f210558b7315e8d",
+        "providerRequestDigest": "sha256:23f8615326db76ab2750470bfba497dd426910c0b87b2326a7db627341f58a55",
+        "groupEvidenceDigest": "sha256:2c9424db09ff35be0dc0cd37727b652e10bcf0519a68dc8aaf37a304d551520f"
+      }
+    },
+    {
+      "fixtureId": "native-permissions.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "native-permissions.positive.v1",
+        "group": "native-permissions",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "91b1115eed39bf4e7d176832f17925311431d4df8d9c724856f37c28eb3e0b43",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:6b6a5b186cddf32e1e791f871bc23d224054a97e24b1eef799e943924eca1aa0",
+        "repositoryFinalDigest": "sha256:6b6a5b186cddf32e1e791f871bc23d224054a97e24b1eef799e943924eca1aa0",
+        "adapterObservationDigest": "ae4cff11202949ad875c45260d975aeef3e65bd999754f1110a998846310b4fc",
+        "providerRequestDigest": "sha256:f4b2dd9a81b956c145394e7c233230f6d76e01fd0e954c1e1e23799bbd4b98d9",
+        "groupEvidenceDigest": null
+      }
+    },
+    {
+      "fixtureId": "preservation.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "preservation.negative.v1",
+        "group": "preservation",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "325ee4f08f4d4d62b09e7d2e38abddec20a04995ec5099972563cea54e6dfc23",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:ebe0f915291548d74fe76875e5861d20a2da3f89f2acedb0ebe3a5d1207c29bf",
+        "repositoryFinalDigest": "sha256:ebe0f915291548d74fe76875e5861d20a2da3f89f2acedb0ebe3a5d1207c29bf",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:7b95a3a5faf7d670a8432d29a38340d1f10f099ad97624274fd3a2c7d740facc"
+      }
+    },
+    {
+      "fixtureId": "preservation.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "preservation.positive.v1",
+        "group": "preservation",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "c495816e9002578ba65092f172d93fea24119c264b0f49df1f343ca0016139b2",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:e44ed74536d69d4ce1066017c7a202767d287b8d01aab6c22ae5c67bcb7bf3b5",
+        "repositoryFinalDigest": "sha256:e44ed74536d69d4ce1066017c7a202767d287b8d01aab6c22ae5c67bcb7bf3b5",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:60aab5734924622ad6eae0143aae565d08a03700427bf9f8efa0ffab0826f7ad"
+      }
+    },
+    {
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "public-mcp-facade.negative.v1",
+        "group": "public-mcp-facade",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "fc3cae071c75258f1a563cd7cf77996ff8d23db63162a957b4df879f42dc93db",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:72b537ae688c680bd32cd15cfae495e4fe7bc94acfd219502a171400499ccac3",
+        "repositoryFinalDigest": "sha256:72b537ae688c680bd32cd15cfae495e4fe7bc94acfd219502a171400499ccac3",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:3ef31497f23590499a4ad44a7d2c9d76ecaa89789823244a7762f07d3e5c8903"
+      }
+    },
+    {
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "public-mcp-facade.positive.v1",
+        "group": "public-mcp-facade",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "83af36fb9a68fc868c5da3c7e823c95be8b589f4cc2461e0959f738fc528799a",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:ad53586e079f81f5706d6b573cce79d9aadeb3148277cbf08c27997529224f26",
+        "repositoryFinalDigest": "sha256:ad53586e079f81f5706d6b573cce79d9aadeb3148277cbf08c27997529224f26",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:5485d49991736b9fc02edb5b254ad17879b8f7a65eb6226e46caf045358dda10"
+      }
+    },
+    {
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "receipt-ambiguity.negative.v1",
+        "group": "receipt-ambiguity",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "10a0b45d34237d30869804f3a0311b5a223445e8db02f61566ecba0e8104589d",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:a36c04408fa907e40596e47d0a8ea8aaac9210b4ba82a420db7fa61921018292",
+        "repositoryFinalDigest": "sha256:a36c04408fa907e40596e47d0a8ea8aaac9210b4ba82a420db7fa61921018292",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:e47c05f6bdb2a5881c97a9db135e8b3b876ad330d88f6b46e488a060392005aa"
+      }
+    },
+    {
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "receipt-ambiguity.positive.v1",
+        "group": "receipt-ambiguity",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "526e8d36ac7c66dc1b4eff23fed04455d16d43a3dafa1a25aa605b04626cf151",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:07cc0cd9209416d9cb0dc62c5c516bde3a440b5d8ebdbf45c6a33110d5355aeb",
+        "repositoryFinalDigest": "sha256:07cc0cd9209416d9cb0dc62c5c516bde3a440b5d8ebdbf45c6a33110d5355aeb",
+        "adapterObservationDigest": "6a14d6a23c29bdc79509e6d2f490801b5c6e016a48e63b249a406c4a8a812af1",
+        "providerRequestDigest": "sha256:650e3f53eb395d2cf2341b5b90dbd9b21bda4eb7325422e48d81d070ef4d7de1",
+        "groupEvidenceDigest": "sha256:b966bc9df1fafafec6034f0bef99bae082e13831b03189dc4ae459b88bb32c74"
+      }
+    },
+    {
+      "fixtureId": "workspace.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "workspace.negative.v1",
+        "group": "workspace",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "374980442d1f8f72fa3909e64388069b8ab3fefc4469fcf08f147f83dc7d5221",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:6537c36d1b420f08fc0189684d221b7b30899b6f8ae3771b276a1e6901b975e8",
+        "repositoryFinalDigest": "sha256:05c314a0c9f098e0931bfba8ff4e05a946ee5c6a552e8294c3888e8ce2ece360",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:b0e5d3833c9ce7cac20decf9cd852c23c05429afef354828dcf0e7f3c2d893a3"
+      }
+    },
+    {
+      "fixtureId": "workspace.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "workspace.positive.v1",
+        "group": "workspace",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "6009da477cfe40d1358ed38ab52f7258435bb55d7e12f3d4a01449f324f597bc",
+        "binarySha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "repositoryInstalledDigest": "sha256:ff65531d6c26372ebeea5fc129da4a3d24988b96ede341378a55af90dbd22c2a",
+        "repositoryFinalDigest": "sha256:ff65531d6c26372ebeea5fc129da4a3d24988b96ede341378a55af90dbd22c2a",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:9fc846d727b27274ff719a6f984bca051a10de485693ecc260ff349f1664b27c"
+      }
+    }
+  ],
+  "maximumClaim": "OPERATION_SCOPED_ONLY",
+  "aggregate": "PASS",
+  "evidenceDigest": "sha256:8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f"
+}

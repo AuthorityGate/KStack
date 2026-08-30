@@ -20,8 +20,8 @@ function cleanEnvironment(overrides = {}) {
 }
 
 function createNativeRuntime(selectedSource = sourceRoot) {
-  const root = fs.mkdtempSync(path.join(os.homedir(), '.kstack-install-health-test-'));
-  for (const name of ['hooks', 'node_modules', 'personas', 'references', 'scripts', 'skills']) fs.cpSync(path.join(selectedSource, name), path.join(root, name), { recursive: true });
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-install-health-test-'));
+  for (const name of ['acquisition', 'hooks', 'node_modules', 'packs', 'personas', 'references', 'scripts', 'skills', 'workers']) fs.cpSync(path.join(selectedSource, name), path.join(root, name), { recursive: true });
   for (const name of ['.npmrc', 'install-health-audit-manifest-v1.json', 'install-health-authority-registry-v1.json', 'install-health-contract-v1.json', 'package-lock.json', 'package.json']) fs.copyFileSync(path.join(selectedSource, name), path.join(root, name));
   for (const directory of ['.claude-plugin', '.codex-plugin']) fs.mkdirSync(path.join(root, directory));
   fs.copyFileSync(path.join(selectedSource, '.claude-plugin', 'plugin.json'), path.join(root, '.claude-plugin', 'plugin.json'));
@@ -126,12 +126,12 @@ test('installed probes execute, e108a79-class missing contract fails, and unavai
   const runtime = createNativeRuntime();
   try {
     const healthy = runHealth(runtime, [], {}, sourceCheckout);
-    assert.equal(healthy.result.status, 0);
+    assert.equal(healthy.result.status, 0, JSON.stringify(healthy.health.diagnostics));
     assert.equal(healthy.health.overallStatus, 'PASS');
     assert.equal(healthy.health.interactiveActivationTested, false);
     assert.equal(healthy.health.activationClaim, 'installed-files-paths-lookups-structurally-sound-v1');
-    assert.equal(healthy.health.roots[0].executedProbeCount, 8);
-    assert.deepEqual(healthy.health.roots[0].probeResults.map((probe) => probe.outcome), Array(8).fill('PASS'));
+    assert.equal(healthy.health.roots[0].executedProbeCount, 11);
+    assert.deepEqual(healthy.health.roots[0].probeResults.map((probe) => probe.outcome), Array(11).fill('PASS'));
 
     const installedScript = path.join(runtime, 'scripts', 'kstack-config.mjs');
     fs.chmodSync(installedScript, 0o644);
@@ -170,7 +170,7 @@ test('installed probes execute, e108a79-class missing contract fails, and unavai
     const degraded = JSON.parse(degradedLine.slice('KSTACK_POST_DEPLOY_HEALTH_V1 '.length));
     assert.equal(degradedResult.status, 0);
     assert.equal(degraded.overallStatus, 'DEGRADED');
-    assert.equal(degraded.roots[0].executedProbeCount, 7);
+    assert.equal(degraded.roots[0].executedProbeCount, 10);
     assert.ok(degraded.roots[0].probeResults.some((probe) => probe.code === 'KSTACK_POST_DEPLOY_REFLEXION_UNAVAILABLE' && probe.outcome === 'SKIPPED_UNAVAILABLE' && probe.launched === false));
   } finally {
     fs.rmSync(runtime, { recursive: true, force: true });
@@ -197,7 +197,7 @@ test('a hung installed import is individually bounded and remains blocking', { t
 
 test('override signatures enforce expiry, target binding, distinct identities, and capped replay', { timeout: 120_000 }, () => {
   const runtime = createNativeRuntime();
-  const stateHome = fs.mkdtempSync(path.join(os.homedir(), '.kstack-install-health-state-'));
+  const stateHome = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-install-health-state-'));
   try {
     const requester = crypto.generateKeyPairSync('ed25519');
     const approver = crypto.generateKeyPairSync('ed25519');

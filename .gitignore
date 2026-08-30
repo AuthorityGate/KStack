@@ -1,5 +1,6 @@
 .kstack/reviews/
 .kstack/tmp/
+.kstack/secrets/
 node_modules/
 !plugins/kstack/vendor/node-gyp-11.4.2/node_modules/
 !plugins/kstack/vendor/node-gyp-11.4.2/node_modules/**

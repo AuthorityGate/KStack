@@ -1,0 +1,130 @@
+diff --git a/Cargo.toml b/Cargo.toml
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -115,6 +115,7 @@ icu_calendar = { version = "=2.1.1", default-features = false }
+ icu_locale = { version = "=2.1.1", default-features = false }
+ 
+ [patch.crates-io]
++ansi_colours = { path = "vendor/kstack-ansi-colours-compat" }
+ agent-client-protocol = { git = "https://github.com/agentclientprotocol/rust-sdk", rev = "c97a5203d3392f7f231514d84eea014f9f43e6fb" }
+ agent-client-protocol-http = { git = "https://github.com/agentclientprotocol/rust-sdk", rev = "c97a5203d3392f7f231514d84eea014f9f43e6fb" }
+ v8 = { path = "vendor/v8" }
+diff --git a/Cargo.lock b/Cargo.lock
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -183,11 +183,6 @@ dependencies = [
+ [[package]]
+ name = "ansi_colours"
+ version = "1.2.3"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "14eec43e0298190790f41679fe69ef7a829d2a2ddd78c8c00339e84710e435fe"
+-dependencies = [
+- "rgb",
+-]
+ 
+ [[package]]
+ name = "anstream"
+diff --git a/vendor/v8/Cargo.toml b/vendor/v8/Cargo.toml
+--- a/vendor/v8/Cargo.toml
++++ b/vendor/v8/Cargo.toml
+@@ -3,6 +3,7 @@ name = "v8"
+ version = "145.0.0"
+ edition = "2024"
+ publish = false
++license.workspace = true
+ 
+ [features]
+ default = ["use_custom_libcxx"]
+diff --git a/vendor/kstack-ansi-colours-compat/Cargo.toml b/vendor/kstack-ansi-colours-compat/Cargo.toml
+new file mode 100644
+--- /dev/null
++++ b/vendor/kstack-ansi-colours-compat/Cargo.toml
+@@ -0,0 +1,11 @@
++[package]
++name = "ansi_colours"
++version = "1.2.3"
++edition = "2021"
++publish = false
++license = "Apache-2.0"
++description = "KStack clean-room compatibility surface for Bat's RGB-to-xterm conversion"
++
++[lib]
++name = "ansi_colours"
++path = "src/lib.rs"
+diff --git a/vendor/kstack-ansi-colours-compat/src/lib.rs b/vendor/kstack-ansi-colours-compat/src/lib.rs
+new file mode 100644
+--- /dev/null
++++ b/vendor/kstack-ansi-colours-compat/src/lib.rs
+@@ -0,0 +1,72 @@
++//! Clean-room implementation of the single `ansi_colours` API used by Bat.
++//!
++//! The conversion selects the nearest color in the standard xterm 6×6×6 RGB
++//! cube or its 24-step grayscale ramp using squared Euclidean RGB distance.
++
++const CUBE_LEVELS: [u8; 6] = [0, 95, 135, 175, 215, 255];
++
++fn squared_distance(left: (u8, u8, u8), right: (u8, u8, u8)) -> u32 {
++    let red = i32::from(left.0) - i32::from(right.0);
++    let green = i32::from(left.1) - i32::from(right.1);
++    let blue = i32::from(left.2) - i32::from(right.2);
++    (red * red + green * green + blue * blue) as u32
++}
++
++/// Map an RGB triplet to the nearest color in the xterm 256-color extension.
++pub fn ansi256_from_rgb(rgb: (u8, u8, u8)) -> u8 {
++    let mut best_index = 16_u8;
++    let mut best_distance = u32::MAX;
++
++    for (red_index, red) in CUBE_LEVELS.into_iter().enumerate() {
++        for (green_index, green) in CUBE_LEVELS.into_iter().enumerate() {
++            for (blue_index, blue) in CUBE_LEVELS.into_iter().enumerate() {
++                let distance = squared_distance(rgb, (red, green, blue));
++                let index = 16 + 36 * red_index as u8 + 6 * green_index as u8 + blue_index as u8;
++                if distance < best_distance || (distance == best_distance && index < best_index) {
++                    best_index = index;
++                    best_distance = distance;
++                }
++            }
++        }
++    }
++
++    for gray_index in 0_u8..24 {
++        let value = 8 + 10 * gray_index;
++        let index = 232 + gray_index;
++        let distance = squared_distance(rgb, (value, value, value));
++        if distance < best_distance || (distance == best_distance && index < best_index) {
++            best_index = index;
++            best_distance = distance;
++        }
++    }
++
++    best_index
++}
++
++#[cfg(test)]
++mod tests {
++    use super::ansi256_from_rgb;
++
++    #[test]
++    fn maps_exact_cube_and_grayscale_points() {
++        assert_eq!(ansi256_from_rgb((0, 0, 0)), 16);
++        assert_eq!(ansi256_from_rgb((255, 255, 255)), 231);
++        assert_eq!(ansi256_from_rgb((255, 0, 0)), 196);
++        assert_eq!(ansi256_from_rgb((0, 255, 0)), 46);
++        assert_eq!(ansi256_from_rgb((0, 0, 255)), 21);
++        assert_eq!(ansi256_from_rgb((128, 128, 128)), 244);
++    }
++
++    #[test]
++    fn every_input_is_total_and_deterministic() {
++        for red in 0_u8..=u8::MAX {
++            for green in [0_u8, 1, 63, 127, 191, 254, 255] {
++                for blue in [0_u8, 1, 63, 127, 191, 254, 255] {
++                    let first = ansi256_from_rgb((red, green, blue));
++                    assert_eq!(first, ansi256_from_rgb((red, green, blue)));
++                    assert!((16..=255).contains(&first));
++                }
++            }
++        }
++    }
++}

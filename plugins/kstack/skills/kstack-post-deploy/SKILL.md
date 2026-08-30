@@ -9,7 +9,9 @@ Prove the deployed application works; do not infer health from provider status.
 
 ## Entry
 
-1. Read `../../references/POST_DEPLOY_VALIDATION.md`.
+1. Read `../../references/POST_DEPLOY_VALIDATION.md`. For a v2 user-facing
+   plan, also read `../../references/PRODUCT_EXPERIENCE.md` and validate its
+   exact experience contract before browser launch.
 2. Validate `.kstack/config.json` and the selected post-deploy plan.
 3. Require exact release ID, provider deployment ID, commit OID, artifact
    SHA-256, environment, and deployed base URL. A branch name or “latest” is
@@ -39,6 +41,14 @@ The function runs the independent canary first. Only a passing canary may
 release the repository's full Playwright suite. Do not edit tests, lower
 assertions, allow skips, ignore console/network failures, change the target, or
 update snapshots to manufacture a pass.
+For a v2 plan, the suite receives a unique `KSTACK_EXPERIENCE_RESULT_PATH` and
+the exact contract digest. It must produce a same-run evidence manifest whose
+individual files, performance provenance, release binding, and visual manifest
+are reopened and hashed by KStack. KStack also re-hashes the contract and
+governed sources after Playwright exits. It must produce all required
+experience lanes bound to the release/deployment/commit/artifact. Missing,
+stale, malformed, or
+failing evidence blocks handoff even when generic tests pass.
 
 When Playwright, a selected browser, authentication, or the target is
 unavailable, troubleshoot the exact capability first. A bounded retry is
@@ -53,6 +63,11 @@ unavailable, relay the full failure and recovery question to the user.
 - `JIRA_TRACKING_PENDING`: browser validation passed, but required Jira
   completion/validation/release events are only queued or could not be
   projected. Do not hand off yet.
+- `EXPERIENCE_REVIEW_REQUIRED`: objective experience lanes pass, but review of
+  the exact screenshot/state manifest remains pending.
+- `EXPERIENCE_REMEDIATION_REQUIRED`: a journey, accessibility, responsive,
+  visual, brand, content, state, performance, identity, or evidence check
+  fails. Create category-specific Jira work and do not hand off.
 - `REMEDIATION_REQUIRED`: preserve the receipt and evidence. The runtime
   appends the failure to the existing Jira item and creates bounded follow-up
   work for functional, performance, flaky/inconsistent, timeout, coverage,

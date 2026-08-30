@@ -8,6 +8,7 @@ continue beyond the first design round.
 .kstack/
 ├── config.json
 ├── objectives/<review-id>.md
+├── backlogs/<thread-id>.json
 ├── reviews/<review-id>/
 │   ├── brief.md
 │   ├── environment.md
@@ -58,6 +59,12 @@ A revised design records `supersedesDesignDigest` and the implementation
 evidence that required alteration. It receives a new digest, invocation,
 reviewer envelopes, checks, gate, and user approval. Earlier approval remains
 historical evidence only and cannot authorize the revision.
+
+A material design uses `KSTACK-DESIGN-10K-V1` and is deliberately marked
+`Implementation-ready: no`. Its bound `kstack-delivery-backlog-v1` artifact
+represents every approved architecture block exactly once, records confirmed
+Jira keys when required, and permits at most one active block. The backlog
+enables block refinement; it does not add implementation authority.
 
 Interrogation artifacts record the prior design digest, proposed before/after
 plan wording, Git state, reviewer roles, confidence metadata, findings, and the

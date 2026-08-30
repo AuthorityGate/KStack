@@ -13,7 +13,7 @@ for (let index = 2; index < process.argv.length; index += 1) {
   else { process.stderr.write('KSTACK_INSTALL_HEALTH_AUDIT_MANIFEST_USAGE\n'); process.exit(2); }
 }
 const outputPath = path.join(pluginRoot, 'install-health-audit-manifest-v1.json');
-const roots = ['hooks', 'personas', 'references', 'scripts', 'skills'];
+const roots = ['acquisition', 'hooks', 'packs', 'personas', 'references', 'scripts', 'skills', 'workers'];
 const topLevel = ['.claude-plugin/plugin.json', '.npmrc', 'install-health-authority-registry-v1.json', 'install-health-contract-v1.json', 'package-lock.json', 'package.json'];
 
 function walk(relative, entries) {

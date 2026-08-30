@@ -12,6 +12,13 @@ Jira serves two separate purposes in KStack. Both are required when
 The local hash-chained outbox is authoritative. Jira is a queryable projection;
 it must never be the only copy of KStack evidence.
 
+For an approved `KSTACK-DESIGN-10K-V1` design, backlog realization is a distinct
+phase before implementation. Every architecture block becomes its own stable
+work item and confirmed Jira issue; the umbrella objective is not a substitute.
+The complete `kstack-delivery-backlog-v1` manifest must pass the shared workflow
+contract before any block is activated. Thereafter implementation consumes one
+dependency-ready Jira block at a time, with at most one active block.
+
 ## Mandatory lifecycle protocol
 
 When `jira.tracking.mode` is not `off`:
@@ -37,6 +44,15 @@ When `jira.tracking.mode` is not `off`:
 5. Evidence paths must be repository-relative and paired with the exact
    SHA-256 of the bytes reviewed or shipped. Never place credentials, tokens,
    raw model output, customer data, or secret-bearing excerpts in an event.
+   For a secondary review, include the decision receipt path/digest and summarize
+   its trigger codes, route, reviewer-independence result, and availability
+   disposition. Never substitute round number or a model assertion for that
+   receipt. The closed codes are `OWNER_REQUESTED`, `ROADBLOCK`,
+   `MATERIAL_UNCERTAINTY`, `INDEPENDENT_FINAL_REVIEW`, `HIGH_RISK_BOUNDARY`,
+   `MATERIAL_DISSENT`, and `AUDIT_SAMPLE`. Final dispatch requires a clean
+   primary result at 93 or above; a final result at 81 or above creates mandatory
+   bug-fix intake. `ITEM_DONE` still waits for the stricter applicable
+   implementation/QC and closure gates.
 6. Write a closed-schema event input to a private temporary file and run:
 
    ```bash

@@ -8,7 +8,7 @@
     {
       "name": "kstack",
       "source": "./plugins/kstack",
-      "description": "KStack workflows with bounded safety hooks",
+      "description": "KStack governance for safe delivery and product experience",
       "version": "0.1.0"
     }
   ]

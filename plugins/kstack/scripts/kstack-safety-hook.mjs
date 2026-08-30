@@ -5,7 +5,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findOutboundSecret } from './kstack-safety-matchers.mjs';
 
-const INPUT_LIMIT = 8 * 1024;
+// 256 KiB leaves ample headroom for serialized metadata plus ordinary tool inputs
+// containing tens of KiB of embedded content, while retaining a finite resource bound.
+export const HOOK_INPUT_LIMIT = 256 * 1024;
 const OUTPUT_LIMIT = 4 * 1024;
 const ASK_FAMILIES = new Set(['git-commit', 'git-push', 'git-merge', 'git-destructive', 'git-unsupported', 'provider-pr-create', 'provider-merge', 'external-ticket-create', 'jira-administration']);
 const AUTHORITY_KEYS = Object.freeze(['inspect', 'edit', 'test', 'commit', 'push', 'pullRequest', 'merge', 'deploy', 'deviceInstall', 'destructive', 'externalTicketCreation', 'jiraAdministration']);
@@ -212,13 +214,15 @@ export async function evaluateSafetyHook(input, { scope = 'user', verifyAttestat
   if (family === 'credential-access') return response('deny', 'KStack policy blocks this action before protected content can reach the tool.', host);
   if (host === 'codex') {
     const authority = authorityFor(family, activation);
-    if (family === 'jira-administration' && authority !== 'allow') return response('deny', 'KStack Jira administration is unavailable on the covered Codex path until the owner runs the approved host-side command.', host);
     if (authority !== 'deny') return response('abstain', 'KStack does not claim forced approval for this ask-tier action on Codex.', host);
     return response('deny', 'KStack authority policy blocks this action on the covered Codex tool path.', host);
   }
   const authority = authorityFor(family, activation);
   if (authority === 'deny') return response('deny', 'KStack authority policy blocks this action on the covered Claude tool path.', host);
   if (family === 'git-unsupported') return response('deny', 'KSG-GIT-MUTATION-UNSUPPORTED-001: this Git form is outside the admitted read-only grammar.', host);
+  if (family === 'jira-administration' && authority === 'ask') {
+    return response('ask', 'KStack requests approval to run the preview-bound Jira administration command; the CLI still requires the exact delivery-plan hash and verified read-back.', host);
+  }
   if (authority === 'ask') return response('deny', ASK_FAMILIES.has(family)
     ? 'KStack requires the broker prepare/execute path for this protected action.'
     : 'KStack cannot execute this ask-tier action without an admitted broker capability.', host);
@@ -227,12 +231,19 @@ export async function evaluateSafetyHook(input, { scope = 'user', verifyAttestat
 
 function plainInput(value) { return value !== null && typeof value === 'object' && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype; }
 
+class HookInputLimitError extends Error {
+  constructor() {
+    super(`hook envelope exceeds the ${HOOK_INPUT_LIMIT}-byte limit`);
+    this.code = 'KSTACK_HOOK_INPUT_LIMIT';
+  }
+}
+
 async function readInput() {
   const chunks = [];
   let total = 0;
   for await (const chunk of process.stdin) {
     total += chunk.length;
-    if (total > INPUT_LIMIT) throw new Error('hook envelope exceeds 8 KiB');
+    if (total > HOOK_INPUT_LIMIT) throw new HookInputLimitError();
     chunks.push(chunk);
   }
   const bytes = Buffer.concat(chunks);
@@ -248,7 +259,11 @@ async function main() {
     const input = await readInput();
     host = detectHookHost(input);
     output = await evaluateSafetyHook(input, { scope });
-  } catch { output = response('deny', 'KStack safety hook failed before evaluation.', host); }
+  } catch (error) {
+    output = error instanceof HookInputLimitError
+      ? response('deny', `KStack safety hook envelope exceeds the ${HOOK_INPUT_LIMIT}-byte limit.`, host)
+      : response('deny', 'KStack safety hook failed before evaluation.', host);
+  }
   const bytes = serializedBounded(output, host);
   process.stdout.write(bytes);
 }

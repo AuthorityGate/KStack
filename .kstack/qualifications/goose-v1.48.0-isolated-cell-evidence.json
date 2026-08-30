@@ -1,0 +1,181 @@
+{
+  "schema": "kstack-goose-v1.48.0-isolated-cell-v1",
+  "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+  "bindings": {
+    "adapterDigest": "fd8e8f37346ec98a35d8da57ff803f183e4c3ebcec8343558de713fbd73a1806",
+    "providerScriptDigest": "7418381dbb53b05ed2ab628d55eb2f62865deb4defa6c0f31403604823b12676",
+    "childHarnessDigest": "b922c792f1c6f4d9d9fb54fb7713dc5315fedcd046412de5a4980afa91578b1a",
+    "pid1ReaperSourceDigest": "6cd19410eb124db0ee7664b01f3761c122dc02ef6a876257604bc6c190343b01",
+    "installManifestDigest": "b1c56eb08a221188e386057b99eab80c17fc1fc60357db227b8086f14eb346fb",
+    "supplyChainEvidenceDigest": "0f2346f3dd16056d5ab7777c899a6d21ede7230b0da4fac0cec23dced59d3600"
+  },
+  "interfaces": [
+    "lo"
+  ],
+  "loopbackOnly": true,
+  "repositoryBeforeDigest": "e35ba53df8baa8c3b06c57b577598beb33830f51ff9383c7f5edc2aa85c1aa0d",
+  "repositoryAfterDigest": "e35ba53df8baa8c3b06c57b577598beb33830f51ff9383c7f5edc2aa85c1aa0d",
+  "pathRootAfterDigest": "ad0d4ffe0b6827b9fc95b63bf614d78458b2becef697fa7a2d30267effec6a7a",
+  "pathRootEntries": [
+    "config",
+    "data",
+    "data/sessions",
+    "data/sessions/sessions.db",
+    "data/sessions/sessions.db-shm",
+    "data/sessions/sessions.db-wal",
+    "home",
+    "state",
+    "state/logs",
+    "state/logs/cli",
+    "state/logs/cli/2026-08-30",
+    "state/logs/cli/2026-08-30/20260830_052236.log",
+    "state/logs/llm_request.0.jsonl",
+    "state/logs/llm_request.1.jsonl"
+  ],
+  "providerRequestCount": 2,
+  "providerRequestDigest": "237581fa4dc13f05e05a179bdf6c38abd1cebffe6a515368111008323db6e8f8",
+  "observations": [
+    {
+      "operation": {
+        "schemaVersion": 1,
+        "operationId": "goose.version.isolated.v1",
+        "action": "VERSION",
+        "binaryPath": "/tmp/kstack-goose-rebuild-target/release/goose",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryRoot": "/tmp/kstack-goose-cell-TVxacr/repository",
+        "pathRoot": "/tmp/kstack-goose-cell-TVxacr/path-root",
+        "inputDigest": "4f21e2a66792a676c51f4d1c9cece92db937c72f7b0378073ba33e66c4693d3f",
+        "expectedMarker": "1.48.0",
+        "brokerTicketDigest": null,
+        "deadlineMs": 20000
+      },
+      "invocationDigest": "0b8de5f94f63c3819bef88e5baa2979d6631b8ae6b4198c050db13d823411740",
+      "observation": {
+        "schemaVersion": 1,
+        "hostId": "goose",
+        "operationId": "goose.version.isolated.v1",
+        "action": "VERSION",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "inputDigest": "4f21e2a66792a676c51f4d1c9cece92db937c72f7b0378073ba33e66c4693d3f",
+        "stdoutSha256": "a9720e60e0557533d041a4fe6b0c2c1fdfd305b8eaa494de02e8baea7ad56a1a",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "providerRequestCount": 0,
+        "providerRequestDigest": null,
+        "rootMutationDigest": "711f1347f9c5f63fa0c356c80ff4399328157a39ac32c047a714efd20ea38109",
+        "markerObserved": true,
+        "loopbackOnly": true,
+        "orphanCount": 0,
+        "nativeOutcome": "MATCH",
+        "reasonCodes": []
+      },
+      "observationDigest": "cdce5a6a9e4abb9bf456e4dbfc1c15a21b374e2535d2e7b0742ba8830f7fd3fd"
+    },
+    {
+      "operation": {
+        "schemaVersion": 1,
+        "operationId": "goose.help.isolated.v1",
+        "action": "HELP",
+        "binaryPath": "/tmp/kstack-goose-rebuild-target/release/goose",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryRoot": "/tmp/kstack-goose-cell-TVxacr/repository",
+        "pathRoot": "/tmp/kstack-goose-cell-TVxacr/path-root",
+        "inputDigest": "7c62adf105426b1b14d3719a8d48a9067d30bf79a32e28acfc1682134306f69c",
+        "expectedMarker": "Execute commands from an instruction file or stdin",
+        "brokerTicketDigest": null,
+        "deadlineMs": 20000
+      },
+      "invocationDigest": "d81bb8cea281cbd0b6a02f5f94e2334d6e7d06736aa7cca4c0ebcd5c97699adb",
+      "observation": {
+        "schemaVersion": 1,
+        "hostId": "goose",
+        "operationId": "goose.help.isolated.v1",
+        "action": "HELP",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "inputDigest": "7c62adf105426b1b14d3719a8d48a9067d30bf79a32e28acfc1682134306f69c",
+        "stdoutSha256": "c6c76cbcf38ba3839df9e36b66bee049c435bb9ec9ba320404fa87ca5b353583",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "providerRequestCount": 0,
+        "providerRequestDigest": null,
+        "rootMutationDigest": "711f1347f9c5f63fa0c356c80ff4399328157a39ac32c047a714efd20ea38109",
+        "markerObserved": true,
+        "loopbackOnly": true,
+        "orphanCount": 0,
+        "nativeOutcome": "MATCH",
+        "reasonCodes": []
+      },
+      "observationDigest": "adc7c14366f4e50bf29fa13407cd9b298c56de3a725fcd5346dafc13ed1936d4"
+    },
+    {
+      "operation": {
+        "schemaVersion": 1,
+        "operationId": "goose.skills_list.isolated.v1",
+        "action": "SKILLS_LIST",
+        "binaryPath": "/tmp/kstack-goose-rebuild-target/release/goose",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryRoot": "/tmp/kstack-goose-cell-TVxacr/repository",
+        "pathRoot": "/tmp/kstack-goose-cell-TVxacr/path-root",
+        "inputDigest": "64cbe1e547bebad1f748e8a1c7714fc60bd43d53a4a2dc7da64f27dd92ec48e2",
+        "expectedMarker": "kstack-advisory",
+        "brokerTicketDigest": null,
+        "deadlineMs": 20000
+      },
+      "invocationDigest": "25a190d070783623eb75e1d31337e5edf78453e03f1b587921191a6ce42f5594",
+      "observation": {
+        "schemaVersion": 1,
+        "hostId": "goose",
+        "operationId": "goose.skills_list.isolated.v1",
+        "action": "SKILLS_LIST",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "inputDigest": "64cbe1e547bebad1f748e8a1c7714fc60bd43d53a4a2dc7da64f27dd92ec48e2",
+        "stdoutSha256": "324581425359911589fd9418da279166bfb844c2c7f8a735f1675989d4cfb788",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "providerRequestCount": 0,
+        "providerRequestDigest": null,
+        "rootMutationDigest": "711f1347f9c5f63fa0c356c80ff4399328157a39ac32c047a714efd20ea38109",
+        "markerObserved": true,
+        "loopbackOnly": true,
+        "orphanCount": 0,
+        "nativeOutcome": "MATCH",
+        "reasonCodes": []
+      },
+      "observationDigest": "8c650e726b50c702dbe15b73d2d147ecb7391f6d3ff4e67db95364601c925a70"
+    },
+    {
+      "operation": {
+        "schemaVersion": 1,
+        "operationId": "goose.advisory.isolated.v1",
+        "action": "ADVISORY",
+        "binaryPath": "/tmp/kstack-goose-rebuild-target/release/goose",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryRoot": "/tmp/kstack-goose-cell-TVxacr/repository",
+        "pathRoot": "/tmp/kstack-goose-cell-TVxacr/path-root",
+        "inputDigest": "93ae9217ba212c9876559adad9caebca7ce265e08d1316d8e989c6e887890dd0",
+        "expectedMarker": "KSTACK_GOOSE_ADVISORY_OK",
+        "brokerTicketDigest": "4bf0d5ac629f188beb1cd0c7f99c53baf62bfd403f832607483ba15af98f14cb",
+        "deadlineMs": 60000
+      },
+      "invocationDigest": "58aea02bd69acba8be2837266852d16fb28a692523e62d60a1cb274be28a4f62",
+      "observation": {
+        "schemaVersion": 1,
+        "hostId": "goose",
+        "operationId": "goose.advisory.isolated.v1",
+        "action": "ADVISORY",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "inputDigest": "93ae9217ba212c9876559adad9caebca7ce265e08d1316d8e989c6e887890dd0",
+        "stdoutSha256": "d4e5707ed0137fea7a9de4595d0ef698a5ca89ad1bc515c3d1d453c39e83236b",
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "providerRequestCount": 2,
+        "providerRequestDigest": "237581fa4dc13f05e05a179bdf6c38abd1cebffe6a515368111008323db6e8f8",
+        "rootMutationDigest": "e367bdfae241bc70cbe26d2f6e0bc30febbb65ee5547b7b0f78970502d94d00f",
+        "markerObserved": true,
+        "loopbackOnly": true,
+        "orphanCount": 0,
+        "nativeOutcome": "MATCH",
+        "reasonCodes": []
+      },
+      "observationDigest": "82e00e56344aa08c81db11bfa66aff4360e3628dcf2a1edc57185ffb282aedc1"
+    }
+  ],
+  "aggregate": "PASS",
+  "evidenceDigest": "6c570908e765fff7c02c5d56bff28d48ab783ba97caf7a4370d491118482f2d3"
+}

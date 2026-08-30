@@ -1,0 +1,15 @@
+[package]
+name = "kstack-host-contract-reference"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+base64 = "=0.22.1"
+ed25519-dalek = "=2.2.0"
+hex = "=0.4.3"
+regex = "=1.12.2"
+serde = "=1.0.228"
+serde_json = "=1.0.150"
+sha2 = "=0.10.9"
+unicode-normalization = "=0.1.25"

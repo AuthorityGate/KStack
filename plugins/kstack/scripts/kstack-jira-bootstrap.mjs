@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
+import { validateConfig } from './kstack-config.mjs';
 import { canonicalJson } from './kstack-safety-broker.mjs';
 import {
   EXIT, JiraQueueError, classifyFetchError, jiraRequest, loadJiraState,
@@ -24,6 +25,8 @@ export const DELIVERY_STATES = Object.freeze(new Set([
 const MODES = new Set(['skip', 'existing', 'new', 'existing-add-board']);
 const BOARD_TYPES = new Set(['kanban', 'scrum']);
 const ROADMAP_MODES = new Set(['auto', 'custom', 'empty']);
+const START_TRACKING_MODES = new Set(['off', 'approval-queued']);
+const START_ADMINISTRATION_AUTHORITIES = new Set(['ask', 'allow']);
 const ROADMAP_LOCAL_ID = /^[a-z0-9][a-z0-9-]{0,63}$/u;
 const ROADMAP_LABEL = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/u;
 const DEFAULT_ROADMAP_ITEMS = Object.freeze([
@@ -50,6 +53,14 @@ const CONTROL_OR_BIDI = /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u2
 
 function fail(message, exitCode = EXIT.STATE_ERROR, details) {
   throw new JiraQueueError(message, exitCode, details);
+}
+
+export function requireJiraAdministrationAuthority(state, command) {
+  const authority = state.config?.authority?.jiraAdministration ?? 'deny';
+  if (!['ask', 'allow'].includes(authority)) {
+    fail(`${command} requires authority.jiraAdministration ask or allow`, EXIT.CONFIG_DRIFT);
+  }
+  return authority;
 }
 
 function nowIso(clock = Date) {
@@ -125,14 +136,42 @@ async function syncDirectory(directory) {
   try { await handle.sync(); } finally { await handle.close(); }
 }
 
+async function atomicReplaceFile(file, bytes, mode = 0o600) {
+  const directory = path.dirname(file);
+  const link = await fsp.lstat(file);
+  if (!link.isFile() || link.isSymbolicLink()) fail('KStack configuration must be a non-symlink regular file', EXIT.CONFIG_INVALID);
+  const temporary = path.join(directory, `.${path.basename(file)}.${process.pid}.${crypto.randomUUID()}.tmp`);
+  const handle = await fsp.open(temporary, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, mode);
+  try {
+    await handle.writeFile(bytes);
+    await handle.sync();
+  } finally { await handle.close(); }
+  try {
+    await fsp.rename(temporary, file);
+    await syncDirectory(directory);
+  } catch (error) {
+    await fsp.unlink(temporary).catch(() => {});
+    throw error;
+  }
+}
+
+async function ensureTrustedDeliveryDirectory(directory) {
+  await fsp.mkdir(directory, { recursive: true, mode: 0o700 });
+  const link = await fsp.lstat(directory);
+  const owned = typeof process.getuid !== 'function' || link.uid === process.getuid();
+  const canonical = await fsp.realpath(directory);
+  if (!link.isDirectory() || link.isSymbolicLink() || !owned || canonical !== path.resolve(directory) || (link.mode & 0o022) !== 0) {
+    fail('delivery record directory is untrusted', EXIT.CONFIG_INVALID);
+  }
+  return directory;
+}
+
 export async function writeDeliveryRecord(state, record, lock = null) {
   if (lock) await assertDeliveryLock(lock);
   validateDeliveryRecord(record);
   const file = recordPath(state);
   const directory = path.dirname(file);
-  await fsp.mkdir(directory, { recursive: true, mode: 0o700 });
-  const link = await fsp.lstat(directory);
-  if (!link.isDirectory() || link.isSymbolicLink() || (link.mode & 0o022) !== 0) fail('delivery record directory is untrusted', EXIT.CONFIG_INVALID);
+  await ensureTrustedDeliveryDirectory(directory);
   const temporary = `${file}.tmp-${process.pid}-${crypto.randomBytes(8).toString('hex')}`;
   const handle = await fsp.open(temporary, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL, 0o600);
   try {
@@ -157,6 +196,7 @@ export async function readDeliveryRecord(state) {
     throw error;
   }
   try {
+    await ensureTrustedDeliveryDirectory(path.dirname(file));
     const stat = await handle.stat();
     const link = await fsp.lstat(file);
     if (!stat.isFile() || !link.isFile() || link.isSymbolicLink() || stat.dev !== link.dev || stat.ino !== link.ino || (stat.mode & 0o022) !== 0 || stat.size > 256 * 1024) fail('delivery record is untrusted', EXIT.CONFIG_INVALID);
@@ -187,7 +227,7 @@ async function readLock(file) {
 export async function acquireDeliveryLock(state, operation) {
   const file = lockPath(state);
   const directory = path.dirname(file);
-  await fsp.mkdir(directory, { recursive: true, mode: 0o700 });
+  await ensureTrustedDeliveryDirectory(directory);
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const token = crypto.randomUUID();
     let handle;
@@ -260,6 +300,9 @@ function normalizeArgs(state, args) {
   if (mode === 'skip') return { mode };
   const projectKey = bounded(args.projectKey || state.jira.projects?.[0]?.key, 'project key', 10).toUpperCase();
   if (!PROJECT_KEY.test(projectKey)) fail('project key must be 2-10 uppercase Jira key characters', EXIT.CONFIG_INVALID);
+  if (!state.jira.projects?.some((project) => project?.key === projectKey)) {
+    fail('project key must be enrolled in this repository Jira configuration before onboarding', EXIT.CONFIG_INVALID);
+  }
   const projectName = bounded(args.projectName || projectKey, 'project name');
   const repository = bounded(args.repository, 'repository', 255);
   if (!REPOSITORY.test(repository)) fail('repository must use owner/name form', EXIT.CONFIG_INVALID);
@@ -354,6 +397,92 @@ export async function previewDeliveryStack(state, args = {}) {
   return withDeliveryLock(state, 'preview', (lock) => previewDeliveryStackUnlocked(state, args, lock));
 }
 
+function isUnusedDefaultProject(project) {
+  return project?.key === 'KSTK'
+    && Array.isArray(project.issueTypes) && project.issueTypes.length === 1 && project.issueTypes[0] === 'Task'
+    && project.defaultFields && Object.keys(project.defaultFields).length === 0;
+}
+
+function buildProjectSpaceConfig(state, args) {
+  if (!state.configPath) fail('start requires a repository .kstack/config.json path', EXIT.CONFIG_INVALID);
+  const projectKey = bounded(args.projectKey, 'project key', 10).toUpperCase();
+  if (!PROJECT_KEY.test(projectKey)) fail('project key must be 2-10 uppercase Jira key characters', EXIT.CONFIG_INVALID);
+  const projectName = bounded(args.projectName, 'project name');
+  const repository = bounded(args.repository, 'repository', 255);
+  if (!REPOSITORY.test(repository)) fail('repository must use owner/name form', EXIT.CONFIG_INVALID);
+  const siteUrl = bounded(args.siteUrl || state.jira.siteUrl, 'site URL', 2048);
+  const trackingMode = args.trackingMode || 'approval-queued';
+  if (!START_TRACKING_MODES.has(trackingMode)) fail('start tracking mode must be off or approval-queued', EXIT.CONFIG_INVALID);
+  const jiraAdministration = args.jiraAdministration
+    || (START_ADMINISTRATION_AUTHORITIES.has(state.config.authority?.jiraAdministration)
+      ? state.config.authority.jiraAdministration
+      : 'ask');
+  if (!START_ADMINISTRATION_AUTHORITIES.has(jiraAdministration)) fail('start Jira administration must be ask or allow', EXIT.CONFIG_INVALID);
+
+  const config = structuredClone(state.config);
+  const currentProjects = Array.isArray(config.jira.projects) ? config.jira.projects : [];
+  const existing = currentProjects.find((project) => project?.key === projectKey);
+  const replaceUnusedDefault = config.jira.enabled === false
+    && currentProjects.length === 1 && isUnusedDefaultProject(currentProjects[0])
+    && config.jira.tracking?.mode === 'off';
+  config.jira.enabled = true;
+  config.jira.siteUrl = siteUrl;
+  config.jira.projects = existing
+    ? currentProjects
+    : replaceUnusedDefault
+      ? [{ key: projectKey, issueTypes: ['Task'], defaultFields: {} }]
+      : [...currentProjects, { key: projectKey, issueTypes: ['Task'], defaultFields: {} }];
+  config.jira.tracking = trackingMode === 'off'
+    ? {
+        mode: 'off', required: false, repositoryNamespace: null, projectKey: null,
+        automaticVersionAssignment: false, releaseVersions: []
+      }
+    : {
+        mode: 'approval-queued', required: true, repositoryNamespace: repository, projectKey,
+        automaticVersionAssignment: false, releaseVersions: []
+      };
+  config.authority.jiraAdministration = jiraAdministration;
+  const errors = validateConfig(config, { configPath: state.configPath, command: 'start' });
+  if (errors.length) fail(`invalid project-local Jira configuration: ${errors.join('; ')}`, EXIT.CONFIG_INVALID);
+  return { config, projectKey, projectName, repository, siteUrl, trackingMode, jiraAdministration };
+}
+
+export async function startProjectSpace(state, args = {}) {
+  const configured = buildProjectSpaceConfig(state, args);
+  const proposedState = { ...state, config: configured.config, jira: configured.config.jira };
+  delete proposedState.configDigest;
+  const previewArgs = {
+    mode: 'new', projectKey: configured.projectKey, projectName: configured.projectName,
+    repository: configured.repository, projectType: args.projectType, boardType: args.boardType,
+    boardName: args.boardName, filterName: args.filterName, branches: args.branches,
+    environments: args.environments, roadmapMode: args.roadmapMode, roadmapItems: args.roadmapItems
+  };
+  buildDeliveryPlan(proposedState, previewArgs);
+
+  return withDeliveryLock(proposedState, 'start', async (lock) => {
+    const existingRecord = await readDeliveryRecord(proposedState);
+    if (existingRecord && existingRecord.state !== 'skipped') {
+      fail('this repository already has a Jira delivery-stack record; use show, validate, apply, or reconcile instead of replacing it', EXIT.STATE_ERROR);
+    }
+    const oldBytes = await fsp.readFile(state.configPath);
+    let currentConfig;
+    try { currentConfig = JSON.parse(oldBytes.toString('utf8')); } catch (error) {
+      fail(`KStack configuration changed or became invalid: ${sanitize(error.message)}`, EXIT.CONFIG_INVALID);
+    }
+    if (canonicalJson(currentConfig) !== canonicalJson(state.config)) fail('KStack configuration changed before Jira start', EXIT.CONFIG_DRIFT);
+    const newBytes = Buffer.from(`${JSON.stringify(configured.config, null, 2)}\n`, 'utf8');
+    const originalMode = (await fsp.stat(state.configPath)).mode & 0o777;
+    await atomicReplaceFile(state.configPath, newBytes, originalMode);
+    try {
+      return await previewDeliveryStackUnlocked(proposedState, previewArgs, lock);
+    } catch (error) {
+      const currentBytes = await fsp.readFile(state.configPath).catch(() => null);
+      if (currentBytes?.equals(newBytes)) await atomicReplaceFile(state.configPath, oldBytes, originalMode);
+      throw error;
+    }
+  });
+}
+
 async function approveDeliveryStackUnlocked(state, suppliedHash, lock) {
   const record = await readDeliveryRecord(state);
   if (!record || record.state !== 'new-previewed') fail('only a new-previewed delivery stack can be approved');
@@ -366,6 +495,7 @@ async function approveDeliveryStackUnlocked(state, suppliedHash, lock) {
 }
 
 export async function approveDeliveryStack(state, suppliedHash) {
+  requireJiraAdministrationAuthority(state, 'approve');
   return withDeliveryLock(state, 'approve', (lock) => approveDeliveryStackUnlocked(state, suppliedHash, lock));
 }
 
@@ -689,6 +819,7 @@ async function applyDeliveryStackUnlocked(state, lock) {
 }
 
 export async function applyDeliveryStack(state) {
+  requireJiraAdministrationAuthority(state, 'apply');
   return withDeliveryLock(state, 'apply', (lock) => applyDeliveryStackUnlocked(state, lock));
 }
 
@@ -803,6 +934,7 @@ export async function reconcileDeliveryStack(state) {
 
 export async function runBootstrapCommand(state, command, args = {}) {
   switch (command) {
+    case 'start': return startProjectSpace(state, args);
     case 'preview': return previewDeliveryStack(state, args);
     case 'show': return readDeliveryRecord(state);
     case 'validate': return validateExistingDeliveryStack(state);
@@ -813,7 +945,7 @@ export async function runBootstrapCommand(state, command, args = {}) {
   }
 }
 
-const HELP = `KStack Jira delivery-stack bootstrap (Jira Cloud)\n\nCommands:\n  preview --mode skip|existing|new|existing-add-board [--project-key KEY] [--project-name NAME] [--project-type software|business] [--repository OWNER/NAME] [--board-name NAME] [--board-type kanban|scrum] [--filter-name NAME] [--board-id ID --filter-id ID] [--branches main,Dev] [--environments development,staging,production] [--roadmap-file PATH | --roadmap-mode auto|empty]\n  show\n  validate                                    (read-only existing-stack validation)\n  approve --plan-hash SHA256                  (interactive TTY required)\n  apply                                       (interactive TTY approval read-back required)\n  reconcile                                   (read-only ambiguous/interrupted outcome reconciliation)\n\nNew and existing-add-board previews include a five-item KStack lifecycle roadmap by default. --roadmap-file replaces it with a kstack-jira-roadmap-v1 manifest; --roadmap-mode empty is an explicit opt-out. Preview and show are offline. Validate and reconcile perform Jira reads only. Apply never retries an ambiguous Jira mutation. Project/filter/board/issue deletion is never automatic.`;
+const HELP = `KStack Jira delivery-stack bootstrap (Jira Cloud)\n\nCommands:\n  start --site-url URL --project-key KEY --project-name NAME --repository OWNER/NAME [--tracking-mode off|approval-queued] [--jira-administration ask|allow] [--project-type software|business] [--board-name NAME] [--board-type kanban|scrum] [--filter-name NAME] [--branches main,Dev] [--environments development,staging,production] [--roadmap-file PATH | --roadmap-mode auto|empty]\n  preview --mode skip|existing|new|existing-add-board [--project-key KEY] [--project-name NAME] [--project-type software|business] [--repository OWNER/NAME] [--board-name NAME] [--board-type kanban|scrum] [--filter-name NAME] [--board-id ID --filter-id ID] [--branches main,Dev] [--environments development,staging,production] [--roadmap-file PATH | --roadmap-mode auto|empty]\n  show\n  validate                                    (read-only existing-stack validation)\n  approve --plan-hash SHA256                  (interactive TTY required)\n  apply                                       (interactive TTY approval read-back required)\n  reconcile                                   (read-only ambiguous/interrupted outcome reconciliation)\n\nStart is an offline, repository-local operation that enables Jira, enrolls this repository's project key, binds approval-queued tracking by default, and writes the exact creation preview. It never contacts Jira. New and existing-add-board previews include a five-item KStack lifecycle roadmap by default. --roadmap-file replaces it with a kstack-jira-roadmap-v1 manifest; --roadmap-mode empty is an explicit opt-out. Preview and show are offline. Validate and reconcile perform Jira reads only. Apply never retries an ambiguous Jira mutation. Project/filter/board/issue deletion is never automatic.`;
 
 function readRoadmapFile(file) {
   const resolved = path.resolve(file);
@@ -862,6 +994,7 @@ async function cli(argv) {
   }
   const state = await loadJiraState({ command: parsed.command });
   if (['approve', 'apply'].includes(parsed.command)) {
+    requireJiraAdministrationAuthority(state, parsed.command);
     if (!process.stdin.isTTY || !process.stdout.isTTY) fail(`${parsed.command} requires an interactive TTY`);
     const record = await readDeliveryRecord(state);
     const expected = record?.planSha256;

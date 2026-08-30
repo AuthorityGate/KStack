@@ -17,7 +17,9 @@
     "jira": "node plugins/kstack/scripts/kstack-jira.mjs",
     "jira:bootstrap": "node plugins/kstack/scripts/kstack-jira-bootstrap.mjs",
     "jira:tracking": "node plugins/kstack/scripts/kstack-jira-tracking.mjs",
-    "post-deploy": "node plugins/kstack/scripts/kstack-post-deploy.mjs"
+    "post-deploy": "node plugins/kstack/scripts/kstack-post-deploy.mjs",
+    "experience": "node plugins/kstack/scripts/kstack-experience.mjs",
+    "secrets": "node plugins/kstack/scripts/kstack-secret-broker.mjs"
   },
   "engines": {
     "node": ">=20"

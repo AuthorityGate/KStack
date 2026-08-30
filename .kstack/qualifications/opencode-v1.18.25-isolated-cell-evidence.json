@@ -1,0 +1,182 @@
+{
+  "schema": "kstack-opencode-v1.18.25-isolated-cell-v1",
+  "sourceEvidence": {
+    "releaseTag": "v1.18.25",
+    "releasePublishedAt": "2026-08-28T05:58:20Z",
+    "releaseTagObjectCommit": "cb7d8b2f5e44876ef98b661dc10590c915af3a9f",
+    "releaseTagObjectVerified": false,
+    "releaseTargetCommit": "733562e92a96255fb123aae92f267e4534a635fb",
+    "releaseTargetCommitVerified": true,
+    "assetName": "opencode-linux-x64.tar.gz",
+    "assetSha256": "58a3729a6f3432dd6d2917fcc4a949788891a035818646ad480e12c947f56e78",
+    "sourceArchiveSha256": "44e9530d7be172005c7d60aef317440eecb85d557d94cce7fa35c5a7b9d9da0b"
+  },
+  "binary": {
+    "version": "1.18.25",
+    "sha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+    "bytes": 184682624,
+    "elfBuildId": "c30f169b1bef81fa57467cd091ba53aab5235468"
+  },
+  "adapter": {
+    "sha256": "5f908ff798b79ef77438f9573aff09f1d941aa3bc1069b54ca60b9a498ccdd8b",
+    "profile": {
+      "profileId": "opencode.native-skill-advisory.v1",
+      "maximumClaim": "ADVISORY_INSTRUCTION_ONLY",
+      "providerMode": "SYNTHETIC_LOOPBACK_NO_CREDENTIAL",
+      "externalPlugins": false,
+      "nativePermission": {
+        "*": "deny",
+        "skill": "allow"
+      },
+      "sessionPersistence": false,
+      "networkClass": "ISOLATED_LOOPBACK_ONLY"
+    },
+    "observations": [
+      {
+        "variant": "CONTROL",
+        "discoveryObservationDigest": "6950d13d5c2b47427967f01f43fd762f26a4ad5c1ef7b108872cfd5343fe3062",
+        "advisoryObservationDigest": "7e3234145a99e305cc37263c6857a5256acb406f8c778aa0afb713cd7752423e",
+        "advisoryInvocationDigest": "cf3f16dbde2b7aeba3d846da57135c87485d06595922fcfcfcdc47a4649efc86"
+      },
+      {
+        "variant": "TREATMENT",
+        "discoveryObservationDigest": "853ebe0db5c59b421ff656725d27565ab5c287654302671e9392fc326eae5c94",
+        "advisoryObservationDigest": "18f1968336bb459fd34dc0bdd47ea535aab7dba021eb69cef9556f687aeba8fe",
+        "advisoryInvocationDigest": "438a1315ae5159611c09e4d23d0f494e048731dd98656b4484befa52c6be4d6a"
+      }
+    ]
+  },
+  "runningHostBuildDigest": "sha256:b0e3724218f7df5a2ac0cec548c051ccc44ffa0d696acdece528706a32469d90",
+  "liveConfigDigest": "sha256:a420ff6f206a8cb907d5d53a171e6a54b4d8decfe283dcb53ea3819b64aaf79d",
+  "interfaces": [
+    "lo"
+  ],
+  "loopbackOnly": true,
+  "effectBlockerEvidence": {
+    "userNamespace": "user:[4026532237]",
+    "networkNamespace": "net:[4026532241]",
+    "mountNamespace": "mnt:[4026532239]",
+    "pidNamespace": "pid:[4026532240]",
+    "pid1ReaperSourceSha256": "6cd19410eb124db0ee7664b01f3761c122dc02ef6a876257604bc6c190343b01",
+    "pid1ReaperBinarySha256": "1cd40fdb84f6421bb713f899b344b029c61f64bfa95f46974ec90f369b6ff1a7",
+    "loopbackOnly": true,
+    "subjectUid": 0,
+    "namespaceUidMap": "0       1000          1",
+    "noNewPrivileges": true,
+    "capabilitiesDropped": true,
+    "nativePermission": {
+      "*": "deny",
+      "skill": "allow"
+    },
+    "credentialsPresent": false,
+    "providerAdvanceTokenKnowledge": false,
+    "outputsCommittedBeforeReveal": true,
+    "orphanCount": 0,
+    "orphanRows": []
+  },
+  "providerRequestCount": 4,
+  "providerRequestDigest": "sha256:5a8ed53e3f3020fe45f19b822cd3b5ea74d18e78566c558f9e3f989538be382f",
+  "sessionEvidence": [
+    {
+      "variant": "CONTROL",
+      "nativeDiscoveryDigest": "sha256:0ac6fcfd84dc6665e0895624a837be3365517629e04ba42e3c986038077118a5",
+      "discoveryAdapterObservationDigest": "6950d13d5c2b47427967f01f43fd762f26a4ad5c1ef7b108872cfd5343fe3062",
+      "advisoryAdapterObservationDigest": "7e3234145a99e305cc37263c6857a5256acb406f8c778aa0afb713cd7752423e",
+      "advisoryInvocationDigest": "cf3f16dbde2b7aeba3d846da57135c87485d06595922fcfcfcdc47a4649efc86",
+      "outputReceiptDigest": "sha256:61b721e3585bae1cb22506e66ef278480112e50c36b209fc84fe2d5c1aca325d",
+      "eventTypes": [
+        "step_start",
+        "tool_use",
+        "step_finish",
+        "step_start",
+        "text",
+        "step_finish"
+      ],
+      "providerRequestCount": 2,
+      "chatRequestPhases": [
+        "BEFORE_NATIVE_SKILL_RESULT",
+        "AFTER_NATIVE_SKILL_RESULT"
+      ],
+      "expectedOpenCodeStatePreprovisioned": true,
+      "repositoryUnchangedDuringModelRun": true,
+      "xdgStateDigest": "sha256:8db9c163bcacc36f4d2e94a3389663be998c578665dfdca83e1b25b97cde6e22"
+    },
+    {
+      "variant": "TREATMENT",
+      "nativeDiscoveryDigest": "sha256:0d0b4d6492bd6a618081bea78da4c68abaa9a1f81f03997c358089f531330e81",
+      "discoveryAdapterObservationDigest": "853ebe0db5c59b421ff656725d27565ab5c287654302671e9392fc326eae5c94",
+      "advisoryAdapterObservationDigest": "18f1968336bb459fd34dc0bdd47ea535aab7dba021eb69cef9556f687aeba8fe",
+      "advisoryInvocationDigest": "438a1315ae5159611c09e4d23d0f494e048731dd98656b4484befa52c6be4d6a",
+      "outputReceiptDigest": "sha256:1c4b253dde4353ce9a598cc29814a413d3dfeceeee6a4c468d1378f6f2b54dde",
+      "eventTypes": [
+        "step_start",
+        "tool_use",
+        "step_finish",
+        "step_start",
+        "text",
+        "step_finish"
+      ],
+      "providerRequestCount": 2,
+      "chatRequestPhases": [
+        "BEFORE_NATIVE_SKILL_RESULT",
+        "AFTER_NATIVE_SKILL_RESULT"
+      ],
+      "expectedOpenCodeStatePreprovisioned": true,
+      "repositoryUnchangedDuringModelRun": true,
+      "xdgStateDigest": "sha256:cc49e52aebe7ca97e29d768a7d755643417e225363dbb7f922e9ce408c734ae6"
+    }
+  ],
+  "variantDifferenceEvidenceDigest": "sha256:0a9a4d32a063f9af2d60732594272438a59956fbd6c869ab670f357c30f1516f",
+  "discoveryObservation": {
+    "schemaId": "kstack.opencode-discovery-observation.v1",
+    "schemaVersion": 1,
+    "registrySetDigest": "sha256:05f7ffb8c63b4f1e978ee109db3db6e9d9a92d8d46e8b8a47e17e986ff77ae65",
+    "targetId": "opencode",
+    "baseRenderBundleDigest": "sha256:5674adbee7933470c6811986bc22e9b3a18f436e7eeba1214ef8c245e4ea0791",
+    "pairCommitmentDigest": "sha256:e057120bb8d4075870065a7eb1111ee4ab48fd168aa523ba0556a09a3f1a4e78",
+    "challengeGenerationReceiptDigest": "sha256:3a16d96e06a05693874f56df49340bd4b7070fc5a29c56098457538f3e86915f",
+    "treatmentTokenCommitmentDigest": "sha256:c9ed08bb69bb5a9e78828e093e8046bb05a86b07c4fe4d22c08ce972431f3f39",
+    "controlTokenCommitmentDigest": "sha256:664215a03d4f7da4d8f66cd7a65d4f140e6ab315e583b21c21cf5bb332737a7c",
+    "fixtureId": "opencode-native-skill-causal-v1",
+    "fixtureFactsDigest": "sha256:4f4bfd2074adc42c4377d97352f6cd6805761593e5a0bed8812c6696fe1fb2e9",
+    "fixturePromptDigest": "sha256:52dba90dd37d0389eaafa5172595389631dfa4bfe961e1bd000837bc2267506e",
+    "randomizedOrderEvidenceDigest": "sha256:b3d1532629a8cc5025b42e47be2353c4638d84f6bb889ac52073551a35e52cfc",
+    "adjudicatorConfigDigest": "sha256:05139fcf5530b7a097c2293149547ec39d4d70025e181ff8eff9d692c2920854",
+    "effectBlockerEvidenceDigest": "sha256:10972e19d4b1fb4d51f988f2275accf51d1f3a448eac11494de0d7369150abf7",
+    "sessions": [
+      {
+        "variant": "CONTROL",
+        "observationRenderDigest": "sha256:257e1693cb1e17010d15bb65a0ba86ce4344f299826fe934b1ffa774a15b3d74",
+        "installedMemberManifestDigest": "sha256:32783e36f5ae6300886c5ae4d0f18e12c68561d2812b62882fb8bb2167bff60e",
+        "hostSessionIdentityDigest": "sha256:1318ea85580c921ada1921cea652f0d5736ab4ba2379e81a2dd19f41b7ed9381",
+        "runningHostBuildDigest": "sha256:b0e3724218f7df5a2ac0cec548c051ccc44ffa0d696acdece528706a32469d90",
+        "liveConfigDigest": "sha256:a420ff6f206a8cb907d5d53a171e6a54b4d8decfe283dcb53ea3819b64aaf79d",
+        "fixtureFactsDigest": "sha256:4f4bfd2074adc42c4377d97352f6cd6805761593e5a0bed8812c6696fe1fb2e9",
+        "outputReceiptDigest": "sha256:61b721e3585bae1cb22506e66ef278480112e50c36b209fc84fe2d5c1aca325d",
+        "attemptedEffects": "NONE",
+        "effectEvidenceDigest": "sha256:05836d20c3ee5ec748ed2afe23768ffcaa9ce988f0a794d4f8d2ae4dfc0c2561",
+        "committedTypedOutputDigest": "sha256:d0ed2e4674ad16b93b2a3ef43e19a08cd8e675e5d3b8847fd3fe16fa461066cc"
+      },
+      {
+        "variant": "TREATMENT",
+        "observationRenderDigest": "sha256:bb4415f5b549e74581ef789114ecf59197a72aa94bd80a80e8d6013a1df80cc7",
+        "installedMemberManifestDigest": "sha256:291759531a1fa9a2f9eac94d9a83d4c77ffc8a376b2b9a355336c0123e95c78a",
+        "hostSessionIdentityDigest": "sha256:9a7c28afd06ba356dc990e586fe87fcf7361b2f6eaa606643aaf5c070fd333d8",
+        "runningHostBuildDigest": "sha256:b0e3724218f7df5a2ac0cec548c051ccc44ffa0d696acdece528706a32469d90",
+        "liveConfigDigest": "sha256:a420ff6f206a8cb907d5d53a171e6a54b4d8decfe283dcb53ea3819b64aaf79d",
+        "fixtureFactsDigest": "sha256:4f4bfd2074adc42c4377d97352f6cd6805761593e5a0bed8812c6696fe1fb2e9",
+        "outputReceiptDigest": "sha256:1c4b253dde4353ce9a598cc29814a413d3dfeceeee6a4c468d1378f6f2b54dde",
+        "attemptedEffects": "NONE",
+        "effectEvidenceDigest": "sha256:e800f40a0b831b59c79dbf520a35eb6dfc5a4319b280e24f7bcf3cd554a97b77",
+        "committedTypedOutputDigest": "sha256:be07375646bc3b431066e3a4d809e0d9c203b473c4fde58bd1f85bf84b128833"
+      }
+    ],
+    "revealRecordDigest": "sha256:91cce60981a2d6baf6d64fc567f09b33e233a06cd259a9c891c5b135facc6e0d",
+    "outcome": "OBSERVED",
+    "reasonCodes": []
+  },
+  "discoveryObservationDigest": "sha256:26d7e72935c71df5fcadef281011a90590d01d80e6fbf4579ba7b04aac680489",
+  "maximumClaim": "NO_OPERATION_QUALIFICATION",
+  "aggregate": "PASS",
+  "evidenceDigest": "sha256:5d39838e442ace8f33606ff3732880703cb2e61dcdcae52b8db0aa61190bb5a7"
+}

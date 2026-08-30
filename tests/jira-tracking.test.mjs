@@ -10,6 +10,7 @@ import {
   appendTrackingEvent, JiraTrackingError, listTrackingEvents, queueTrackingDrafts,
   syncTrackingEvents, TRACKING_LIMITS, validateTrackingCapacity, validateTrackingEvent
 } from '../plugins/kstack/scripts/kstack-jira-tracking.mjs';
+import { DELIVERY_LOCK_STALE_MS } from '../plugins/kstack/scripts/kstack-jira-bootstrap.mjs';
 import { buildCanonicalPayload } from '../plugins/kstack/scripts/kstack-jira.mjs';
 import { canonicalJson } from '../plugins/kstack/scripts/kstack-safety-broker.mjs';
 import { assertOutboundSecretScan } from '../plugins/kstack/scripts/kstack-safety-matchers.mjs';
@@ -98,6 +99,7 @@ function installCreationApi(state, options = {}) {
     if (!options.preexistingDraftId || telemetry.visibleIssue) return;
     const draft = JSON.parse(fs.readFileSync(path.join(state.queueDir, `${options.preexistingDraftId}.json`), 'utf8'));
     const fields = JSON.parse(buildCanonicalPayload(state, draft)).fields;
+    if (options.reorderDescriptionKeys) fields.description = { type: fields.description.type, version: fields.description.version, content: fields.description.content };
     if (options.mismatchSummary) fields.summary = options.mismatchSummary;
     telemetry.visibleIssue = { id: issueId, key: issueKey, fields };
   }
@@ -118,6 +120,7 @@ function installCreationApi(state, options = {}) {
     if (method === 'POST' && parsed.pathname.endsWith('/rest/api/3/issue')) {
       telemetry.createPosts += 1;
       const fields = JSON.parse(Buffer.from(request.body).toString('utf8')).fields;
+      if (options.reorderDescriptionKeys) fields.description = { type: fields.description.type, version: fields.description.version, content: fields.description.content };
       if (options.createEffect !== false) telemetry.visibleIssue = { id: issueId, key: issueKey, fields };
       if (options.createStatus === 429) return Response.json({}, { status: 429, headers: { 'Retry-After': '0' } });
       return Response.json({ id: issueId, key: issueKey }, { status: 201 });
@@ -433,6 +436,9 @@ test('terminated writer processes recover at file-sync, rename, and directory-sy
     const namesAfterCrash = fs.readdirSync(current.state.trackingRoot);
     if (boundary === 'afterFileSync') assert.equal(namesAfterCrash.some((name) => name.includes('.tmp-')), true);
     else assert.equal(namesAfterCrash.some((name) => name.endsWith('.json')), true);
+    const crashedLock = path.join(current.state.trackingRoot, 'outbox-index.json.lock');
+    const staleTime = new Date(FixedClock.now() - DELIVERY_LOCK_STALE_MS - 1_000);
+    fs.utimesSync(crashedLock, staleTime, staleTime);
     const retry = await appendTrackingEvent(current.state, input({
       sourceEventId: `terminated-${boundary}`, summary: `Terminate at ${boundary}`,
       occurredAt: '2026-08-28T10:00:00.000Z', evidence: []
@@ -543,7 +549,7 @@ test('automatic creation searches first, posts once, verifies exact fields, and 
   const created = await appendTrackingEvent(state, input());
   state.jira.tracking.mode = 'automatic';
   state.config.authority.externalTicketCreation = 'allow';
-  const api = installCreationApi(state);
+  const api = installCreationApi(state, { reorderDescriptionKeys: true });
   process.env.TRACKING_EMAIL = 'kstack@example.com';
   process.env.TRACKING_TOKEN = 'test-token-value';
   const first = await syncTrackingEvents(state, state);

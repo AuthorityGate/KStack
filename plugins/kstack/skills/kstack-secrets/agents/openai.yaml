@@ -1,0 +1,6 @@
+interface:
+  display_name: "KStack Secrets"
+  short_description: "Migrate and use secrets through opaque handles"
+  default_prompt: "Use $kstack-secrets to prepare a metadata-only credential migration plan without exposing values."
+policy:
+  allow_implicit_invocation: false

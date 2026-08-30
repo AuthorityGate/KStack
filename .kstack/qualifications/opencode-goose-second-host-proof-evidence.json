@@ -1,0 +1,2419 @@
+{
+  "schema": "kstack-opencode-goose-second-host-proof-evidence-v1",
+  "bindings": {
+    "builderDigest": "e041ab757073736b6478c5f24e8c4d28cbdbfaa0b2d47d9129fed32d7a26da8e",
+    "evaluatorDigest": "02f9230219431797759c00be050926c29cc06648eb6137803140d1c91205d73b",
+    "hostImplementationEvidenceDigest": "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+    "openCodeEvidenceDigest": "8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f",
+    "gooseEvidenceDigest": "4b14bddf46e0cf52a1e93d057b79542affbc4fdec2653698a9507ceae3f0bb7f",
+    "installManifestDigest": "b1c56eb08a221188e386057b99eab80c17fc1fc60357db227b8086f14eb346fb",
+    "integratedImplementationDigest": "694644a1879652eb083bc330400066d90e75f50a2c6304bb130a97c0cfac926b"
+  },
+  "integratedImplementationInventory": [
+    {
+      "itemId": "HB-TC06",
+      "files": [
+        {
+          "file": ".kstack/qualifications/build-opencode-goose-second-host-proof.mjs",
+          "sha256": "e041ab757073736b6478c5f24e8c4d28cbdbfaa0b2d47d9129fed32d7a26da8e"
+        },
+        {
+          "file": ".kstack/qualifications/validate-opencode-goose-second-host-proof.mjs",
+          "sha256": "09c6ca0f27dd37acf5a45c493829ccfad7498e29593b5d248be160abad613f59"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-second-host-proof.mjs",
+          "sha256": "02f9230219431797759c00be050926c29cc06648eb6137803140d1c91205d73b"
+        },
+        {
+          "file": "tests/second-host-proof.test.mjs",
+          "sha256": "8a0d4902870ad39900164b9329213c3c81fa504c8e4c8c8201c1f699974429ad"
+        },
+        {
+          "file": "tests/second-host-proof-evidence.test.mjs",
+          "sha256": "c25ef28b05c0025b6785ebeb8c274459ab497b2189048238b0ac1cd25a4903c1"
+        }
+      ]
+    },
+    {
+      "itemId": "HB-TC09",
+      "files": [
+        {
+          "file": "plugins/kstack/scripts/kstack-goose-adapter.mjs",
+          "sha256": "fd8e8f37346ec98a35d8da57ff803f183e4c3ebcec8343558de713fbd73a1806"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-goose-conformance.mjs",
+          "sha256": "d2adad76a190c8e803832d879f49c013ea6e225d3e9a38bc4a100ae9540e5aac"
+        },
+        {
+          "file": ".kstack/qualifications/goose-v1.48.0-conformance-child.mjs",
+          "sha256": "c8cdd5212f7dcea77ff9fb9444a853f286050de5d3abda283264ab8dc0ed1c80"
+        },
+        {
+          "file": ".kstack/qualifications/goose-v1.48.0-conformance-provider.mjs",
+          "sha256": "91ae7f601b3928cf17a8fc9963b438d7b9792d08604839b112de500bca00634e"
+        },
+        {
+          "file": ".kstack/qualifications/run-goose-v1.48.0-conformance.mjs",
+          "sha256": "878b172a08bf2b6f2b1bf1f85704e20906a5d542fd089d1d0b22cdc614bc1b46"
+        },
+        {
+          "file": ".kstack/qualifications/validate-goose-v1.48.0-conformance.mjs",
+          "sha256": "6976634aaad712182b19a9cdbdf6b7f4f912de7c4d4a803c7a143676b4750134"
+        },
+        {
+          "file": "tests/goose-adapter.test.mjs",
+          "sha256": "44d1bc06f657ed3eeb7e69a37eabe3a7719c01a9b2ccb1b7feb33595e3c64946"
+        },
+        {
+          "file": "tests/goose-conformance.test.mjs",
+          "sha256": "34e33b0f1895a8e8b5a9f3e4e6a25e3c97893b16ee715506849ce5c0ca8719bf"
+        },
+        {
+          "file": "tests/goose-protected-conformance.test.mjs",
+          "sha256": "8b9b70e8ae36c45559eaec50daf5ad3cfe01a1c6294480eb216c90b5dc60d1d4"
+        }
+      ]
+    }
+  ],
+  "commonProfile": {
+    "profileId": "advisory-public-read-v1",
+    "operations": [
+      "version",
+      "help",
+      "instruction-discovery",
+      "advisory"
+    ],
+    "fixtureGroups": [
+      "approval-broker",
+      "background-lifecycle",
+      "hostile-data",
+      "identity-currentness",
+      "instruction-package",
+      "native-permissions",
+      "preservation",
+      "public-mcp-facade",
+      "receipt-ambiguity",
+      "workspace"
+    ],
+    "semanticRequestSetDigest": "59c73e5ca6de08e3a9e9de8c8c858c2c4537afd3aabbb15cfaf8641b7ce1c311",
+    "semanticResultSetDigest": "3d33fd3d0cfaf0846752bb1ff48ac255a9d7fd6730829a4cf1fec8fb16ea83cf",
+    "credentials": "ABSENT",
+    "productionTargets": "ABSENT",
+    "maximumClaim": "OPERATION_SCOPED_ONLY"
+  },
+  "semanticRequestSet": [
+    {
+      "fixtureId": "approval-broker.negative.v1",
+      "fixtureGroupId": "approval-broker",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "BROKER_TICKET_REJECTED",
+        "PROTECTED_DENY"
+      ],
+      "stableFailureCodes": [
+        "APPROVAL_BROKER_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "approval-broker.positive.v1",
+      "fixtureGroupId": "approval-broker",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "BROKER_TICKET_VERIFIED",
+        "NATIVE_SKILL_ALLOWED"
+      ],
+      "stableFailureCodes": [
+        "APPROVAL_BROKER_POSITIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "background-lifecycle.negative.v1",
+      "fixtureGroupId": "background-lifecycle",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "HOST_PROCESS_STARTED",
+        "DEADLINE_EXPIRED",
+        "HOST_PROCESS_CANCELLED",
+        "ZERO_ORPHANS_OBSERVED"
+      ],
+      "stableFailureCodes": [
+        "BACKGROUND_LIFECYCLE_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "background-lifecycle.positive.v1",
+      "fixtureGroupId": "background-lifecycle",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "HOST_PROCESS_STARTED",
+        "HOST_PROCESS_EXITED",
+        "ZERO_ORPHANS_OBSERVED"
+      ],
+      "stableFailureCodes": [
+        "BACKGROUND_LIFECYCLE_POSITIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "hostile-data.negative.v1",
+      "fixtureGroupId": "hostile-data",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "HOSTILE_OUTPUT_REJECTED",
+        "PROTECTED_DENY"
+      ],
+      "stableFailureCodes": [
+        "HOSTILE_DATA_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "hostile-data.positive.v1",
+      "fixtureGroupId": "hostile-data",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "STRUCTURED_OUTPUT_ACCEPTED"
+      ],
+      "stableFailureCodes": [
+        "HOSTILE_DATA_POSITIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "identity-currentness.negative.v1",
+      "fixtureGroupId": "identity-currentness",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "CURRENTNESS_MISMATCHED",
+        "PROTECTED_DENY"
+      ],
+      "stableFailureCodes": [
+        "IDENTITY_CURRENTNESS_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "identity-currentness.positive.v1",
+      "fixtureGroupId": "identity-currentness",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "CURRENTNESS_MATCHED"
+      ],
+      "stableFailureCodes": [
+        "IDENTITY_CURRENTNESS_POSITIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "instruction-package.negative.v1",
+      "fixtureGroupId": "instruction-package",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "DUPLICATE_SKILL_DISCOVERED",
+        "PROTECTED_DENY"
+      ],
+      "stableFailureCodes": [
+        "INSTRUCTION_PACKAGE_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "instruction-package.positive.v1",
+      "fixtureGroupId": "instruction-package",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "NATIVE_SKILL_DISCOVERED",
+        "NATIVE_SKILL_ALLOWED"
+      ],
+      "stableFailureCodes": [
+        "INSTRUCTION_PACKAGE_POSITIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "native-permissions.negative.v1",
+      "fixtureGroupId": "native-permissions",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "NATIVE_TOOL_DENIED",
+        "NATIVE_PERMISSION_MATCHED",
+        "PROTECTED_DENY"
+      ],
+      "stableFailureCodes": [
+        "NATIVE_PERMISSIONS_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "native-permissions.positive.v1",
+      "fixtureGroupId": "native-permissions",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "NATIVE_PERMISSION_MATCHED"
+      ],
+      "stableFailureCodes": [
+        "NATIVE_PERMISSIONS_POSITIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "preservation.negative.v1",
+      "fixtureGroupId": "preservation",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "PRESERVATION_BASELINE_MISMATCHED",
+        "PROTECTED_DENY"
+      ],
+      "stableFailureCodes": [
+        "PRESERVATION_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "preservation.positive.v1",
+      "fixtureGroupId": "preservation",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "CODEX_BASELINE_MATCHED",
+        "CLAUDE_BASELINE_MATCHED",
+        "HOST_BASELINE_MATCHED"
+      ],
+      "stableFailureCodes": [
+        "PRESERVATION_POSITIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "fixtureGroupId": "public-mcp-facade",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "PUBLIC_MCP_LEASE_REJECTED",
+        "NO_PROMOTION_OBSERVED",
+        "PROTECTED_DENY"
+      ],
+      "stableFailureCodes": [
+        "PUBLIC_MCP_FACADE_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "fixtureGroupId": "public-mcp-facade",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "PUBLIC_MCP_LIST_OBSERVED",
+        "PUBLIC_MCP_READ_OBSERVED",
+        "NO_PROMOTION_OBSERVED"
+      ],
+      "stableFailureCodes": [
+        "PUBLIC_MCP_FACADE_POSITIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "fixtureGroupId": "receipt-ambiguity",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "PROVIDER_RESPONSE_LOST",
+        "BLIND_RETRY_ABSENT",
+        "PROTECTED_DENY"
+      ],
+      "stableFailureCodes": [
+        "RECEIPT_AMBIGUITY_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "fixtureGroupId": "receipt-ambiguity",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "PROVIDER_REQUEST_OBSERVED",
+        "PROVIDER_RECEIPT_MATCHED"
+      ],
+      "stableFailureCodes": [
+        "RECEIPT_AMBIGUITY_POSITIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "workspace.negative.v1",
+      "fixtureGroupId": "workspace",
+      "polarity": "NEGATIVE",
+      "expectedDecisionCode": "DENY",
+      "expectedNativeEventSequence": [
+        "WORKSPACE_ALIAS_REJECTED",
+        "REPOSITORY_UNCHANGED",
+        "PROTECTED_DENY"
+      ],
+      "stableFailureCodes": [
+        "WORKSPACE_NEGATIVE_FAILED"
+      ]
+    },
+    {
+      "fixtureId": "workspace.positive.v1",
+      "fixtureGroupId": "workspace",
+      "polarity": "POSITIVE",
+      "expectedDecisionCode": "ALLOW",
+      "expectedNativeEventSequence": [
+        "WORKSPACE_IDENTITY_MATCHED",
+        "REPOSITORY_UNCHANGED"
+      ],
+      "stableFailureCodes": [
+        "WORKSPACE_POSITIVE_FAILED"
+      ]
+    }
+  ],
+  "semanticResultSet": [
+    {
+      "fixtureId": "approval-broker.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "BROKER_TICKET_REJECTED",
+        "PROTECTED_DENY"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "approval-broker.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "BROKER_TICKET_VERIFIED",
+        "NATIVE_SKILL_ALLOWED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "background-lifecycle.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "HOST_PROCESS_STARTED",
+        "DEADLINE_EXPIRED",
+        "HOST_PROCESS_CANCELLED",
+        "ZERO_ORPHANS_OBSERVED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "background-lifecycle.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "HOST_PROCESS_STARTED",
+        "HOST_PROCESS_EXITED",
+        "ZERO_ORPHANS_OBSERVED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "hostile-data.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "HOSTILE_OUTPUT_REJECTED",
+        "PROTECTED_DENY"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "hostile-data.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "STRUCTURED_OUTPUT_ACCEPTED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "identity-currentness.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "CURRENTNESS_MISMATCHED",
+        "PROTECTED_DENY"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "identity-currentness.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "CURRENTNESS_MATCHED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "instruction-package.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "DUPLICATE_SKILL_DISCOVERED",
+        "PROTECTED_DENY"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "instruction-package.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_DISCOVERED",
+        "NATIVE_SKILL_ALLOWED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "native-permissions.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "NATIVE_TOOL_DENIED",
+        "NATIVE_PERMISSION_MATCHED",
+        "PROTECTED_DENY"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "native-permissions.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "NATIVE_PERMISSION_MATCHED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "preservation.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "PRESERVATION_BASELINE_MISMATCHED",
+        "PROTECTED_DENY"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "preservation.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "CODEX_BASELINE_MATCHED",
+        "CLAUDE_BASELINE_MATCHED",
+        "HOST_BASELINE_MATCHED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "PUBLIC_MCP_LEASE_REJECTED",
+        "NO_PROMOTION_OBSERVED",
+        "PROTECTED_DENY"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "PUBLIC_MCP_LIST_OBSERVED",
+        "PUBLIC_MCP_READ_OBSERVED",
+        "NO_PROMOTION_OBSERVED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "PROVIDER_RESPONSE_LOST",
+        "BLIND_RETRY_ABSENT",
+        "PROTECTED_DENY"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "PROVIDER_REQUEST_OBSERVED",
+        "PROVIDER_RECEIPT_MATCHED"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "workspace.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "WORKSPACE_ALIAS_REJECTED",
+        "REPOSITORY_UNCHANGED",
+        "PROTECTED_DENY"
+      ],
+      "failureCode": null
+    },
+    {
+      "fixtureId": "workspace.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "WORKSPACE_IDENTITY_MATCHED",
+        "REPOSITORY_UNCHANGED"
+      ],
+      "failureCode": null
+    }
+  ],
+  "portDefinitions": [
+    {
+      "portId": "bindHostInstance",
+      "request": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "bindHostInstance",
+        "direction": "KSTACK_TO_HOST_ADAPTER",
+        "authorityBearing": false
+      },
+      "result": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "bindHostInstance",
+        "direction": "HOST_ADAPTER_TO_KSTACK",
+        "observationOnly": true
+      }
+    },
+    {
+      "portId": "bindRepositoryContext",
+      "request": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "bindRepositoryContext",
+        "direction": "KSTACK_TO_HOST_ADAPTER",
+        "authorityBearing": false
+      },
+      "result": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "bindRepositoryContext",
+        "direction": "HOST_ADAPTER_TO_KSTACK",
+        "observationOnly": true
+      }
+    },
+    {
+      "portId": "discoverInstructionProjection",
+      "request": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "discoverInstructionProjection",
+        "direction": "KSTACK_TO_HOST_ADAPTER",
+        "authorityBearing": false
+      },
+      "result": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "discoverInstructionProjection",
+        "direction": "HOST_ADAPTER_TO_KSTACK",
+        "observationOnly": true
+      }
+    },
+    {
+      "portId": "observeNativeAction",
+      "request": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "observeNativeAction",
+        "direction": "KSTACK_TO_HOST_ADAPTER",
+        "authorityBearing": false
+      },
+      "result": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "observeNativeAction",
+        "direction": "HOST_ADAPTER_TO_KSTACK",
+        "observationOnly": true
+      }
+    },
+    {
+      "portId": "requestNativeApprovalDisplay",
+      "request": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "requestNativeApprovalDisplay",
+        "direction": "KSTACK_TO_HOST_ADAPTER",
+        "authorityBearing": false
+      },
+      "result": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "requestNativeApprovalDisplay",
+        "direction": "HOST_ADAPTER_TO_KSTACK",
+        "observationOnly": true
+      }
+    },
+    {
+      "portId": "routeProtectedBroker",
+      "request": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "routeProtectedBroker",
+        "direction": "KSTACK_TO_HOST_ADAPTER",
+        "authorityBearing": false
+      },
+      "result": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "routeProtectedBroker",
+        "direction": "HOST_ADAPTER_TO_KSTACK",
+        "observationOnly": true
+      }
+    },
+    {
+      "portId": "observeProcessLifecycle",
+      "request": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "observeProcessLifecycle",
+        "direction": "KSTACK_TO_HOST_ADAPTER",
+        "authorityBearing": false
+      },
+      "result": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "observeProcessLifecycle",
+        "direction": "HOST_ADAPTER_TO_KSTACK",
+        "observationOnly": true
+      }
+    },
+    {
+      "portId": "observeStructuredOutput",
+      "request": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "observeStructuredOutput",
+        "direction": "KSTACK_TO_HOST_ADAPTER",
+        "authorityBearing": false
+      },
+      "result": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "observeStructuredOutput",
+        "direction": "HOST_ADAPTER_TO_KSTACK",
+        "observationOnly": true
+      }
+    },
+    {
+      "portId": "observeCancellation",
+      "request": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "observeCancellation",
+        "direction": "KSTACK_TO_HOST_ADAPTER",
+        "authorityBearing": false
+      },
+      "result": {
+        "contract": "HostAdapterBoundaryV1",
+        "portId": "observeCancellation",
+        "direction": "HOST_ADAPTER_TO_KSTACK",
+        "observationOnly": true
+      }
+    }
+  ],
+  "differenceDefinitions": [
+    {
+      "surfaceId": "instruction-discovery",
+      "opencodeBehavior": "OpenCode project skill projection and native event stream",
+      "gooseBehavior": "Goose .agents/skills discovery and tabular inventory",
+      "commonRequirement": "One exact project instruction projection; duplicate roots deny admission",
+      "hostSpecificAdaptation": "Host-native discovery is observed through a closed projection"
+    },
+    {
+      "surfaceId": "extensions-tools",
+      "opencodeBehavior": "Selected native skill path with deny-by-default permissions",
+      "gooseBehavior": "No extensions and no native tools in the qualified profile",
+      "commonRequirement": "Unregistered native capability is unavailable",
+      "hostSpecificAdaptation": "Host-specific inventory is bounded before execution"
+    },
+    {
+      "surfaceId": "provider-credential-lifecycle",
+      "opencodeBehavior": "One synthetic advisory provider flow",
+      "gooseBehavior": "Native title plus advisory requests through the synthetic provider",
+      "commonRequirement": "No credential enters the host and provider shape is exact",
+      "hostSpecificAdaptation": "Adapter observes each host-native provider sequence"
+    },
+    {
+      "surfaceId": "subagents",
+      "opencodeBehavior": "No subagent route admitted",
+      "gooseBehavior": "Native Goose subagents rejected for this profile",
+      "commonRequirement": "No inherited or nested execution authority",
+      "hostSpecificAdaptation": null
+    },
+    {
+      "surfaceId": "mcp",
+      "opencodeBehavior": "Public KStack facade tested outside native advisory execution",
+      "gooseBehavior": "Goose MCP excluded from the selected profile",
+      "commonRequirement": "MCP cannot promote identity, authority, or host eligibility",
+      "hostSpecificAdaptation": null
+    },
+    {
+      "surfaceId": "permissions",
+      "opencodeBehavior": "OpenCode native permission events observed without authority transfer",
+      "gooseBehavior": "Goose tool proposal fails because the admitted tool inventory is empty",
+      "commonRequirement": "KStack remains the sole authority and broker owner",
+      "hostSpecificAdaptation": "Host-native permission result is observation-only"
+    },
+    {
+      "surfaceId": "roots",
+      "opencodeBehavior": "OpenCode config/data/cache/home roots isolated from the repository",
+      "gooseBehavior": "GOOSE_PATH_ROOT and HOME isolate Goose transient state",
+      "commonRequirement": "Repository identity remains byte-identical",
+      "hostSpecificAdaptation": "Each adapter renders its native disposable-root layout"
+    },
+    {
+      "surfaceId": "background-tasks",
+      "opencodeBehavior": "Deadline and process lifecycle observed through OpenCode execution",
+      "gooseBehavior": "GNU timeout and PID1 drain observe Goose cancellation",
+      "commonRequirement": "No orphan survives the bounded deadline",
+      "hostSpecificAdaptation": "Native termination forms normalize to the common lifecycle result"
+    },
+    {
+      "surfaceId": "cancellation",
+      "opencodeBehavior": "OpenCode cancellation events are adapter observations",
+      "gooseBehavior": "Goose process signal and timeout state are adapter observations",
+      "commonRequirement": "Cancellation never creates retry or authority",
+      "hostSpecificAdaptation": "Host-specific cancellation facts normalize at the boundary"
+    },
+    {
+      "surfaceId": "retry-idempotency",
+      "opencodeBehavior": "Provider receipt ambiguity denies blind retry",
+      "gooseBehavior": "Effecting-provider ambiguity denies after one call",
+      "commonRequirement": "Possibly committed work is never retried blindly",
+      "hostSpecificAdaptation": null
+    },
+    {
+      "surfaceId": "session-state",
+      "opencodeBehavior": "OpenCode isolated state is disposable and non-authoritative",
+      "gooseBehavior": "Goose --no-session still writes only disposable transient state",
+      "commonRequirement": "No host session becomes KStack memory or durable authority",
+      "hostSpecificAdaptation": "Adapter binds the actual native transient-state behavior"
+    },
+    {
+      "surfaceId": "memory-context",
+      "opencodeBehavior": "No host memory route is admitted",
+      "gooseBehavior": "No Goose memory or resume route is admitted",
+      "commonRequirement": "Context cannot silently become durable cross-session state",
+      "hostSpecificAdaptation": null
+    },
+    {
+      "surfaceId": "updates",
+      "opencodeBehavior": "Pinned OpenCode binary and active-set change require requalification",
+      "gooseBehavior": "Pinned reproducibly built Goose binary cannot self-update through the adapter",
+      "commonRequirement": "Host update invalidates evidence instead of inheriting support",
+      "hostSpecificAdaptation": "Each exact binary/source identity has a host-specific admission path"
+    },
+    {
+      "surfaceId": "output-receipts",
+      "opencodeBehavior": "OpenCode JSONL/native events are content-addressed",
+      "gooseBehavior": "Goose structured JSON and provider log facts are content-addressed",
+      "commonRequirement": "Only safe structured observations and content-free receipts persist",
+      "hostSpecificAdaptation": "Each adapter parses its native output without semantic substitution"
+    }
+  ],
+  "measurements": {
+    "genericSourceHostBranchScan": {
+      "schema": "kstack-source-scan-receipt-v1",
+      "scanId": "generic-host-contract-host-branch-v1",
+      "relativePath": "plugins/kstack/scripts/kstack-host-contract.mjs",
+      "subjectDigest": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1",
+      "forbiddenTokens": [
+        "opencode",
+        "goose",
+        "claude",
+        "codex"
+      ],
+      "findings": [],
+      "passed": true,
+      "receiptDigest": "3294741f6444f3483a44678840a6e91cf958b7dac26766911deac8789424c1ef"
+    },
+    "forbiddenFieldScan": {
+      "schema": "kstack-forbidden-field-scan-receipt-v1",
+      "scanId": "adapter-projection-forbidden-fields-v1",
+      "forbiddenFields": [
+        "allow",
+        "approval",
+        "authority",
+        "credential",
+        "eligibility",
+        "policy",
+        "retry",
+        "secret",
+        "supportTier",
+        "terminalStatus",
+        "token"
+      ],
+      "observations": [
+        {
+          "hostId": "opencode",
+          "field": "allow",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "approval",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "authority",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "credential",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "eligibility",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "policy",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "retry",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "secret",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "supportTier",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "terminalStatus",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "opencode",
+          "field": "token",
+          "rejected": true,
+          "errorCode": "KSTACK_OPENCODE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "allow",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "approval",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "authority",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "credential",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "eligibility",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "policy",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "retry",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "secret",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "supportTier",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "terminalStatus",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        },
+        {
+          "hostId": "goose",
+          "field": "token",
+          "rejected": true,
+          "errorCode": "KSTACK_GOOSE_PORT_PROJECTION_INVALID"
+        }
+      ],
+      "passed": true,
+      "receiptDigest": "fe76a9aba6e7b3a83f04d664161257d6cdde84a77d462c500975230791136027"
+    },
+    "adapterAuthorityScans": {
+      "opencode": {
+        "schema": "kstack-adapter-authority-scan-receipt-v1",
+        "hostId": "opencode",
+        "adapterPath": "plugins/kstack/scripts/kstack-opencode-adapter.mjs",
+        "adapterDigest": "5f908ff798b79ef77438f9573aff09f1d941aa3bc1069b54ca60b9a498ccdd8b",
+        "expectedPorts": [
+          "bindHostInstance",
+          "bindRepositoryContext",
+          "discoverInstructionProjection",
+          "observeNativeAction",
+          "requestNativeApprovalDisplay",
+          "routeProtectedBroker",
+          "observeProcessLifecycle",
+          "observeStructuredOutput",
+          "observeCancellation"
+        ],
+        "observedPorts": [
+          "bindHostInstance",
+          "bindRepositoryContext",
+          "discoverInstructionProjection",
+          "observeNativeAction",
+          "requestNativeApprovalDisplay",
+          "routeProtectedBroker",
+          "observeProcessLifecycle",
+          "observeStructuredOutput",
+          "observeCancellation"
+        ],
+        "forbiddenImports": [],
+        "passed": true,
+        "receiptDigest": "90499e20c3ee88e34decf39bd781a18f209684e6a61d0be074b03062fb48d785"
+      },
+      "goose": {
+        "schema": "kstack-adapter-authority-scan-receipt-v1",
+        "hostId": "goose",
+        "adapterPath": "plugins/kstack/scripts/kstack-goose-adapter.mjs",
+        "adapterDigest": "fd8e8f37346ec98a35d8da57ff803f183e4c3ebcec8343558de713fbd73a1806",
+        "expectedPorts": [
+          "bindHostInstance",
+          "bindRepositoryContext",
+          "discoverInstructionProjection",
+          "observeNativeAction",
+          "requestNativeApprovalDisplay",
+          "routeProtectedBroker",
+          "observeProcessLifecycle",
+          "observeStructuredOutput",
+          "observeCancellation"
+        ],
+        "observedPorts": [
+          "bindHostInstance",
+          "bindRepositoryContext",
+          "discoverInstructionProjection",
+          "observeNativeAction",
+          "requestNativeApprovalDisplay",
+          "routeProtectedBroker",
+          "observeProcessLifecycle",
+          "observeStructuredOutput",
+          "observeCancellation"
+        ],
+        "forbiddenImports": [],
+        "passed": true,
+        "receiptDigest": "371d64df9585e9b13a76bdbc21e80519b0928570c9d932149b416442bb074986"
+      }
+    },
+    "surfaceMeasurements": {
+      "instruction-discovery": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "instruction-discovery",
+        "fixtureGroups": [
+          "instruction-package"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "instruction-package.negative.v1",
+            "passed": true,
+            "detailsDigest": "e9f2091a03d97bd05bf8525ea122604667d2ed6149310acbb48cd66751fc79a8"
+          },
+          {
+            "fixtureId": "instruction-package.positive.v1",
+            "passed": true,
+            "detailsDigest": "54a69e3815c8037482165bfb07f596de2651db87a9d4c6fbaecf31f39a67e619"
+          },
+          {
+            "fixtureId": "instruction-package.negative.v1",
+            "passed": true,
+            "detailsDigest": "0df94d0066b40686fa578ba7893e1992a10a54d51ab5fc39bb1bc40620b1a23e"
+          },
+          {
+            "fixtureId": "instruction-package.positive.v1",
+            "passed": true,
+            "detailsDigest": "76073261105bc3abd12f2f9e9777d65fd407c00744779b6a8bc157bcc43ebe8d"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "a4e74f60e32c72aff89cdde27c3382db83dced1bedfa8492d4214b60627a96da"
+      },
+      "extensions-tools": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "extensions-tools",
+        "fixtureGroups": [
+          "native-permissions"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "native-permissions.negative.v1",
+            "passed": true,
+            "detailsDigest": "37f624cd7699f7335bae1c1b167e98510935626f0a6887e94ba6479c73608d22"
+          },
+          {
+            "fixtureId": "native-permissions.positive.v1",
+            "passed": true,
+            "detailsDigest": "2528e2b2ac83e4048fd8d6bb49ce9e74617ded560463161342300af524fd0cce"
+          },
+          {
+            "fixtureId": "native-permissions.negative.v1",
+            "passed": true,
+            "detailsDigest": "554ce2450103c96586f415f2257bfb74537ffbae38125c0657013f438d45dd6f"
+          },
+          {
+            "fixtureId": "native-permissions.positive.v1",
+            "passed": true,
+            "detailsDigest": "7592bd6835e4b7512d617e56618281a0912aaba0c541277eb1b7dc6735374180"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "624bb32c3efdef6b00fd63c3d96390fb6a098701bbaa33c71025daa3b615d10f"
+      },
+      "provider-credential-lifecycle": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "provider-credential-lifecycle",
+        "fixtureGroups": [
+          "approval-broker"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "approval-broker.negative.v1",
+            "passed": true,
+            "detailsDigest": "5c078ecac530e49e0f3ae52f3869c2b046bad0e67e1a0a28787f5cba70224a5c"
+          },
+          {
+            "fixtureId": "approval-broker.positive.v1",
+            "passed": true,
+            "detailsDigest": "a339cd26c6a4dc13e422c49aefeaa4ead76f2e9cac6c8ba87d2c6bc7a5e1bb61"
+          },
+          {
+            "fixtureId": "approval-broker.negative.v1",
+            "passed": true,
+            "detailsDigest": "f3946784bddc15e5ee419e821988754708a6654ec00f3bce6b1dd5c4c84478d2"
+          },
+          {
+            "fixtureId": "approval-broker.positive.v1",
+            "passed": true,
+            "detailsDigest": "2bc3a75fa858b7a077469c84f55b516c359a2e0662774e9bc521f2957b62366d"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "15794bc57cf8faf52588d6c0739c08114643beafba898988904c04e023457f91"
+      },
+      "subagents": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "subagents",
+        "fixtureGroups": [
+          "instruction-package"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "instruction-package.negative.v1",
+            "passed": true,
+            "detailsDigest": "e9f2091a03d97bd05bf8525ea122604667d2ed6149310acbb48cd66751fc79a8"
+          },
+          {
+            "fixtureId": "instruction-package.positive.v1",
+            "passed": true,
+            "detailsDigest": "54a69e3815c8037482165bfb07f596de2651db87a9d4c6fbaecf31f39a67e619"
+          },
+          {
+            "fixtureId": "instruction-package.negative.v1",
+            "passed": true,
+            "detailsDigest": "0df94d0066b40686fa578ba7893e1992a10a54d51ab5fc39bb1bc40620b1a23e"
+          },
+          {
+            "fixtureId": "instruction-package.positive.v1",
+            "passed": true,
+            "detailsDigest": "76073261105bc3abd12f2f9e9777d65fd407c00744779b6a8bc157bcc43ebe8d"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "b0719bfa8cf5110bc46aaf6b3d5db9e400b99f25f5827b32bae1dc60a9edb868"
+      },
+      "mcp": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "mcp",
+        "fixtureGroups": [
+          "public-mcp-facade"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "public-mcp-facade.negative.v1",
+            "passed": true,
+            "detailsDigest": "f11e6c9141d6cc19116cdbc16aaabb9fc9d001cfd9cf45d7a7d22194daa9d756"
+          },
+          {
+            "fixtureId": "public-mcp-facade.positive.v1",
+            "passed": true,
+            "detailsDigest": "c66a3587b05db35de1a2e4fdd1abdd999d89834621b6906ff8729aada3940280"
+          },
+          {
+            "fixtureId": "public-mcp-facade.negative.v1",
+            "passed": true,
+            "detailsDigest": "cdfb95d78a3eaa5e49f2c0618f74d5ab117d931544fcc3e84a794c46df746328"
+          },
+          {
+            "fixtureId": "public-mcp-facade.positive.v1",
+            "passed": true,
+            "detailsDigest": "641f9236690802ac38bba1eed64c35bd689059e8b28097d46bb7d1b38af592bb"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "e4a308fe04ea19f675f6b7393da67b37e4024e7562781fe94059aebabaebd1fe"
+      },
+      "permissions": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "permissions",
+        "fixtureGroups": [
+          "native-permissions"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "native-permissions.negative.v1",
+            "passed": true,
+            "detailsDigest": "37f624cd7699f7335bae1c1b167e98510935626f0a6887e94ba6479c73608d22"
+          },
+          {
+            "fixtureId": "native-permissions.positive.v1",
+            "passed": true,
+            "detailsDigest": "2528e2b2ac83e4048fd8d6bb49ce9e74617ded560463161342300af524fd0cce"
+          },
+          {
+            "fixtureId": "native-permissions.negative.v1",
+            "passed": true,
+            "detailsDigest": "554ce2450103c96586f415f2257bfb74537ffbae38125c0657013f438d45dd6f"
+          },
+          {
+            "fixtureId": "native-permissions.positive.v1",
+            "passed": true,
+            "detailsDigest": "7592bd6835e4b7512d617e56618281a0912aaba0c541277eb1b7dc6735374180"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "5beb334e6852b734136fad93b36c242135182e55a8ba76923cf4bf1ffa396e9e"
+      },
+      "roots": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "roots",
+        "fixtureGroups": [
+          "workspace"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "workspace.negative.v1",
+            "passed": true,
+            "detailsDigest": "a3e19b0512d8d26925bee4cfe02d96092e10bc99bbadfe74b1338e95cc1f0666"
+          },
+          {
+            "fixtureId": "workspace.positive.v1",
+            "passed": true,
+            "detailsDigest": "abd15048a55eda141e5b813662b93486f657bf9db61810edf68503dfb27e46b9"
+          },
+          {
+            "fixtureId": "workspace.negative.v1",
+            "passed": true,
+            "detailsDigest": "7cb06cbd3fa67f517915b1e6faa44fa3ed7878a878bdfdf3f8bd7dfe0e122b43"
+          },
+          {
+            "fixtureId": "workspace.positive.v1",
+            "passed": true,
+            "detailsDigest": "5b0b5b79c02cb8cd640140b72dfa266b5d5fdac68fca785949aaa15354feb63e"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "b6c330748c36aa4270a4b08af6624c69426bf0205670d200ffbeef62d98bbe5d"
+      },
+      "background-tasks": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "background-tasks",
+        "fixtureGroups": [
+          "background-lifecycle"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "background-lifecycle.negative.v1",
+            "passed": true,
+            "detailsDigest": "763fef385fe3abb02cfb8d41bc33cef4633cae8f1e1b6cf37218bf1334c66408"
+          },
+          {
+            "fixtureId": "background-lifecycle.positive.v1",
+            "passed": true,
+            "detailsDigest": "236293c4171e5379b2313e03b1ddc72fb52eb93c7fe812e4daf812e9285f6a51"
+          },
+          {
+            "fixtureId": "background-lifecycle.negative.v1",
+            "passed": true,
+            "detailsDigest": "5d1791da7bb1900ef4df4d5e2a7ab2336aa7e75b509ad8355990556d52b67630"
+          },
+          {
+            "fixtureId": "background-lifecycle.positive.v1",
+            "passed": true,
+            "detailsDigest": "db5ddad59fb63920ccbea0fea4d2623e083e95c60b5fbae09ac437189d2e12b3"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "05103299d2d447431b5fc41f49c343a2a0453a3c950fc9a5237d173f20ccfce2"
+      },
+      "cancellation": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "cancellation",
+        "fixtureGroups": [
+          "background-lifecycle"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "background-lifecycle.negative.v1",
+            "passed": true,
+            "detailsDigest": "763fef385fe3abb02cfb8d41bc33cef4633cae8f1e1b6cf37218bf1334c66408"
+          },
+          {
+            "fixtureId": "background-lifecycle.positive.v1",
+            "passed": true,
+            "detailsDigest": "236293c4171e5379b2313e03b1ddc72fb52eb93c7fe812e4daf812e9285f6a51"
+          },
+          {
+            "fixtureId": "background-lifecycle.negative.v1",
+            "passed": true,
+            "detailsDigest": "5d1791da7bb1900ef4df4d5e2a7ab2336aa7e75b509ad8355990556d52b67630"
+          },
+          {
+            "fixtureId": "background-lifecycle.positive.v1",
+            "passed": true,
+            "detailsDigest": "db5ddad59fb63920ccbea0fea4d2623e083e95c60b5fbae09ac437189d2e12b3"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "bcde1d994a85c3522c83585f9f2e67bd66b450377a3f145105f65ecf71e1df7c"
+      },
+      "retry-idempotency": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "retry-idempotency",
+        "fixtureGroups": [
+          "receipt-ambiguity"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "receipt-ambiguity.negative.v1",
+            "passed": true,
+            "detailsDigest": "f746c4630e8f9b4809e99a3956595ebd0dca83be926d313d28bb655f378d3140"
+          },
+          {
+            "fixtureId": "receipt-ambiguity.positive.v1",
+            "passed": true,
+            "detailsDigest": "8b21c9f6274c638d6d624a827d9501f0c7b2cc241139a3cddd868e0faf331520"
+          },
+          {
+            "fixtureId": "receipt-ambiguity.negative.v1",
+            "passed": true,
+            "detailsDigest": "e65882cf3427a159231bbc3c2fe2ed35b3c7547d6f56b419155847cf4aec3671"
+          },
+          {
+            "fixtureId": "receipt-ambiguity.positive.v1",
+            "passed": true,
+            "detailsDigest": "cdcf38017ddf9ef33d16bac9a0d807704a3c4a536be59752adb8fb3465d040db"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "31fd67e359403a1d7e47e1b0c85ab0defe8a3677d42f1c2f8f6726784801e899"
+      },
+      "session-state": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "session-state",
+        "fixtureGroups": [
+          "workspace"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "workspace.negative.v1",
+            "passed": true,
+            "detailsDigest": "a3e19b0512d8d26925bee4cfe02d96092e10bc99bbadfe74b1338e95cc1f0666"
+          },
+          {
+            "fixtureId": "workspace.positive.v1",
+            "passed": true,
+            "detailsDigest": "abd15048a55eda141e5b813662b93486f657bf9db61810edf68503dfb27e46b9"
+          },
+          {
+            "fixtureId": "workspace.negative.v1",
+            "passed": true,
+            "detailsDigest": "7cb06cbd3fa67f517915b1e6faa44fa3ed7878a878bdfdf3f8bd7dfe0e122b43"
+          },
+          {
+            "fixtureId": "workspace.positive.v1",
+            "passed": true,
+            "detailsDigest": "5b0b5b79c02cb8cd640140b72dfa266b5d5fdac68fca785949aaa15354feb63e"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "f209e6c190f70011b9c600dc2b07593347240a7d4903832638bf66b936b671ab"
+      },
+      "memory-context": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "memory-context",
+        "fixtureGroups": [
+          "workspace",
+          "instruction-package"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "workspace.negative.v1",
+            "passed": true,
+            "detailsDigest": "a3e19b0512d8d26925bee4cfe02d96092e10bc99bbadfe74b1338e95cc1f0666"
+          },
+          {
+            "fixtureId": "workspace.positive.v1",
+            "passed": true,
+            "detailsDigest": "abd15048a55eda141e5b813662b93486f657bf9db61810edf68503dfb27e46b9"
+          },
+          {
+            "fixtureId": "instruction-package.negative.v1",
+            "passed": true,
+            "detailsDigest": "e9f2091a03d97bd05bf8525ea122604667d2ed6149310acbb48cd66751fc79a8"
+          },
+          {
+            "fixtureId": "instruction-package.positive.v1",
+            "passed": true,
+            "detailsDigest": "54a69e3815c8037482165bfb07f596de2651db87a9d4c6fbaecf31f39a67e619"
+          },
+          {
+            "fixtureId": "workspace.negative.v1",
+            "passed": true,
+            "detailsDigest": "7cb06cbd3fa67f517915b1e6faa44fa3ed7878a878bdfdf3f8bd7dfe0e122b43"
+          },
+          {
+            "fixtureId": "workspace.positive.v1",
+            "passed": true,
+            "detailsDigest": "5b0b5b79c02cb8cd640140b72dfa266b5d5fdac68fca785949aaa15354feb63e"
+          },
+          {
+            "fixtureId": "instruction-package.negative.v1",
+            "passed": true,
+            "detailsDigest": "0df94d0066b40686fa578ba7893e1992a10a54d51ab5fc39bb1bc40620b1a23e"
+          },
+          {
+            "fixtureId": "instruction-package.positive.v1",
+            "passed": true,
+            "detailsDigest": "76073261105bc3abd12f2f9e9777d65fd407c00744779b6a8bc157bcc43ebe8d"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "2b180bafafac1387679f2b2d068b085ed784e29490544d68d20b1dd576f65e01"
+      },
+      "updates": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "updates",
+        "fixtureGroups": [
+          "identity-currentness"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "identity-currentness.negative.v1",
+            "passed": true,
+            "detailsDigest": "2c0acd134e06611527201c2eb196f0ad4ac605cc55fd0b026451dfd95704618b"
+          },
+          {
+            "fixtureId": "identity-currentness.positive.v1",
+            "passed": true,
+            "detailsDigest": "ee1741321331f18dd08437356dfdae50eddcf9e1525579d82829ffa2573ff914"
+          },
+          {
+            "fixtureId": "identity-currentness.negative.v1",
+            "passed": true,
+            "detailsDigest": "4e7cdaeba153892f6463eab98e06347a40f5f94b6dc75741b106e61a4ed144e4"
+          },
+          {
+            "fixtureId": "identity-currentness.positive.v1",
+            "passed": true,
+            "detailsDigest": "a7caa066e6ee77f1a910551cd96eca01983e296182b786199aa33ec9d5cb4609"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "8a625fe297f1ce5db823d9894d23a9a5dbeeafd951a2f0ed20ccd7cf0b2f1a82"
+      },
+      "output-receipts": {
+        "schema": "kstack-host-surface-measurement-v1",
+        "surfaceId": "output-receipts",
+        "fixtureGroups": [
+          "hostile-data"
+        ],
+        "diagnostics": [
+          {
+            "fixtureId": "hostile-data.negative.v1",
+            "passed": true,
+            "detailsDigest": "79666f2e90f6c56983bb009b1d4a1a1f1e15afa8bbacb002014b6129b5a55fea"
+          },
+          {
+            "fixtureId": "hostile-data.positive.v1",
+            "passed": true,
+            "detailsDigest": "befc201c9b0e774f1246d7d12e09ccb60111c33b6c75a0ca6f886553736aa063"
+          },
+          {
+            "fixtureId": "hostile-data.negative.v1",
+            "passed": true,
+            "detailsDigest": "908a21ce85742170eda538229ab5c8d0aac5b178a065ce376162564c41fe961e"
+          },
+          {
+            "fixtureId": "hostile-data.positive.v1",
+            "passed": true,
+            "detailsDigest": "446a5c2c917472ab71219d7077223f8268df8f69d7279f4003dd3ac5c4068671"
+          }
+        ],
+        "passed": true,
+        "receiptDigest": "e7e53fd8618320795b505b0a277d4e4f86306985fe8d228d5678e3dcbeff5cbf"
+      }
+    },
+    "negativeMeasurements": {
+      "alternate-root-escape": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "alternate-root-escape",
+        "methodId": "EXECUTED_HOST_DENIAL_FIXTURES",
+        "sourceDigests": [
+          "f43bd2a4ed07e9d60f95ef62cb8d8815840da8355a95ac633ddea2aced6637a6",
+          "31e6b8e0e31348a65385704f2c405f3624865f07670d6ed283c195b4cc75bbeb"
+        ],
+        "observation": {
+          "fixtureIds": [
+            "workspace.negative.v1",
+            "instruction-package.negative.v1"
+          ]
+        },
+        "passed": true,
+        "receiptDigest": "73f8d995ba06d98544decc6584b5fa57c57fc6c4a0b31363fe5f29febf9cd891"
+      },
+      "background-orphan": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "background-orphan",
+        "methodId": "EXECUTED_LIFECYCLE_DENIAL_FIXTURES",
+        "sourceDigests": [
+          "9ed903c0367cd34148cd3341b5bda39b15622b8c13d012343a91c8d39a0d343c",
+          "2a9a2202027003ece3c3983bede5ef7dcfe2bd291c3f8d18cead643151f7127c"
+        ],
+        "observation": {
+          "fixtureIds": [
+            "background-lifecycle.negative.v1",
+            "background-lifecycle.negative.v1"
+          ]
+        },
+        "passed": true,
+        "receiptDigest": "788b08e97ccca9b5fb8a448c8428fa3985c090d528d22157512683b844e3474b"
+      },
+      "cross-host-evidence-substitution": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "cross-host-evidence-substitution",
+        "methodId": "DISTINCT_EVIDENCE_IDENTITY_CHECK",
+        "sourceDigests": [
+          "45e8998cff62e27355f44539ffe61c74d1cb4914ff0398356ad0cf3fdd905d04",
+          "0f1768cc3cfcc047842b9095b29e53957037e748c3f9781fcc43838e6ad84507",
+          "20ebccda0e6b806ac2f228a2538eb4096d272d7d60e28c83b76e371ed9070d46"
+        ],
+        "observation": {
+          "openCodeEvidenceDigest": "8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f",
+          "gooseEvidenceDigest": "4b14bddf46e0cf52a1e93d057b79542affbc4fdec2653698a9507ceae3f0bb7f"
+        },
+        "passed": true,
+        "receiptDigest": "f50c0756200af04b0cfddc6c00e59d70ead4e249ce517a0dc0b0a86ec74af37c"
+      },
+      "direct-user-mcp-action": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "direct-user-mcp-action",
+        "methodId": "EXECUTED_MCP_DENIAL_FIXTURES",
+        "sourceDigests": [
+          "0e61b2c27ddf0c06da3434fb730e9a06297db9e45eb944ed6a1acd7fe2f39903",
+          "e6e8b0034467b94dc691ea4ff702710b8e3fc7b1ea7f618e9d17b2aa2301e698"
+        ],
+        "observation": {
+          "fixtureIds": [
+            "public-mcp-facade.negative.v1",
+            "public-mcp-facade.negative.v1"
+          ]
+        },
+        "passed": true,
+        "receiptDigest": "88fb83299eda1716dc4e8fe7986c3e30ba9098f075e051c722fa9206800978df"
+      },
+      "generic-host-branch": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "generic-host-branch",
+        "methodId": "GENERIC_SOURCE_HOST_BRANCH_SCAN",
+        "sourceDigests": [
+          "f0d5fdcfaa92f8d790da80cb7b0c1bb43b1171116e259b0ec0680233f9442219",
+          "5e2c14d6bd593219a08e1425e7d9197ca5f6f65adad6c5859e6b22b432baf397"
+        ],
+        "observation": {
+          "scanReceiptDigest": "3294741f6444f3483a44678840a6e91cf958b7dac26766911deac8789424c1ef",
+          "findings": []
+        },
+        "passed": true,
+        "receiptDigest": "5288e19270da3e16f065d8da62a6defb7bd941e8ed17b09a196ee88dbb9460e4"
+      },
+      "host-retry-duplication": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "host-retry-duplication",
+        "methodId": "EXECUTED_RECEIPT_AMBIGUITY_FIXTURES",
+        "sourceDigests": [
+          "15b953f32c6799c8f16b95f98bbd93721fed8fc2582ba19eab73592be21d8827",
+          "d2a74b1b02638d5f843a105f236af0b3f7fc89dcd515b20a9c7508df108e0d1d"
+        ],
+        "observation": {
+          "fixtureIds": [
+            "receipt-ambiguity.negative.v1",
+            "receipt-ambiguity.negative.v1"
+          ]
+        },
+        "passed": true,
+        "receiptDigest": "768faf9991e8da4fd9a5af02f49efe80f8ff636633b0ae6c9fcb733ba2ef8097"
+      },
+      "host-update-invalidation": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "host-update-invalidation",
+        "methodId": "DISTINCT_REQUALIFICATION_IDENTITY_CHECK",
+        "sourceDigests": [
+          "82ca50f754464173e3e6da07b4ca3725e6d041f0652ce5bdc4510a86e1684a13",
+          "45e8998cff62e27355f44539ffe61c74d1cb4914ff0398356ad0cf3fdd905d04",
+          "45e6ae13c58289c6a325c993240335620c6d4a1738610f61b99894ceda7357c3"
+        ],
+        "observation": {
+          "initialEvidenceDigest": "d6a8f658c7fd92c73f2c4b18d5e2008277e5b474d6c754e25584554c70219eff",
+          "currentEvidenceDigest": "8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f",
+          "activeSetChanged": true
+        },
+        "passed": true,
+        "receiptDigest": "6a5b35e648565fec8c806fdad0552173bfbcdd2731a6cfddf508b919e7e5712d"
+      },
+      "native-event-observer-contradiction": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "native-event-observer-contradiction",
+        "methodId": "INDEPENDENT_OBSERVER_AGREEMENT_CHECK",
+        "sourceDigests": [
+          "b02a94742570d8d628b9d8124745a9822b841cbe32ed3c925cc933d2d2ddafc0",
+          "795740211cd46ca77779c038127c26a734dca0d5a06fd7a364fb4480bf41b29c"
+        ],
+        "observation": {
+          "openCodeExecutions": 20,
+          "gooseExecutions": 20
+        },
+        "passed": true,
+        "receiptDigest": "452a049b14e2c0f7c89791f1fed20ad92b17010d2632eb81408ffb5fe0bcfbca"
+      },
+      "provider-credential-broker-bypass": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "provider-credential-broker-bypass",
+        "methodId": "EXECUTED_BROKER_DENIAL_FIXTURES",
+        "sourceDigests": [
+          "8812679ce0a81098b314cf533271702fce9237d0fd6e2c32cef215ec6f1ee0b2",
+          "ac30cc0cec0b1f9018d46b52a50febf29271e7f7c2b504f5212e371679c5584f"
+        ],
+        "observation": {
+          "fixtureIds": [
+            "approval-broker.negative.v1",
+            "approval-broker.negative.v1"
+          ]
+        },
+        "passed": true,
+        "receiptDigest": "0c6a7d7076b864dee3a58d4d3bbdaa00f72097447f4ecfd8356819dd684cd6dc"
+      },
+      "recipe-authority-promotion": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "recipe-authority-promotion",
+        "methodId": "EXECUTED_INSTRUCTION_AUTHORITY_DENIAL_FIXTURE",
+        "sourceDigests": [
+          "d5e06cc260acdb79fde304b6bf5c58be2d6310f76c95f656f0ddd9d5ad6dcea7",
+          "31e6b8e0e31348a65385704f2c405f3624865f07670d6ed283c195b4cc75bbeb"
+        ],
+        "observation": {
+          "fixtureId": "instruction-package.negative.v1"
+        },
+        "passed": true,
+        "receiptDigest": "fb5ae4a7d1bfce05ec5d8d961f74ec63d2a1f0a29eb84de2786dc6912b77bb0f"
+      },
+      "semantic-field-projection-leak": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "semantic-field-projection-leak",
+        "methodId": "EXECUTED_FORBIDDEN_FIELD_SCAN",
+        "sourceDigests": [
+          "11b91a824b2cb64a20d24772fbbc2088d0c5ddb190a4460bfe172d354ed1e9ad",
+          "b66f9ad07c95b1bc03fc40faa8ca55ed13be937f191589d9dd6dc1b9b3abb32d"
+        ],
+        "observation": {
+          "scanReceiptDigest": "fe76a9aba6e7b3a83f04d664161257d6cdde84a77d462c500975230791136027",
+          "observationCount": 22
+        },
+        "passed": true,
+        "receiptDigest": "d71205d6389564302e9e9afcc6e03b23832f8435afb79b0eb6cc5248bf4d467f"
+      },
+      "subagent-inheritance-bypass": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "subagent-inheritance-bypass",
+        "methodId": "EXECUTED_SUBAGENT_ROUTE_DENIAL_FIXTURE",
+        "sourceDigests": [
+          "d5e06cc260acdb79fde304b6bf5c58be2d6310f76c95f656f0ddd9d5ad6dcea7",
+          "27019a1e1fdfdf61c89d76f05ea15f0e63b94164fbe2c50375ce499cca9c276e"
+        ],
+        "observation": {
+          "fixtureId": "instruction-package.negative.v1"
+        },
+        "passed": true,
+        "receiptDigest": "007add631cfd65b392e9ec31b546779db3d4d579f62df3db257190258c180cda"
+      },
+      "shared-contract-preservation-regression": {
+        "schema": "kstack-second-host-negative-measurement-v1",
+        "caseId": "shared-contract-preservation-regression",
+        "methodId": "EXECUTED_PRESERVATION_NEGATIVE_FIXTURES",
+        "sourceDigests": [
+          "48744a90cd6c51d3e54caab5677efc65d0f4319afbe93b76f0173c1911ccc1e3",
+          "0930eda8a13dd91936796717432ecb0c5a528395f1693fa4612e211afefcf903"
+        ],
+        "observation": {
+          "fixtureIds": [
+            "preservation.negative.v1",
+            "preservation.negative.v1"
+          ]
+        },
+        "passed": true,
+        "receiptDigest": "76b7d0d07c95322333c47ae192e2cb2577ad12e5d23b684d6d4c1862a79924f6"
+      }
+    },
+    "requalificationChanges": [
+      {
+        "field": "activeSetDigest",
+        "initial": "sha256:b49a66ab6c89583b54962aa5488ff81f68ea1d616ddb1d11bfebc19c214c8eac",
+        "current": "sha256:b0d0a7558e43579665fc52052dc3458d41d5aaca729d8b96eba2169cacd02295"
+      }
+    ]
+  },
+  "negativeEvidenceSources": {
+    "alternate-root-escape": {
+      "sourceCount": 2,
+      "evidenceDigest": "73f8d995ba06d98544decc6584b5fa57c57fc6c4a0b31363fe5f29febf9cd891"
+    },
+    "background-orphan": {
+      "sourceCount": 2,
+      "evidenceDigest": "788b08e97ccca9b5fb8a448c8428fa3985c090d528d22157512683b844e3474b"
+    },
+    "cross-host-evidence-substitution": {
+      "sourceCount": 3,
+      "evidenceDigest": "f50c0756200af04b0cfddc6c00e59d70ead4e249ce517a0dc0b0a86ec74af37c"
+    },
+    "direct-user-mcp-action": {
+      "sourceCount": 2,
+      "evidenceDigest": "88fb83299eda1716dc4e8fe7986c3e30ba9098f075e051c722fa9206800978df"
+    },
+    "generic-host-branch": {
+      "sourceCount": 2,
+      "evidenceDigest": "5288e19270da3e16f065d8da62a6defb7bd941e8ed17b09a196ee88dbb9460e4"
+    },
+    "host-retry-duplication": {
+      "sourceCount": 2,
+      "evidenceDigest": "768faf9991e8da4fd9a5af02f49efe80f8ff636633b0ae6c9fcb733ba2ef8097"
+    },
+    "host-update-invalidation": {
+      "sourceCount": 3,
+      "evidenceDigest": "6a5b35e648565fec8c806fdad0552173bfbcdd2731a6cfddf508b919e7e5712d"
+    },
+    "native-event-observer-contradiction": {
+      "sourceCount": 2,
+      "evidenceDigest": "452a049b14e2c0f7c89791f1fed20ad92b17010d2632eb81408ffb5fe0bcfbca"
+    },
+    "provider-credential-broker-bypass": {
+      "sourceCount": 2,
+      "evidenceDigest": "0c6a7d7076b864dee3a58d4d3bbdaa00f72097447f4ecfd8356819dd684cd6dc"
+    },
+    "recipe-authority-promotion": {
+      "sourceCount": 2,
+      "evidenceDigest": "fb5ae4a7d1bfce05ec5d8d961f74ec63d2a1f0a29eb84de2786dc6912b77bb0f"
+    },
+    "semantic-field-projection-leak": {
+      "sourceCount": 2,
+      "evidenceDigest": "d71205d6389564302e9e9afcc6e03b23832f8435afb79b0eb6cc5248bf4d467f"
+    },
+    "subagent-inheritance-bypass": {
+      "sourceCount": 2,
+      "evidenceDigest": "007add631cfd65b392e9ec31b546779db3d4d579f62df3db257190258c180cda"
+    },
+    "shared-contract-preservation-regression": {
+      "sourceCount": 2,
+      "evidenceDigest": "76b7d0d07c95322333c47ae192e2cb2577ad12e5d23b684d6d4c1862a79924f6"
+    }
+  },
+  "finalReview": {
+    "required": true,
+    "targetDigest": "d35a4ce8524873e3ad98d9d87a1aa8fc3b41091eddd191a1785da43a47769d04",
+    "receiptPresent": false,
+    "receiptDigest": null
+  },
+  "primaryReadinessConfidence": 96,
+  "proof": {
+    "schemaVersion": 1,
+    "proofId": "opencode-goose-advisory-public-read-v1",
+    "profileId": "advisory-public-read-v1",
+    "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
+    "stabilityGate": {
+      "schemaVersion": 1,
+      "gateId": "opencode-stability-for-advisory-public-read-v1",
+      "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
+      "hpImplementations": [
+        {
+          "itemId": "HP-TC01",
+          "implementationDigest": "0b501e5082c5c3ccaee9bc18a75d82bf0e3b80c9372cd8f7e6c8ca0d4f1747f8",
+          "validationReceiptDigest": "adfa2ec92815da5d6a4971ab93818eb4e7afa4a1f6a5ce0f7a2d46ab23209020",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC02",
+          "implementationDigest": "47ea632ea4c19d5b1d2b38e25ab54fbacec3583332db67a25ee9266eee8ad35b",
+          "validationReceiptDigest": "e59c3c9380b59d67edf57ccb64a50a07642aa30484c83246c07daccbfdd77116",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC03",
+          "implementationDigest": "3887f13fbafb2fb6dd5fd046ab25fad1dc35faf25984e8667c33351b251cf024",
+          "validationReceiptDigest": "236b9483ace985ff6d6db774ebb86c4283052932e49cca34c2f0a2dbb7f65a42",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC04",
+          "implementationDigest": "bdab12f24a2491dce253083a8165164588a5fd41f08ce1a13bbf7bd03eaff31e",
+          "validationReceiptDigest": "47a9994fa05557983fd6fa8d79183e0142909590ea07cd54435187459ab11875",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC05",
+          "implementationDigest": "f4880554cbe774f05e0324c26254fe9868073d9ffab9a4b3a6f6b5069c116f3b",
+          "validationReceiptDigest": "b8a326bd980b9bc46e3ed505ccaf921955d08b5a8f0fc7fb88f98c787f7d7d4b",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC06",
+          "implementationDigest": "edf753335f97b7eac248a172e078abd23d76dd31b219184bea5250296897b83d",
+          "validationReceiptDigest": "380dc691f03abba54a1923742f566bdcf5b1cee13cefaf08d1d04b928a9d109f",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC07",
+          "implementationDigest": "54cc932d89e921e6b8185f1f08020e4bf1de77f6eb41d4550e4e9cd2c8489fed",
+          "validationReceiptDigest": "23bd5d609c6dc10fbaab54d4e27d8e192cb29d086cab9b038c8ab595904ff76d",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC08",
+          "implementationDigest": "5747f5fad6c3bafc6c431ec5a9a557aeb2e224e51d5b855ccdec6df0eeb4ce66",
+          "validationReceiptDigest": "2c939da55cf72cbcc9b4085db57d43cd8e5b9ffc27b9592245b2806180572156",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC09",
+          "implementationDigest": "c5d475d67eea25d054f8cbef242e665198072d5b6921dd68bbfa4e65fdbe3b4b",
+          "validationReceiptDigest": "c0de6ad6a1d11d108d2287d14081530d65caabb69dabd07a3e67261dc901ce4b",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC10",
+          "implementationDigest": "2d6c2b4aaac766d383f9e92327f141ddfeec99c67b376d8e1cb1bd473f32ed7f",
+          "validationReceiptDigest": "76ae37de6b5835d2eca497f217a069fcbb19bd81b7f46c317fdfdcd4eca82ade",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC11",
+          "implementationDigest": "dc5ed531cb88c4d46d500bb0ce3bd789f92f08f52b319c5eee1c505c0249398b",
+          "validationReceiptDigest": "60d94e869eab7fd709057af515bb445522abfcc4b0d795621ae3e2256fef7218",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HP-TC12",
+          "implementationDigest": "47013f4a66b3300c49a8341d80af32f291833607bb1ba0bdf535fff3d7d15dd5",
+          "validationReceiptDigest": "86c7f24f3a57cdbc64af8f9ebb3819f2966cea6cfb5fb2c9f4b3dcdee7767d4b",
+          "implemented": true,
+          "current": true
+        }
+      ],
+      "hbImplementations": [
+        {
+          "itemId": "HB-TC01",
+          "implementationDigest": "8b03e9d11f4a0fa5204354cc11b3693e1bfc78c1361c32a84a3512043d4f5a30",
+          "validationReceiptDigest": "81bfef2d06901a17d343b5dc4b6cca566093ec79e6d80d318e30b8630106945a",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HB-TC02",
+          "implementationDigest": "7c5bb05147dfcd0e1f53384fa5f1ebbf30a45f486ce1282bcfe5681f2e9647d2",
+          "validationReceiptDigest": "caeaec8dd2a4f1773562c1f167a3ad6170af46ceee6230e416cebf5ce56af11c",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HB-TC03",
+          "implementationDigest": "4b370d45b6e9f62769b38cee50bcd51001ca6afb02e29a7652eca5936c18a24f",
+          "validationReceiptDigest": "47bcfa6823d795427c4ad61db80bba5be303a9c88a735c99872ae3c1306fb7ab",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HB-TC04",
+          "implementationDigest": "c5d475d67eea25d054f8cbef242e665198072d5b6921dd68bbfa4e65fdbe3b4b",
+          "validationReceiptDigest": "7e1660385e660cf20f604f2fdcf6e001a42c6cb33f60d5cc58690e51686d5260",
+          "implemented": true,
+          "current": true
+        },
+        {
+          "itemId": "HB-TC05",
+          "implementationDigest": "5aeefbc527942eb180fd2de98e707f4ca04e7c24f346c3ef4d406b93def75c68",
+          "validationReceiptDigest": "0f16a751a63e195c9d3e2681627b7f93f6d014dfc0bf56f8ddc703550452b93e",
+          "implemented": true,
+          "current": true
+        }
+      ],
+      "initialQualification": {
+        "kind": "initial",
+        "hostId": "opencode",
+        "buildDigest": "b0e3724218f7df5a2ac0cec548c051ccc44ffa0d696acdece528706a32469d90",
+        "configurationDigest": "142995f14a3b5017d38871048360db4b7d67d41ba3cc36579fa92c997669b591",
+        "environmentDigest": "981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+        "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
+        "changeDigest": null,
+        "eligibility": "ELIGIBLE",
+        "conformanceReceiptDigest": "d6a8f658c7fd92c73f2c4b18d5e2008277e5b474d6c754e25584554c70219eff",
+        "passed": true,
+        "observedAt": "2026-08-30T02:36:55.695Z"
+      },
+      "requalification": {
+        "kind": "requalification",
+        "hostId": "opencode",
+        "buildDigest": "b0e3724218f7df5a2ac0cec548c051ccc44ffa0d696acdece528706a32469d90",
+        "configurationDigest": "142995f14a3b5017d38871048360db4b7d67d41ba3cc36579fa92c997669b591",
+        "environmentDigest": "981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+        "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
+        "changeDigest": "6a2e1acff8b4fd3981f0b6b64953bff0b71cb2c543b1fe3c1cca26d49b76b427",
+        "eligibility": "ELIGIBLE",
+        "conformanceReceiptDigest": "8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f",
+        "passed": true,
+        "observedAt": "2026-08-30T04:36:17.501Z"
+      },
+      "preservationEvidenceDigest": "49fa1895cd9e48bda1787a1b3607eff211e87d4891b556d6e713da9f9556f94e",
+      "preservationPassed": true,
+      "openDefectCodes": [
+        "INDEPENDENT_FINAL_REVIEW_PENDING"
+      ],
+      "evaluatedAt": "2026-08-30T15:08:29.998Z",
+      "expiresAt": "2026-09-06T04:35:46.611Z"
+    },
+    "secondHostObjective": {
+      "hostId": "goose",
+      "objectiveDigest": "bf947b239519e56715ff539576dfddeb10374a0dc8f247426a6482ac34cb9a3e",
+      "decisionDigest": "65bc24364a9ac399e59a0e050eaf1395e2b36da524f3c45896147714da000e9c",
+      "primarySourceLedgerDigest": "0f2346f3dd16056d5ab7777c899a6d21ede7230b0da4fac0cec23dced59d3600",
+      "reuseDispositionDigest": "35382100b34be54d84f6829f62010d5d58c62705869a2bbf1931aa2b8444b44f",
+      "ownerClarificationDigest": "bf947b239519e56715ff539576dfddeb10374a0dc8f247426a6482ac34cb9a3e",
+      "codexClosureDigest": "4b14bddf46e0cf52a1e93d057b79542affbc4fdec2653698a9507ceae3f0bb7f",
+      "selectedProfileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
+      "status": "APPROVED"
+    },
+    "sharedBoundary": {
+      "contractDigest": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1",
+      "schemaRegistryDigest": "543ac76f71fdcd9a1e7565896ec8e4362c483f0a58024395704cb8ef7e6927f1",
+      "genericSourceDigest": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1",
+      "ports": [
+        {
+          "portId": "bindHostInstance",
+          "requestSchemaDigest": "7f758204e50d52134b4645db8242ca273157b25c28cdaf2f5a6fb712f35cb402",
+          "resultSchemaDigest": "81d20596687b04a2d666dac8935ab49be78d473a6a15b82fff05c3d1775e3485"
+        },
+        {
+          "portId": "bindRepositoryContext",
+          "requestSchemaDigest": "2820cde44fe47d91021d64031af0559cea24e9a16425fefdcdd9bee506ea2e25",
+          "resultSchemaDigest": "0b5d21c29e29df13c1402e2c8bd6e6d7442c2160b7cb756e3e382f51512ab3c9"
+        },
+        {
+          "portId": "discoverInstructionProjection",
+          "requestSchemaDigest": "da32f9b1acaa1839220cbd60579635272d3575bfee04bdfdbe4aaccd60718bd3",
+          "resultSchemaDigest": "2ecc62f1ac39fe684fc1e6fad8be4d5154dccdc7740df0571f83353b561df12f"
+        },
+        {
+          "portId": "observeNativeAction",
+          "requestSchemaDigest": "a12538f81ddbfde5ab5cf25ff544d56e40cd4566dcf76f78d894e6d7031d1815",
+          "resultSchemaDigest": "c3f5d5866e2f4127d96288e7df4d372644c6eee0f5465f15d96530b7533d6b3a"
+        },
+        {
+          "portId": "requestNativeApprovalDisplay",
+          "requestSchemaDigest": "ce5ac9a7f56d51c8d1867ef9d0987f7a96df2d8a0375a0a09a2e8c87063656a2",
+          "resultSchemaDigest": "0ffcf813954b7aa7820464173116daca6ffbb5bc6ceee2811f68caf25a89f748"
+        },
+        {
+          "portId": "routeProtectedBroker",
+          "requestSchemaDigest": "208cf601a60e5206fb1e528f008b7327269421b951cf2126753278b3ba1cd9d6",
+          "resultSchemaDigest": "7954a7568b766963fef925da0b5d04455b89220680a6f844845540d91dc01106"
+        },
+        {
+          "portId": "observeProcessLifecycle",
+          "requestSchemaDigest": "406f2137d9357532a65ef354e2119366f4f2cf8c99fe9416f861a163d876be44",
+          "resultSchemaDigest": "e3b105485b58cb75efcdba3717676b64738cbcd9530edad5b0ae0bb76226eaaf"
+        },
+        {
+          "portId": "observeStructuredOutput",
+          "requestSchemaDigest": "b5c9431296f27730f0631e7c551c237ad7ac8440f2eaa4f0c7c3c8e3acee12c2",
+          "resultSchemaDigest": "da803969d20e4c897db9878ba951bd137c9db4b6af53b1032c8e5f0b1036a3cf"
+        },
+        {
+          "portId": "observeCancellation",
+          "requestSchemaDigest": "3f3bd71e10ccd7f468e863f61db511c2ceca4b9a5fa1dd8dbcec6354f9b2bdf1",
+          "resultSchemaDigest": "fd7188a40b300bc1b3f3c4299ab1fd0641e3a350bc19f5e0c76ba355a77f8a09"
+        }
+      ],
+      "genericSourceHostBranchScanPassed": true,
+      "genericSourceHostBranchScanReceiptDigest": "3294741f6444f3483a44678840a6e91cf958b7dac26766911deac8789424c1ef",
+      "forbiddenFieldScanPassed": true,
+      "forbiddenFieldScanReceiptDigest": "fe76a9aba6e7b3a83f04d664161257d6cdde84a77d462c500975230791136027"
+    },
+    "adapters": [
+      {
+        "hostId": "opencode",
+        "buildDigest": "b0e3724218f7df5a2ac0cec548c051ccc44ffa0d696acdece528706a32469d90",
+        "adapterDigest": "5f908ff798b79ef77438f9573aff09f1d941aa3bc1069b54ca60b9a498ccdd8b",
+        "portImplementations": [
+          {
+            "portId": "bindHostInstance",
+            "implementationDigest": "4c18f679d648d97198268a29b6922208a224b51cd286896fd0afc006ccd2e92c"
+          },
+          {
+            "portId": "bindRepositoryContext",
+            "implementationDigest": "82de894431e45be91484bb0300b9470cf36ab38f9ab3d96f0a3a2b83b04597e7"
+          },
+          {
+            "portId": "discoverInstructionProjection",
+            "implementationDigest": "985fcd080798084c2fa6838e7d17db8161b86b82b36b1ec78296658848102363"
+          },
+          {
+            "portId": "observeNativeAction",
+            "implementationDigest": "82e24e3c863e51c33ecd4e3dd7f468b8eeae31b85977004ae98b218aa0b5ce04"
+          },
+          {
+            "portId": "requestNativeApprovalDisplay",
+            "implementationDigest": "168b2271326d35302a8e1a362a0e9aad991abbf7914323b111566c12b3bfac91"
+          },
+          {
+            "portId": "routeProtectedBroker",
+            "implementationDigest": "d10cf549eb4d4e1f8e2c4346c429f2a75dc4cbdc935dbb07d9c76ab45fc0a3e8"
+          },
+          {
+            "portId": "observeProcessLifecycle",
+            "implementationDigest": "8d51978199132c92a900000fb90112d14840107f6ea5c82a1ddea2a3db86150a"
+          },
+          {
+            "portId": "observeStructuredOutput",
+            "implementationDigest": "2bfd9413cca6b801ae73bf244e94d43fbd37f1f3d128f37576fdee2aae140131"
+          },
+          {
+            "portId": "observeCancellation",
+            "implementationDigest": "2794ab6092f787b97c0ea5a51ad0bbb96c89fb93c5d70b331a148270199c1712"
+          }
+        ],
+        "nativeEventSchemaDigest": "d253b150755e5f8d58cc0584a5fd2998cebc6457e80e567407be81d12a438d00",
+        "projectionPlanDigest": "922de71ab7fae71a69d5f2f99bc2210ad31464a4b36809fa5208fa566610a3e8",
+        "bypassInventoryDigest": "703f7b8928ef41b927179f5d072b493358c33ff09a4f51f64d65b3c6f33b73dd",
+        "environmentProfileDigest": "981118657c1e77b62cbddc74e2fed0cedcadf584b9ba06f3ebe6e0e0904a17a7",
+        "fixtureMappingDigest": "c4a259039cc0efee5f2632bd8a7310d0efd470d0ddb0c6d903714ded06b3759c",
+        "authorityScanPassed": true,
+        "authorityScanReceiptDigest": "90499e20c3ee88e34decf39bd781a18f209684e6a61d0be074b03062fb48d785"
+      },
+      {
+        "hostId": "goose",
+        "buildDigest": "cc81170e89e4f622d11d745aeafdd56fcca6a412139cd3dc7d817235d1561875",
+        "adapterDigest": "fd8e8f37346ec98a35d8da57ff803f183e4c3ebcec8343558de713fbd73a1806",
+        "portImplementations": [
+          {
+            "portId": "bindHostInstance",
+            "implementationDigest": "2f11ec3dc77c5b890dfed5821b96831765d4834387f2eb84fa6fccb90d3151ec"
+          },
+          {
+            "portId": "bindRepositoryContext",
+            "implementationDigest": "2b1a303344d9d5baac7957835b3a388cbe971ebc8cc6a5dd3a78c36ff66ff576"
+          },
+          {
+            "portId": "discoverInstructionProjection",
+            "implementationDigest": "305efc71ca59d9c3ecc60c3b986fdffc61accb017b26fdb1da21619e15fddad4"
+          },
+          {
+            "portId": "observeNativeAction",
+            "implementationDigest": "cee764c8a0ad8a19cd22db66c74fda399d172906dd112a6f8c38b7635d51fd1d"
+          },
+          {
+            "portId": "requestNativeApprovalDisplay",
+            "implementationDigest": "1cc876af0504e25cf7af563564030048e3d2bcea1662b46c4f5127687aed3ea4"
+          },
+          {
+            "portId": "routeProtectedBroker",
+            "implementationDigest": "f8f11e453a37c6e43f7af7bad2d05ad56897fdfb4757de448513304d649a2dee"
+          },
+          {
+            "portId": "observeProcessLifecycle",
+            "implementationDigest": "3405a68a60f6e9c911b1bb0ed5bda7fb96d95189d3168ba2e46746f4b8009829"
+          },
+          {
+            "portId": "observeStructuredOutput",
+            "implementationDigest": "944eef260212bf204cf2893f11a3bf645d7ac398cef75023b10a67ca4d3c39b4"
+          },
+          {
+            "portId": "observeCancellation",
+            "implementationDigest": "8fc8a54bebebb3037dae6f32c919f7a72224995d93ba22686510a49030b88a5b"
+          }
+        ],
+        "nativeEventSchemaDigest": "8fdec77140adc3dd0f2b0ae1300cf18691762634be0056b202a7642f5570f33a",
+        "projectionPlanDigest": "7a046eeb04473d9b15bbdd16c89438a026d44d3bfc01348cc8fc6241698ffd7c",
+        "bypassInventoryDigest": "703f7b8928ef41b927179f5d072b493358c33ff09a4f51f64d65b3c6f33b73dd",
+        "environmentProfileDigest": "14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+        "fixtureMappingDigest": "dd0d5d1ce3e95673e376996ef0a479c7eb7527b461eacecc365d738aa2c4a77d",
+        "authorityScanPassed": true,
+        "authorityScanReceiptDigest": "371d64df9585e9b13a76bdbc21e80519b0928570c9d932149b416442bb074986"
+      }
+    ],
+    "differenceMatrix": [
+      {
+        "surfaceId": "instruction-discovery",
+        "opencodeBehaviorDigest": "2bd4ed94a7806344e26f80cad4e16b20d7449b49ec577269bba57fa293b5e0a8",
+        "gooseBehaviorDigest": "8f3e1bd7533888298df08ca7859b4e5e89a1b49752067dad88753bf6e4f83940",
+        "commonRequirementDigest": "205101d41c6765942c01a3a41c811b3dc28f11968225be05a8d60d02797baef2",
+        "hostSpecificAdaptationDigest": "df678160ba095f31072fde12db8b1afd196032cc314cdd2dec613104ef5d2004",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-instruction-discovery",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "e5e73413233a9c8e3678bf180999a62a8c98bd0a08db8dae5702e3f68033c9b2",
+        "testObligationsDigest": "080d2c62e0ef6e6732a4ed6471ecd363d002ab8befb1356e3280602704c7cf94"
+      },
+      {
+        "surfaceId": "extensions-tools",
+        "opencodeBehaviorDigest": "7c9222946e17051f17ed530436c3859c9089c5e420f4ca95a59b994a9b5f20c4",
+        "gooseBehaviorDigest": "7b56493b825838d2257aee9b67c7439579a3964149d67627717d8e4ebf6e2dbc",
+        "commonRequirementDigest": "ff14b102a408f42b3884cbe495a34e30943f771869454ed989ad14c9faa16839",
+        "hostSpecificAdaptationDigest": "a9e146a5c58aa83badb71ae75af140f5fded69038db61fc0f4935632f873a7af",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-extensions-tools",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "b389d588b4799ce7708b272c1a6fd4a26409face8979189ab2de6bb80fc8bd17",
+        "testObligationsDigest": "4df6db729a257b4e21f1373355e09182e9911825e5c88b3a77d9ecf12f1e5960"
+      },
+      {
+        "surfaceId": "provider-credential-lifecycle",
+        "opencodeBehaviorDigest": "a143069c94886cf477dc0840a317f46270df301bbe4c88fc16bb0de99e41dc75",
+        "gooseBehaviorDigest": "63dbbe68b5748d8319576b989a6121e3b131a5b8cd6b12febe9dbc30d91e5e7a",
+        "commonRequirementDigest": "4b9e4e3b8d95618c75172bd1939a72a6bce4d7672c8d9d443123c6a01da43bd0",
+        "hostSpecificAdaptationDigest": "1d2c076ebcdd306405d7d6fd4d48f0d2d994d66cbe7dcabbb85c1fdc8316ef92",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-provider-credential-lifecycle",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "b3f52294df450569862363d6b8ebea68a8f867864a3c5d72abccdbb550a8ce15",
+        "testObligationsDigest": "f7a652f37e7dd4db2cefda0103fe2972e3e75566b3d85d3309eeb8da8d527886"
+      },
+      {
+        "surfaceId": "subagents",
+        "opencodeBehaviorDigest": "b0309e640096089114cbb0f59f7e94b6c3ec4c50ae52452327ce8cf87b0bf8e9",
+        "gooseBehaviorDigest": "c4cd4870c820d3675ea2eee00ef78dd4994e87b20a67bc9bd53941ef7f32b3a0",
+        "commonRequirementDigest": "aa0dff82505e27cd2cfa5151ba030220cdfcde602282116ded07259ed6f61807",
+        "hostSpecificAdaptationDigest": null,
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "none",
+        "overlapOutcome": "KSTACK_OWNS",
+        "noBypassEvidenceDigest": null,
+        "testObligationsDigest": "6a4a5a8f4c3797cdb73d742d79c9ae58b04cfac04d4f3e6e8109fe5e552b39df"
+      },
+      {
+        "surfaceId": "mcp",
+        "opencodeBehaviorDigest": "4067d0ec787de5be0ba6cd35e009f1ad51922aee7a871e88158b2fd8b4caf86a",
+        "gooseBehaviorDigest": "d30792016e943e18fa5355aaf35effb9f804751dc7cd9226479aca295cbfadba",
+        "commonRequirementDigest": "d64a62bdd05c8d26d0f3e21abcf001c27cd67fe237bc383ac5e5161f967b18e9",
+        "hostSpecificAdaptationDigest": null,
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "none",
+        "overlapOutcome": "KSTACK_OWNS",
+        "noBypassEvidenceDigest": null,
+        "testObligationsDigest": "6feb301ba0f3c5c07f984ef329274091d1bb717809c6ef4371d368002cd3f329"
+      },
+      {
+        "surfaceId": "permissions",
+        "opencodeBehaviorDigest": "58980f48419785e6a997c641676941e20798ff0fe264750ff67151e87d532ad3",
+        "gooseBehaviorDigest": "773767cc1cafe46ae32a82a8ec7853f9812aa5d5673b771e7217d376ea9fb825",
+        "commonRequirementDigest": "83be34a3c9edadad87cce3ac0858f47d8eb49501d5b1e14d90b183bb67768db2",
+        "hostSpecificAdaptationDigest": "2bd5299e7225a7829be3d2c18c1efcafc939033c560d34c57467893fba323e17",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-permissions",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "6c19b49ff99fd8687afd57db8bf9b457668e518bab407b88ea9df579ae90e11e",
+        "testObligationsDigest": "9e32343ca80bf4c4e1c10bb4b960d803e5c53f46113700d44176849b00acc66d"
+      },
+      {
+        "surfaceId": "roots",
+        "opencodeBehaviorDigest": "138df7dd822adafa2c0f143dd9e3007c367cf4b72cf74ffd81fce8e0fdba1104",
+        "gooseBehaviorDigest": "f740714a5d618297d4d28341abc0cade79320ff70403ae76b2829ee39d540f51",
+        "commonRequirementDigest": "061757aec84c83e55fcc53d75cd1dcc92d9e6328ed500e6db9f95ee74055dff3",
+        "hostSpecificAdaptationDigest": "02c54d57415d304ddb1470b15c98763d019298aa299ae4b07967096229e9e290",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-roots",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "7f6480ad927e376088a41c287d2ed71a5179237d6c386a7be21792b95e672769",
+        "testObligationsDigest": "12f6854cbf8344aab82fc2d16a4041fbd44c4a3dcfbe6f05c0b980decc176e82"
+      },
+      {
+        "surfaceId": "background-tasks",
+        "opencodeBehaviorDigest": "fd41cdae8e8d98e2d3bcd2cf83efd85db8500a79ed045e3e0b141f60c0e6e4aa",
+        "gooseBehaviorDigest": "99d5116ac7cefb452f9b6a271d619e9b2f4762a98035265d17213692ff8657e6",
+        "commonRequirementDigest": "f8e1823d89ccd0d703295dae6fccfed954175a570c218b8b169b30ca61843e1d",
+        "hostSpecificAdaptationDigest": "1aae7a86a250fda68a8fe9158384a52d7133f233b3545fe3d924eb3933953e66",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-background-tasks",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "30284079d79e6d24d2a075030920ec25e89908fd0d7773cf59d4d06beb34a2b2",
+        "testObligationsDigest": "3af7272938e75031270e88fdc8f41e6b066030f5a536be1917bdcdfc0db883cb"
+      },
+      {
+        "surfaceId": "cancellation",
+        "opencodeBehaviorDigest": "dd36eeaf8eb709486e84e13310f670f0c16354e8a3ab93ab848968d142f2ae01",
+        "gooseBehaviorDigest": "18673f6bf5248bc2014a0e0bc924dd1f841b4f860623f6f2f21d83293f722d81",
+        "commonRequirementDigest": "85ff27d4b84339f090e570bc98762b61786c811ec623d0e3bfb6f8b5ce270934",
+        "hostSpecificAdaptationDigest": "0ec555312cba5eb88db82529dc0579b7c7001e7d6c9558cdfd4a987fca649085",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-cancellation",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "494fd42fb21f7195472d94bc888954730c55ca5d1e204a742e9d9e76996078a3",
+        "testObligationsDigest": "48e9fb577c816e794209a6d4f807c26d6de153174673be59b651f8b848ea07df"
+      },
+      {
+        "surfaceId": "retry-idempotency",
+        "opencodeBehaviorDigest": "b1b28a7ae3b3b9d4c2040ce9a5011d226655822235040e42adf0df42754c929f",
+        "gooseBehaviorDigest": "ec7d322dfd2a27fc8f825b8027b7ac9552cc8c590f748e58b57adc306b18df25",
+        "commonRequirementDigest": "4042943a96c00f05814274fef49e8ba705c7b07b72f81707d4c8e61c004c5613",
+        "hostSpecificAdaptationDigest": null,
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "none",
+        "overlapOutcome": "KSTACK_OWNS",
+        "noBypassEvidenceDigest": null,
+        "testObligationsDigest": "fd1af9fec1a061e23dbd393069d077a9a729635ff6b192690fd788481c075587"
+      },
+      {
+        "surfaceId": "session-state",
+        "opencodeBehaviorDigest": "9a392223433a1aceb35c43bd2c9ac11619b91a08087905ac13094f182de30738",
+        "gooseBehaviorDigest": "ee01a06903042e9d60750598076449d5ad4e9bc7875400ffa9641961b410c513",
+        "commonRequirementDigest": "66d401af7828240fe38bed1c3f7df1996eeb2b815da70daf1ef29bcbbe88af1b",
+        "hostSpecificAdaptationDigest": "94220d0be722b38ba99dede82a3689a1f0af53f9076f185c7f5365cf673cbd1b",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-session-state",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "87845324f950665a853273f87f794d0d84a9a94389e29405a7094b4836d6ff04",
+        "testObligationsDigest": "42e955a4f633d92c0f5a08251b29c35a5922f8880404d44a74bbd2b1f0ad2741"
+      },
+      {
+        "surfaceId": "memory-context",
+        "opencodeBehaviorDigest": "cd135365f4453b21dd832945f296d4afac5c7f76203dd41ef175495ad710427c",
+        "gooseBehaviorDigest": "0bb9d9c5dfd1748b1d90159babb0839c738529dc2c3497c28ff4fb2e35d9e032",
+        "commonRequirementDigest": "5d8ff4f334698a65d86c19c491927e8f24cc796f7c3c6bb98bb8618de26dd1e1",
+        "hostSpecificAdaptationDigest": null,
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "none",
+        "overlapOutcome": "KSTACK_OWNS",
+        "noBypassEvidenceDigest": null,
+        "testObligationsDigest": "dce8eeb6efada9596c9277a8ad77d5c6200edff2c26e25b09a517e7e11b7a64e"
+      },
+      {
+        "surfaceId": "updates",
+        "opencodeBehaviorDigest": "4c69cf9edad90a45429c9d6e545d15fc47414af119bb548be3d375bad0d62a0e",
+        "gooseBehaviorDigest": "6c996313b5225f92f32ac28c73a96eddf185be4be5b8369f874d1a6d92dd6084",
+        "commonRequirementDigest": "828944f6a6095597d1d50c3cc7398b018c1efd6ebe9309abf4c07f4411d75a99",
+        "hostSpecificAdaptationDigest": "150864c3be2541b1101b828860297c7e76b2d25e0fa196f35e28872ccdf0c3c0",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-updates",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "3441fb05f366274125ad1c34549dc82136be300ea48b5e20fdfffa12c151e4fd",
+        "testObligationsDigest": "e825758fd8277947dae06c042d08cf8659aa889a965b35cc1b8110415cb036b0"
+      },
+      {
+        "surfaceId": "output-receipts",
+        "opencodeBehaviorDigest": "024c53ced7792830c6492e3c6cb7d650edad1f521de95813c6a6dba319db07fe",
+        "gooseBehaviorDigest": "0d13006453978d18e1126215b40573cfdf8cd2aaf49e250b722a173c25c38d67",
+        "commonRequirementDigest": "eca35b7cae1124d9ef42b1f2759f5a38c1a3eca6710846f4418b5e12cb275258",
+        "hostSpecificAdaptationDigest": "f223fb176ed83a7a3eb4b48a1fd13e04710a7b3d3178af1c5d9527cab751a0e3",
+        "kstackOwner": "governance-kernel",
+        "hostOwner": "native-output-receipts",
+        "overlapOutcome": "HOST_OWNS_UNDER_BOUNDARY",
+        "noBypassEvidenceDigest": "29fa79042ae6aef9e9700d7f6d13c257ef7fa6031a9c29c12090301a1e3e7356",
+        "testObligationsDigest": "1a6f2c1dd342dac357403a7effd09ed9bbdf8218761b7670fd9562aaec718bc5"
+      }
+    ],
+    "executions": [
+      {
+        "hostId": "opencode",
+        "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
+        "fixtureSetDigest": "c4a259039cc0efee5f2632bd8a7310d0efd470d0ddb0c6d903714ded06b3759c",
+        "fixtureCount": 20,
+        "passedFixtureCount": 20,
+        "subjectProcessDigest": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+        "disposableRootDigest": "6a2be087a8686cade3cec721d9b5dd4854bbc5ea7a6bf7cd9d990d85fd3538d2",
+        "observerDigest": "f681f06e3da6e2f9cc16326a6914b41fd26c479580f6fec83ba6ab1edd751496",
+        "evidenceSetDigest": "0059d0767ac77370f81079df09d03c6cd0ebfb5e01274521411594668285b5cc",
+        "receiptSetDigest": "75effa26bc5b85577c50f2d9908dafbe1e3e46c29d8b6c82dfa4245445a98e52",
+        "eligibility": "ELIGIBLE",
+        "kernelRequestSetDigest": "59c73e5ca6de08e3a9e9de8c8c858c2c4537afd3aabbb15cfaf8641b7ce1c311",
+        "kernelResultSetDigest": "3d33fd3d0cfaf0846752bb1ff48ac255a9d7fd6730829a4cf1fec8fb16ea83cf",
+        "normalizedTraceDigest": "e3edbc9a16bcd8372615a105561d38c0c1be6d06204e5ec23c3ef0ab392e85d3",
+        "observedAt": "2026-08-30T04:36:17.501Z",
+        "expiresAt": "2026-09-06T04:35:46.611Z"
+      },
+      {
+        "hostId": "goose",
+        "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
+        "fixtureSetDigest": "dd0d5d1ce3e95673e376996ef0a479c7eb7527b461eacecc365d738aa2c4a77d",
+        "fixtureCount": 20,
+        "passedFixtureCount": 20,
+        "subjectProcessDigest": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "disposableRootDigest": "5ac39cac6079a5903f92c9049e099b17cf914035f44c118068caa3d78625cc1f",
+        "observerDigest": "d37afe05f7f4015e2e403c4eeb25d536736a57da768d8c4e33851652bc37a1cc",
+        "evidenceSetDigest": "49c064e777059c04e6a9ce484a1760d5b2443aeb222f7ab5b91bd0143c5d4cf3",
+        "receiptSetDigest": "f01e0ca9ce414d9ea76518e44e559811d5c3cb443c8c1569732fc2291f948730",
+        "eligibility": "ELIGIBLE",
+        "kernelRequestSetDigest": "59c73e5ca6de08e3a9e9de8c8c858c2c4537afd3aabbb15cfaf8641b7ce1c311",
+        "kernelResultSetDigest": "3d33fd3d0cfaf0846752bb1ff48ac255a9d7fd6730829a4cf1fec8fb16ea83cf",
+        "normalizedTraceDigest": "e3edbc9a16bcd8372615a105561d38c0c1be6d06204e5ec23c3ef0ab392e85d3",
+        "observedAt": "2026-08-30T04:36:38.652Z",
+        "expiresAt": "2026-09-06T04:36:28.942Z"
+      }
+    ],
+    "preservation": {
+      "opencode": {
+        "baselineDigest": "e44ed74536d69d4ce1066017c7a202767d287b8d01aab6c22ae5c67bcb7bf3b5",
+        "resultDigest": "e44ed74536d69d4ce1066017c7a202767d287b8d01aab6c22ae5c67bcb7bf3b5",
+        "passed": true
+      },
+      "goose": {
+        "baselineDigest": "e67f02da45ed8b23a78f0f04c5ea6664bdcad34969b7baa0c9b86822483a99c0",
+        "resultDigest": "e67f02da45ed8b23a78f0f04c5ea6664bdcad34969b7baa0c9b86822483a99c0",
+        "passed": true
+      }
+    },
+    "negativeCoverage": [
+      {
+        "caseId": "alternate-root-escape",
+        "passed": true,
+        "evidenceDigest": "73f8d995ba06d98544decc6584b5fa57c57fc6c4a0b31363fe5f29febf9cd891"
+      },
+      {
+        "caseId": "background-orphan",
+        "passed": true,
+        "evidenceDigest": "788b08e97ccca9b5fb8a448c8428fa3985c090d528d22157512683b844e3474b"
+      },
+      {
+        "caseId": "cross-host-evidence-substitution",
+        "passed": true,
+        "evidenceDigest": "f50c0756200af04b0cfddc6c00e59d70ead4e249ce517a0dc0b0a86ec74af37c"
+      },
+      {
+        "caseId": "direct-user-mcp-action",
+        "passed": true,
+        "evidenceDigest": "88fb83299eda1716dc4e8fe7986c3e30ba9098f075e051c722fa9206800978df"
+      },
+      {
+        "caseId": "generic-host-branch",
+        "passed": true,
+        "evidenceDigest": "5288e19270da3e16f065d8da62a6defb7bd941e8ed17b09a196ee88dbb9460e4"
+      },
+      {
+        "caseId": "host-retry-duplication",
+        "passed": true,
+        "evidenceDigest": "768faf9991e8da4fd9a5af02f49efe80f8ff636633b0ae6c9fcb733ba2ef8097"
+      },
+      {
+        "caseId": "host-update-invalidation",
+        "passed": true,
+        "evidenceDigest": "6a5b35e648565fec8c806fdad0552173bfbcdd2731a6cfddf508b919e7e5712d"
+      },
+      {
+        "caseId": "native-event-observer-contradiction",
+        "passed": true,
+        "evidenceDigest": "452a049b14e2c0f7c89791f1fed20ad92b17010d2632eb81408ffb5fe0bcfbca"
+      },
+      {
+        "caseId": "provider-credential-broker-bypass",
+        "passed": true,
+        "evidenceDigest": "0c6a7d7076b864dee3a58d4d3bbdaa00f72097447f4ecfd8356819dd684cd6dc"
+      },
+      {
+        "caseId": "recipe-authority-promotion",
+        "passed": true,
+        "evidenceDigest": "fb5ae4a7d1bfce05ec5d8d961f74ec63d2a1f0a29eb84de2786dc6912b77bb0f"
+      },
+      {
+        "caseId": "semantic-field-projection-leak",
+        "passed": true,
+        "evidenceDigest": "d71205d6389564302e9e9afcc6e03b23832f8435afb79b0eb6cc5248bf4d467f"
+      },
+      {
+        "caseId": "subagent-inheritance-bypass",
+        "passed": true,
+        "evidenceDigest": "007add631cfd65b392e9ec31b546779db3d4d579f62df3db257190258c180cda"
+      },
+      {
+        "caseId": "shared-contract-preservation-regression",
+        "passed": true,
+        "evidenceDigest": "76b7d0d07c95322333c47ae192e2cb2577ad12e5d23b684d6d4c1862a79924f6"
+      }
+    ],
+    "observedAt": "2026-08-30T15:08:29.998Z",
+    "expiresAt": "2026-09-06T04:35:46.611Z"
+  },
+  "result": {
+    "outcome": "FIRST_HOST_UNSTABLE",
+    "proofId": "opencode-goose-advisory-public-read-v1",
+    "profileId": "advisory-public-read-v1",
+    "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
+    "evidenceDigest": "707ac95fcc5ad0c0aad70cae6cbf11e70214121e8fa384a82997abbda3e38f94",
+    "reasonCodes": [
+      "KSTACK_SECOND_HOST_OPEN_DEFECT"
+    ],
+    "provenHosts": []
+  },
+  "evidenceDigest": "767d3454f825cfa41fd7142697115655687760592f3da9a026e36c4127b158e4"
+}

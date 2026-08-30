@@ -147,6 +147,27 @@ export function projectReviewText(value) {
   return null;
 }
 
+export function finalBugFixIntake(review) {
+  const items = [];
+  review.failedChecks.forEach((value, index) => items.push(Object.freeze({
+    id: `FINAL-FAILED-CHECK-${index + 1}`, kind: 'failed-check', detail: projectReviewText(value) ?? JSON.stringify(value)
+  })));
+  review.securityFindings.forEach((value, index) => items.push(Object.freeze({
+    id: value.id || `FINAL-SECURITY-${index + 1}`, kind: 'security-finding', severity: value.severity,
+    detail: value.summary
+  })));
+  review.materialDissent.forEach((value, index) => items.push(Object.freeze({
+    id: `FINAL-MATERIAL-DISSENT-${index + 1}`, kind: 'material-dissent', detail: projectReviewText(value) ?? JSON.stringify(value)
+  })));
+  review.unresolvedQuestions.forEach((value, index) => items.push(Object.freeze({
+    id: `FINAL-UNRESOLVED-QUESTION-${index + 1}`, kind: 'unresolved-question', detail: projectReviewText(value) ?? JSON.stringify(value)
+  })));
+  if (review.decision === 'revise' && items.length === 0) items.push(Object.freeze({
+    id: 'FINAL-REVISE-1', kind: 'review-revision', detail: projectReviewText(review.recommendation) ?? JSON.stringify(review.recommendation)
+  }));
+  return Object.freeze(items);
+}
+
 function parseJsonText(value) {
   const trimmed = value.trim();
   const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);

@@ -1,0 +1,1357 @@
+import crypto from 'node:crypto';
+
+export const HOST_CONTRACT_VERSION = 'kstack-host-contract-v1';
+export const HOST_CONTRACT_LIMITS = Object.freeze({
+  maxDocumentBytes: 1_048_576,
+  maxDepth: 32,
+  maxObjectProperties: 64,
+  maxArrayItems: 1_024,
+  maxStringUtf8Bytes: 16_384,
+  maxSchemas: 256,
+  maxRefEdges: 2_048,
+  maxPatternBytes: 256,
+  maxPatternDfaStates: 4_096
+});
+
+export const HOST_CONTRACT_DOMAINS = Object.freeze({
+  'kstack.closed-metaschema.v1': 'KSTACK-CLOSED-METASCHEMA-V1',
+  'kstack.canonicalization-profile.v1': 'KSTACK-CANONICALIZATION-PROFILE-V1',
+  'kstack.closed-vocabulary-registry.v1': 'KSTACK-CLOSED-VOCABULARY-REGISTRY-V1',
+  'kstack.invariant-registry.v1': 'KSTACK-INVARIANT-REGISTRY-V1',
+  'kstack.historical-resolver-set.v1': 'KSTACK-HISTORICAL-RESOLVER-SET-V1',
+  'kstack.cross-runtime-vector-set.v1': 'KSTACK-CROSS-RUNTIME-VECTOR-SET-V1',
+  'kstack.host-contract-schema-set.v1': 'KSTACK-HOST-CONTRACT-SCHEMA-SET-V1'
+});
+
+const DIGEST = /^sha256:[0-9a-f]{64}$/u;
+const ASCII_ID = /^[a-z0-9][a-z0-9._-]{0,127}$/u;
+const STABLE_CODE_ID = /^[A-Z][A-Z0-9_]{0,127}$/u;
+const ARTIFACT_DOMAIN = /^KSTACK-[A-Z0-9-]+-V[0-9]+$/u;
+const TIMESTAMP = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/u;
+const COLLECTION_MODES = new Set(['ORDERED', 'SET_BY_VALUE_ASCII', 'SET_BY_VALUE_DIGEST', 'SET_BY_FIELDS']);
+const KEY_KINDS = new Set(['ASCII', 'DIGEST', 'ASCII_CANONICAL_UINT']);
+const REGISTRY_COLLECTION_IDS = Object.freeze({
+  mediaTypes: 'media-types', operationIds: 'operation-ids', operationClassIds: 'operation-class-ids', capabilityIds: 'capability-ids',
+  fixtureIds: 'fixture-ids', reasonCodes: 'reason-codes', errorCodes: 'error-codes', operationProfileIds: 'operation-profile-ids',
+  componentRoles: 'component-roles', receiptKinds: 'receipt-kinds', quarantineSubjectTypes: 'quarantine-subject-types'
+});
+
+export class HostContractError extends Error {
+  constructor(code, message = code) {
+    super(message);
+    this.name = 'HostContractError';
+    this.code = code;
+  }
+}
+
+function fail(code, message) { throw new HostContractError(code, message); }
+
+function bytes(input) {
+  if (!Buffer.isBuffer(input) && !(input instanceof Uint8Array)) fail('KSTACK_HOST_JSON_INPUT_INVALID');
+  const output = Buffer.from(input);
+  if (output.length > HOST_CONTRACT_LIMITS.maxDocumentBytes) fail('KSTACK_HOST_DOCUMENT_BYTES_EXCEEDED');
+  return output;
+}
+
+function assertNfcString(value) {
+  if (typeof value !== 'string' || !value.isWellFormed()) fail('KSTACK_HOST_STRING_INVALID');
+  for (const scalar of value) {
+    const codePoint = scalar.codePointAt(0);
+    if ((codePoint >= 0xfdd0 && codePoint <= 0xfdef) || (codePoint & 0xffff) === 0xfffe || (codePoint & 0xffff) === 0xffff) fail('KSTACK_HOST_STRING_NONCHARACTER');
+  }
+  if (value.normalize('NFC') !== value) fail('KSTACK_HOST_STRING_NOT_NFC');
+  if (Buffer.byteLength(value, 'utf8') > HOST_CONTRACT_LIMITS.maxStringUtf8Bytes) fail('KSTACK_HOST_STRING_BYTES_EXCEEDED');
+}
+
+function assertTreeBounds(value, depth = 0, ancestors = new Set()) {
+  if (depth > HOST_CONTRACT_LIMITS.maxDepth) fail('KSTACK_HOST_DEPTH_EXCEEDED');
+  if (typeof value === 'string') { assertNfcString(value); return; }
+  if (value === null || typeof value === 'boolean') return;
+  if (typeof value === 'number') {
+    if (!Number.isSafeInteger(value) || Object.is(value, -0)) fail('KSTACK_HOST_INTEGER_INVALID');
+    return;
+  }
+  if (!value || typeof value !== 'object' || ancestors.has(value)) fail('KSTACK_HOST_VALUE_INVALID');
+  ancestors.add(value);
+  if (Array.isArray(value)) {
+    if (value.length > HOST_CONTRACT_LIMITS.maxArrayItems) fail('KSTACK_HOST_ARRAY_ITEMS_EXCEEDED');
+    if (Object.keys(value).length !== value.length) fail('KSTACK_HOST_VALUE_INVALID');
+    for (const entry of value) assertTreeBounds(entry, depth + 1, ancestors);
+  } else {
+    if (Object.getPrototypeOf(value) !== Object.prototype) fail('KSTACK_HOST_VALUE_INVALID');
+    const entries = Object.entries(value);
+    if (entries.length > HOST_CONTRACT_LIMITS.maxObjectProperties) fail('KSTACK_HOST_OBJECT_PROPERTIES_EXCEEDED');
+    for (const [key, entry] of entries) {
+      assertNfcString(key);
+      assertTreeBounds(entry, depth + 1, ancestors);
+    }
+  }
+  ancestors.delete(value);
+}
+
+class HostJsonParser {
+  constructor(text) { this.text = text; this.offset = 0; }
+
+  parse() {
+    const value = this.value(0);
+    if (this.offset !== this.text.length) fail('KSTACK_HOST_JSON_TRAILING_DATA');
+    if (!hostCanonicalBytes(value).equals(Buffer.from(this.text, 'utf8'))) fail('KSTACK_HOST_JSON_NONCANONICAL');
+    return value;
+  }
+
+  value(depth) {
+    if (depth > HOST_CONTRACT_LIMITS.maxDepth) fail('KSTACK_HOST_DEPTH_EXCEEDED');
+    const token = this.text[this.offset];
+    if (token === '{') return this.object(depth);
+    if (token === '[') return this.array(depth);
+    if (token === '"') return this.string();
+    if (token === 't') return this.literal('true', true);
+    if (token === 'f') return this.literal('false', false);
+    if (token === 'n') return this.literal('null', null);
+    if (token === '-' || token >= '0' && token <= '9') return this.integer();
+    fail('KSTACK_HOST_JSON_SYNTAX_INVALID');
+  }
+
+  literal(token, value) {
+    if (this.text.slice(this.offset, this.offset + token.length) !== token) fail('KSTACK_HOST_JSON_SYNTAX_INVALID');
+    this.offset += token.length;
+    return value;
+  }
+
+  object(depth) {
+    this.offset += 1;
+    const output = {};
+    const keys = new Set();
+    if (this.text[this.offset] === '}') { this.offset += 1; return output; }
+    while (true) {
+      if (keys.size >= HOST_CONTRACT_LIMITS.maxObjectProperties) fail('KSTACK_HOST_OBJECT_PROPERTIES_EXCEEDED');
+      if (this.text[this.offset] !== '"') fail('KSTACK_HOST_JSON_SYNTAX_INVALID');
+      const key = this.string();
+      if (keys.has(key)) fail('KSTACK_HOST_JSON_DUPLICATE_KEY');
+      keys.add(key);
+      if (this.text[this.offset++] !== ':') fail('KSTACK_HOST_JSON_SYNTAX_INVALID');
+      Object.defineProperty(output, key, { value: this.value(depth + 1), enumerable: true, configurable: true, writable: true });
+      const separator = this.text[this.offset++];
+      if (separator === '}') return output;
+      if (separator !== ',') fail('KSTACK_HOST_JSON_SYNTAX_INVALID');
+    }
+  }
+
+  array(depth) {
+    this.offset += 1;
+    const output = [];
+    if (this.text[this.offset] === ']') { this.offset += 1; return output; }
+    while (true) {
+      if (output.length >= HOST_CONTRACT_LIMITS.maxArrayItems) fail('KSTACK_HOST_ARRAY_ITEMS_EXCEEDED');
+      output.push(this.value(depth + 1));
+      const separator = this.text[this.offset++];
+      if (separator === ']') return output;
+      if (separator !== ',') fail('KSTACK_HOST_JSON_SYNTAX_INVALID');
+    }
+  }
+
+  string() {
+    this.offset += 1;
+    let output = '';
+    let outputBytes = 0;
+    while (this.offset < this.text.length) {
+      const character = this.text[this.offset++];
+      if (character === '"') { assertNfcString(output); return output; }
+      let chunk;
+      if (character === '\\') {
+        const escaped = this.text[this.offset++];
+        if (escaped === '"' || escaped === '\\' || escaped === '/') chunk = escaped;
+        else if (escaped === 'u') chunk = this.unicodeEscape();
+        else chunk = this.namedEscape(escaped);
+      } else {
+        if (character.charCodeAt(0) <= 0x1f) fail('KSTACK_HOST_JSON_CONTROL_INVALID');
+        chunk = character;
+      }
+      output += chunk;
+      outputBytes += Buffer.byteLength(chunk, 'utf8');
+      if (outputBytes > HOST_CONTRACT_LIMITS.maxStringUtf8Bytes) fail('KSTACK_HOST_STRING_BYTES_EXCEEDED');
+    }
+    fail('KSTACK_HOST_JSON_STRING_UNTERMINATED');
+  }
+
+  namedEscape(escaped) {
+    if (escaped === 'b') return '\b';
+    if (escaped === 'f') return '\f';
+    if (escaped === 'n') return '\n';
+    if (escaped === 'r') return '\r';
+    if (escaped === 't') return '\t';
+    fail('KSTACK_HOST_JSON_ESCAPE_INVALID');
+  }
+
+  unicodeEscape() {
+    const first = this.hexUnit();
+    if (first >= 0xdc00 && first <= 0xdfff) fail('KSTACK_HOST_JSON_SURROGATE_INVALID');
+    if (first < 0xd800 || first > 0xdbff) return String.fromCharCode(first);
+    if (this.text[this.offset] !== '\\' || this.text[this.offset + 1] !== 'u') fail('KSTACK_HOST_JSON_SURROGATE_INVALID');
+    this.offset += 2;
+    const second = this.hexUnit();
+    if (second < 0xdc00 || second > 0xdfff) fail('KSTACK_HOST_JSON_SURROGATE_INVALID');
+    return String.fromCodePoint(0x10000 + ((first - 0xd800) << 10) + second - 0xdc00);
+  }
+
+  hexUnit() {
+    const digits = this.text.slice(this.offset, this.offset + 4);
+    if (!/^[0-9a-f]{4}$/i.test(digits)) fail('KSTACK_HOST_JSON_ESCAPE_INVALID');
+    this.offset += 4;
+    return Number.parseInt(digits, 16);
+  }
+
+  integer() {
+    const match = /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/u.exec(this.text.slice(this.offset));
+    if (!match) fail('KSTACK_HOST_JSON_NUMBER_INVALID');
+    const numeral = match[0];
+    this.offset += numeral.length;
+    if (numeral.includes('.') || /[eE]/u.test(numeral) || numeral === '-0') fail('KSTACK_HOST_JSON_NUMBER_INVALID');
+    let integer;
+    try { integer = BigInt(numeral); } catch { fail('KSTACK_HOST_JSON_NUMBER_INVALID'); }
+    if (integer > BigInt(Number.MAX_SAFE_INTEGER) || integer < BigInt(Number.MIN_SAFE_INTEGER)) fail('KSTACK_HOST_JSON_NUMBER_INVALID');
+    return Number(integer);
+  }
+}
+
+export function parseHostCanonicalJson(input) {
+  const source = bytes(input);
+  if (source.length >= 3 && source[0] === 0xef && source[1] === 0xbb && source[2] === 0xbf) fail('KSTACK_HOST_JSON_BOM_FORBIDDEN');
+  let text;
+  try { text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(source); }
+  catch { fail('KSTACK_HOST_JSON_UTF8_INVALID'); }
+  const value = new HostJsonParser(text).parse();
+  return value;
+}
+
+function encodeHostValue(value) {
+  if (value === null || typeof value === 'boolean' || typeof value === 'number') return JSON.stringify(value);
+  if (typeof value === 'string') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(encodeHostValue).join(',')}]`;
+  const keys = Object.keys(value).sort();
+  return `{${keys.map((key) => `${JSON.stringify(key)}:${encodeHostValue(value[key])}`).join(',')}}`;
+}
+
+export function hostCanonicalBytes(value) {
+  assertTreeBounds(value);
+  const output = Buffer.from(encodeHostValue(value), 'utf8');
+  if (output.length > HOST_CONTRACT_LIMITS.maxDocumentBytes) fail('KSTACK_HOST_DOCUMENT_BYTES_EXCEEDED');
+  return output;
+}
+
+export function hostAddress(domain, value) {
+  if (typeof domain !== 'string' || !ARTIFACT_DOMAIN.test(domain)) fail('KSTACK_HOST_DOMAIN_INVALID');
+  return `sha256:${crypto.createHash('sha256').update(domain, 'ascii').update(Buffer.from([0])).update(hostCanonicalBytes(value)).digest('hex')}`;
+}
+
+export function assertDigest(value) {
+  if (typeof value !== 'string' || !DIGEST.test(value)) fail('KSTACK_HOST_DIGEST_INVALID');
+  return value;
+}
+
+export function assertAsciiId(value) {
+  if (typeof value !== 'string' || !ASCII_ID.test(value)) fail('KSTACK_HOST_ASCII_ID_INVALID');
+  return value;
+}
+
+export function assertRegistryId(value) {
+  if (typeof value !== 'string' || !ASCII_ID.test(value) && !STABLE_CODE_ID.test(value)) fail('KSTACK_HOST_REGISTRY_ID_INVALID');
+  return value;
+}
+
+export function assertSafeUInt(value, positive = false) {
+  if (!Number.isSafeInteger(value) || value < (positive ? 1 : 0)) fail('KSTACK_HOST_SAFE_UINT_INVALID');
+  return value;
+}
+
+export function assertTimestamp(value) {
+  if (typeof value !== 'string' || value.length !== 24) fail('KSTACK_HOST_TIMESTAMP_INVALID');
+  const match = TIMESTAMP.exec(value);
+  if (!match) fail('KSTACK_HOST_TIMESTAMP_INVALID');
+  const [, year, month, day, hour, minute, second] = match;
+  if (year === '0000' || +month < 1 || +month > 12 || +hour > 23 || +minute > 59 || +second > 59) fail('KSTACK_HOST_TIMESTAMP_INVALID');
+  const days = new Date(Date.UTC(+year, +month, 0)).getUTCDate();
+  if (+day < 1 || +day > days) fail('KSTACK_HOST_TIMESTAMP_INVALID');
+  return value;
+}
+
+function scalarKey(value, kind) {
+  if (kind === 'ASCII') return Buffer.from(assertAsciiScalar(value), 'ascii');
+  if (kind === 'DIGEST') return Buffer.from(assertDigest(value), 'ascii');
+  if (kind === 'ASCII_CANONICAL_UINT') return Buffer.from(String(assertSafeUInt(value)), 'ascii');
+  fail('KSTACK_HOST_COLLECTION_KEY_KIND_INVALID');
+}
+
+function assertAsciiScalar(value) {
+  if (typeof value !== 'string' || !/^[\x21-\x7e]+$/u.test(value)) fail('KSTACK_HOST_ASCII_VALUE_INVALID');
+  return value;
+}
+
+function tupleKey(member, keyFields, keyKinds) {
+  if (!member || typeof member !== 'object' || Array.isArray(member)) fail('KSTACK_HOST_COLLECTION_MEMBER_INVALID');
+  const parts = keyFields.map((field, index) => {
+    if (!Object.hasOwn(member, field)) fail('KSTACK_HOST_COLLECTION_KEY_MISSING');
+    const value = scalarKey(member[field], keyKinds[index]);
+    return Buffer.concat([Buffer.from(value.length.toString(16).padStart(8, '0'), 'ascii'), value]);
+  });
+  return Buffer.concat(parts);
+}
+
+export function validateCollectionDeclaration(collection) {
+  if (!collection || typeof collection !== 'object' || Array.isArray(collection)) fail('KSTACK_HOST_COLLECTION_INVALID');
+  const keys = Object.keys(collection).sort();
+  if (!COLLECTION_MODES.has(collection.mode)) fail('KSTACK_HOST_COLLECTION_MODE_INVALID');
+  if (collection.mode !== 'SET_BY_FIELDS') {
+    if (keys.join(',') !== 'mode') fail('KSTACK_HOST_COLLECTION_INVALID');
+    return collection;
+  }
+  if (keys.join(',') !== 'keyFields,keyKinds,mode') fail('KSTACK_HOST_COLLECTION_INVALID');
+  if (!Array.isArray(collection.keyFields) || !Array.isArray(collection.keyKinds)
+      || collection.keyFields.length < 1 || collection.keyFields.length > 4
+      || collection.keyFields.length !== collection.keyKinds.length) fail('KSTACK_HOST_COLLECTION_INVALID');
+  if (new Set(collection.keyFields).size !== collection.keyFields.length) fail('KSTACK_HOST_COLLECTION_KEY_DUPLICATE');
+  for (const field of collection.keyFields) if (typeof field !== 'string' || !/^[A-Za-z][A-Za-z0-9]{0,63}$/u.test(field)) fail('KSTACK_HOST_COLLECTION_KEY_FIELD_INVALID');
+  for (const kind of collection.keyKinds) if (!KEY_KINDS.has(kind)) fail('KSTACK_HOST_COLLECTION_KEY_KIND_INVALID');
+  return collection;
+}
+
+export function assertCollectionOrder(value, collection) {
+  if (!Array.isArray(value)) fail('KSTACK_HOST_COLLECTION_VALUE_INVALID');
+  validateCollectionDeclaration(collection);
+  if (collection.mode === 'ORDERED') return value;
+  let prior = null;
+  for (const member of value) {
+    let key;
+    if (collection.mode === 'SET_BY_VALUE_ASCII') key = Buffer.from(assertAsciiScalar(member), 'ascii');
+    else if (collection.mode === 'SET_BY_VALUE_DIGEST') key = Buffer.from(assertDigest(member), 'ascii');
+    else key = tupleKey(member, collection.keyFields, collection.keyKinds);
+    if (prior && Buffer.compare(prior, key) >= 0) fail(Buffer.compare(prior, key) === 0
+      ? 'KSTACK_HOST_COLLECTION_DUPLICATE'
+      : 'KSTACK_HOST_COLLECTION_NOT_SORTED');
+    prior = key;
+  }
+  return value;
+}
+
+function exactKeys(value, required, optional = []) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) fail('KSTACK_HOST_RECORD_INVALID');
+  const allowed = new Set([...required, ...optional]);
+  for (const key of required) if (!Object.hasOwn(value, key)) fail('KSTACK_HOST_REQUIRED_FIELD_MISSING');
+  for (const key of Object.keys(value)) if (!allowed.has(key)) fail('KSTACK_HOST_ADDITIONAL_PROPERTY');
+}
+
+const primitive = Object.freeze({
+  digest: (value) => assertDigest(value),
+  ascii: (value) => assertAsciiId(value),
+  registryId: (value) => assertRegistryId(value),
+  timestamp: (value) => assertTimestamp(value),
+  uint: (value) => assertSafeUInt(value),
+  positive: (value) => assertSafeUInt(value, true),
+  artifactDomain: (value) => { if (typeof value !== 'string' || !ARTIFACT_DOMAIN.test(value)) fail('KSTACK_HOST_DOMAIN_INVALID'); },
+  boolean: (value) => { if (typeof value !== 'boolean') fail('KSTACK_HOST_BOOLEAN_INVALID'); },
+  null: (value) => { if (value !== null) fail('KSTACK_HOST_NULL_INVALID'); }
+});
+
+function validateType(value, type, context) {
+  if (typeof type === 'string') return primitive[type](value);
+  if (Object.hasOwn(type, 'const')) {
+    if (value !== type.const) fail('KSTACK_HOST_CONST_INVALID');
+    return value;
+  }
+  if (type.nullable) return value === null ? value : validateType(value, type.nullable, context);
+  if (type.enum) {
+    if (!type.enum.includes(value)) fail('KSTACK_HOST_ENUM_INVALID');
+    return value;
+  }
+  if (type.ref) return context.validate(type.ref, value);
+  if (type.registry) {
+    assertRegistryId(value);
+    const collection = context.vocabulary?.[type.registry] || context.vocabulary?.[REGISTRY_COLLECTION_IDS[type.registry]];
+    if (!collection?.has(value)) fail('KSTACK_HOST_REGISTRY_REFERENCE_INVALID');
+    return value;
+  }
+  if (type.array) {
+    if (!Array.isArray(value) || value.length < type.min || value.length > type.max) fail('KSTACK_HOST_ARRAY_BOUNDS_INVALID');
+    for (const member of value) validateType(member, type.array, context);
+    assertCollectionOrder(value, type.collection);
+    return value;
+  }
+  fail('KSTACK_HOST_TYPE_INVALID');
+}
+
+const arr = (array, min, max, collection = { mode: 'ORDERED' }) => ({ array, min, max, collection });
+const nullable = (type) => ({ nullable: type });
+const enumeration = (...values) => ({ enum: values });
+const constant = (value) => ({ const: value });
+const ref = (name) => ({ ref: name });
+const registry = (name) => ({ registry: name });
+
+function record(fields) { return Object.freeze(fields); }
+
+const digestSet = (min, max) => arr('digest', min, max, { mode: 'SET_BY_VALUE_DIGEST' });
+
+const NESTED_RECORDS = Object.freeze({
+  ArtifactRefV1: record({ schemaDigest: 'digest', objectDigest: 'digest', byteCount: 'uint' }),
+  NamedArtifactRefV1: record({ name: 'ascii', mediaTypeId: registry('mediaTypes'), artifactRef: ref('ArtifactRefV1') }),
+  LimitSetV1: record({ deadlineMs: 'positive', maxInputBytes: 'positive', maxOutputBytes: 'positive' }),
+  CapabilityRequirementV1: record({ capabilityId: registry('capabilityIds'), evidenceProfileDigest: 'digest', mandatory: 'boolean' }),
+  AlternateProfileRefV1: record({ profileId: registry('operationProfileIds'), requirementProfileDigest: 'digest', maximumStatus: enumeration('DEGRADED_REGISTERED') }),
+  ObservationRowV1: record({ capabilityId: registry('capabilityIds'), state: enumeration('DECLARED', 'OBSERVED', 'UNKNOWN'), observationEvidenceDigest: nullable('digest') }),
+  ConformanceResultRowV1: record({ capabilityId: registry('capabilityIds'), fixtureId: registry('fixtureIds'), outcome: enumeration('PASS', 'FAIL', 'NOT_RUN', 'CAPABILITY_UNAVAILABLE', 'HARNESS_ERROR'), evidenceDigest: 'digest' }),
+  EvidenceRefV1: record({ evidenceDigest: 'digest', schemaDigest: 'digest', issuedAt: 'timestamp', expiresAt: 'timestamp' }),
+  ComponentBindingV1: record({ componentRole: registry('componentRoles'), componentId: 'ascii', componentDigest: 'digest' })
+});
+
+const KEYWORDS = Object.freeze([
+  '$ref', 'additionalProperties', 'const', 'enum', 'items', 'maxItems', 'maxLength', 'maximum', 'minItems', 'minLength',
+  'minimum', 'oneOf', 'pattern', 'properties', 'required', 'type', 'x-kstack-collection'
+]);
+
+const BOOTSTRAP_NESTED_RECORDS = Object.freeze({
+  ResourceLimitsV1: record({
+    maxDocumentBytes: constant(1_048_576), maxDepth: constant(32), maxObjectProperties: constant(64),
+    maxArrayItems: constant(1_024), maxStringUtf8Bytes: constant(16_384), maxSchemas: constant(256),
+    maxRefEdges: constant(2_048), maxPatternBytes: constant(256), maxPatternDfaStates: constant(4_096)
+  }),
+  VocabularyEntryV1: record({ id: 'registryId' }),
+  VocabularyCollectionV1: record({
+    collectionId: 'ascii', entries: arr(ref('VocabularyEntryV1'), 1, 1024, { mode: 'SET_BY_FIELDS', keyFields: ['id'], keyKinds: ['ASCII'] })
+  }),
+  InvariantEntryV1: record({
+    invariantId: 'ascii', implementationDigest: 'digest', applicableSchemaIds: arr('ascii', 1, 64, { mode: 'SET_BY_VALUE_ASCII' }),
+    vectorIds: arr('ascii', 1, 256, { mode: 'SET_BY_VALUE_ASCII' })
+  }),
+  ResolverEntryV1: record({
+    resolverId: 'ascii', schemaLanguageVersion: 'ascii', implementationDigest: 'digest',
+    supportedMetaschemaDigests: digestSet(1, 32), supportedCanonicalizationProfileDigests: digestSet(1, 32),
+    invariantRegistryDigests: digestSet(1, 32), vectorSetDigest: 'digest'
+  }),
+  VectorEntryV1: record({
+    vectorId: 'ascii', operationId: 'ascii', inputBytesDigest: 'digest', expectedOutcome: enumeration('ACCEPT', 'REJECT'),
+    expectedCanonicalBytesDigest: nullable('digest'), expectedObjectDigest: nullable('digest')
+  }),
+  SchemaEntryV1: record({ schemaId: 'ascii', schemaVersion: 'positive', schemaDigest: 'digest', artifactDomain: 'artifactDomain' })
+});
+
+export const HOST_BOOTSTRAP_SCHEMAS = Object.freeze({
+  KStackClosedMetaschemaV1: record({
+    schemaId: constant('kstack.closed-metaschema.v1'), schemaVersion: constant(1), schemaLanguageVersion: constant('kstack-closed-schema-v1'),
+    permittedKeywords: arr(enumeration(...KEYWORDS), 1, 32, { mode: 'SET_BY_VALUE_ASCII' }), regexGrammarDigest: 'digest',
+    collectionGrammarDigest: 'digest', resourceLimits: ref('ResourceLimitsV1')
+  }),
+  CanonicalizationProfileV1: record({
+    schemaId: constant('kstack.canonicalization-profile.v1'), schemaVersion: constant(1), profileId: constant('rfc8785-kstack-v1'),
+    rfc8785SpecDigest: 'digest', unicodePolicy: constant('VALID_SCALAR_NFC_REJECT_OTHER'), numberPolicy: constant('SAFE_INTEGER_CANONICAL_ONLY'),
+    timestampPolicy: constant('UTC_MILLISECOND_YEAR0001_9999'), duplicateKeyPolicy: constant('REJECT_BEFORE_PARSE'),
+    collectionGrammarDigest: 'digest', regexGrammarDigest: 'digest'
+  }),
+  ClosedVocabularyRegistryV1: record({
+    schemaId: constant('kstack.closed-vocabulary-registry.v1'), schemaVersion: constant(1), registryId: 'ascii',
+    collections: arr(ref('VocabularyCollectionV1'), 1, 64, { mode: 'SET_BY_FIELDS', keyFields: ['collectionId'], keyKinds: ['ASCII'] })
+  }),
+  InvariantRegistryV1: record({
+    schemaId: constant('kstack.invariant-registry.v1'), schemaVersion: constant(1), registryId: 'ascii',
+    entries: arr(ref('InvariantEntryV1'), 1, 256, { mode: 'SET_BY_FIELDS', keyFields: ['invariantId'], keyKinds: ['ASCII'] })
+  }),
+  HistoricalResolverSetV1: record({
+    schemaId: constant('kstack.historical-resolver-set.v1'), schemaVersion: constant(1), resolverSetId: 'ascii',
+    entries: arr(ref('ResolverEntryV1'), 1, 32, { mode: 'SET_BY_FIELDS', keyFields: ['resolverId'], keyKinds: ['ASCII'] })
+  }),
+  CrossRuntimeVectorSetV1: record({
+    schemaId: constant('kstack.cross-runtime-vector-set.v1'), schemaVersion: constant(1), vectorSetId: 'ascii',
+    entries: arr(ref('VectorEntryV1'), 1, 2048, { mode: 'SET_BY_FIELDS', keyFields: ['vectorId'], keyKinds: ['ASCII'] })
+  }),
+  HostContractSchemaSetV1: record({
+    schemaId: constant('kstack.host-contract-schema-set.v1'), schemaVersion: constant(1), metaschemaDigest: 'digest',
+    schemaLanguageVersion: constant('kstack-closed-schema-v1'), canonicalizationProfileDigest: 'digest',
+    schemaEntries: arr(ref('SchemaEntryV1'), 1, 256, { mode: 'SET_BY_FIELDS', keyFields: ['schemaId', 'schemaVersion'], keyKinds: ['ASCII', 'ASCII_CANONICAL_UINT'] }),
+    closedVocabularyRegistryDigest: 'digest', invariantRegistryDigest: 'digest', historicalResolverSetDigest: 'digest', crossRuntimeVectorSetDigest: 'digest'
+  })
+});
+
+export const HOST_BOOTSTRAP_IDENTITIES = Object.freeze({
+  KStackClosedMetaschemaV1: { schemaId: 'kstack.closed-metaschema.v1', domain: HOST_CONTRACT_DOMAINS['kstack.closed-metaschema.v1'] },
+  CanonicalizationProfileV1: { schemaId: 'kstack.canonicalization-profile.v1', domain: HOST_CONTRACT_DOMAINS['kstack.canonicalization-profile.v1'] },
+  ClosedVocabularyRegistryV1: { schemaId: 'kstack.closed-vocabulary-registry.v1', domain: HOST_CONTRACT_DOMAINS['kstack.closed-vocabulary-registry.v1'] },
+  InvariantRegistryV1: { schemaId: 'kstack.invariant-registry.v1', domain: HOST_CONTRACT_DOMAINS['kstack.invariant-registry.v1'] },
+  HistoricalResolverSetV1: { schemaId: 'kstack.historical-resolver-set.v1', domain: HOST_CONTRACT_DOMAINS['kstack.historical-resolver-set.v1'] },
+  CrossRuntimeVectorSetV1: { schemaId: 'kstack.cross-runtime-vector-set.v1', domain: HOST_CONTRACT_DOMAINS['kstack.cross-runtime-vector-set.v1'] },
+  HostContractSchemaSetV1: { schemaId: 'kstack.host-contract-schema-set.v1', domain: HOST_CONTRACT_DOMAINS['kstack.host-contract-schema-set.v1'] }
+});
+
+const namedArtifacts = arr(ref('NamedArtifactRefV1'), 0, 64, { mode: 'SET_BY_FIELDS', keyFields: ['name'], keyKinds: ['ASCII'] });
+const asciiSet = (registryName, max = 256) => arr(registryName ? registry(registryName) : 'ascii', 0, max, { mode: 'SET_BY_VALUE_ASCII' });
+
+export const HOST_ARTIFACT_SCHEMAS = Object.freeze({
+  OperationRequestV1: record({
+    operationId: registry('operationIds'), operationSchemaDigest: 'digest', requirementProfileDigest: 'digest',
+    repositoryContextDigest: 'digest', trustedRequestContextDigest: 'digest', activeSetDigest: 'digest', policyDigest: 'digest',
+    inputs: namedArtifacts, limits: ref('LimitSetV1'), authorityEnvelopeDigest: nullable('digest'), hostEvidenceSetDigest: 'digest',
+    nonceDigest: 'digest', idempotencyKeyDigest: 'digest', createdAt: 'timestamp', expiresAt: 'timestamp'
+  }),
+  OperationResultV1: record({
+    requestDigest: 'digest', operationId: registry('operationIds'), activeSetDigest: 'digest',
+    status: enumeration('SUCCEEDED', 'DENIED', 'FAILED', 'AMBIGUOUS', 'CANCELLED'), startedAt: 'timestamp', completedAt: 'timestamp',
+    outputs: namedArtifacts, errorDigest: nullable('digest'), receiptProfileDigest: 'digest'
+  }),
+  OperationErrorV1: record({
+    requestDigest: 'digest', errorCode: registry('errorCodes'), retryDisposition: enumeration('NEVER', 'RECORDED_RESULT_ONLY', 'RECONCILIATION_REQUIRED'),
+    affectedIds: asciiSet(null, 128), correlationDigest: 'digest', detailArtifactDigest: nullable('digest')
+  }),
+  OperationRequirementProfileV1: record({
+    operationId: registry('operationIds'), operationSchemaDigest: 'digest', operationClassId: registry('operationClassIds'),
+    requiredCapabilities: arr(ref('CapabilityRequirementV1'), 0, 256, { mode: 'SET_BY_FIELDS', keyFields: ['capabilityId'], keyKinds: ['ASCII'] }),
+    negativeFixtureIds: asciiSet('fixtureIds'), receiptProfileDigest: 'digest', actionFenceProfileDigest: 'digest',
+    alternateProfiles: arr(ref('AlternateProfileRefV1'), 0, 32, { mode: 'SET_BY_FIELDS', keyFields: ['profileId'], keyKinds: ['ASCII'] })
+  }),
+  HostObservationV1: record({
+    hostInstanceDigest: 'digest', hostBuildDigest: 'digest', adapterDigest: 'digest', environmentDigest: 'digest',
+    observations: arr(ref('ObservationRowV1'), 0, 256, { mode: 'SET_BY_FIELDS', keyFields: ['capabilityId'], keyKinds: ['ASCII'] }),
+    limitationsReasonCodes: asciiSet('reasonCodes', 128), observedAt: 'timestamp', expiresAt: 'timestamp'
+  }),
+  HostConformanceEvidenceBodyV1: record({
+    hostInstanceDigest: 'digest', hostBuildDigest: 'digest', adapterDigest: 'digest', harnessDigest: 'digest', fixtureSetDigest: 'digest', environmentDigest: 'digest',
+    results: arr(ref('ConformanceResultRowV1'), 1, 1024, { mode: 'SET_BY_FIELDS', keyFields: ['capabilityId', 'fixtureId'], keyKinds: ['ASCII', 'ASCII'] }),
+    issuedAt: 'timestamp', expiresAt: 'timestamp'
+  }),
+  HostConformanceEvidenceV1: record({
+    hostInstanceDigest: 'digest', hostBuildDigest: 'digest', adapterDigest: 'digest', harnessDigest: 'digest', fixtureSetDigest: 'digest', environmentDigest: 'digest',
+    results: arr(ref('ConformanceResultRowV1'), 1, 1024, { mode: 'SET_BY_FIELDS', keyFields: ['capabilityId', 'fixtureId'], keyKinds: ['ASCII', 'ASCII'] }),
+    issuedAt: 'timestamp', expiresAt: 'timestamp', anchorDigest: 'digest'
+  }),
+  HostEvidenceSetV1: record({
+    hostInstanceDigest: 'digest', activeSetDigest: 'digest', policyDigest: 'digest',
+    evidenceRefs: arr(ref('EvidenceRefV1'), 1, 256, { mode: 'SET_BY_FIELDS', keyFields: ['evidenceDigest'], keyKinds: ['DIGEST'] }),
+    assembledAt: 'timestamp', shortestExpiryAt: 'timestamp'
+  }),
+  OperationEligibilityV1: record({
+    operationId: registry('operationIds'), requirementProfileDigest: 'digest', hostEvidenceSetDigest: 'digest', activeSetDigest: 'digest', policyDigest: 'digest',
+    status: enumeration('FULL', 'DEGRADED_REGISTERED', 'UNSUPPORTED', 'QUARANTINED'), alternateProfileId: nullable(registry('operationProfileIds')),
+    provenCapabilityIds: asciiSet('capabilityIds'), missingCapabilityIds: asciiSet('capabilityIds'), reasonCodes: asciiSet('reasonCodes', 128),
+    evaluatedAt: 'timestamp', expiresAt: 'timestamp'
+  }),
+  CompatibilityEntryV1: record({
+    compatibilityId: 'ascii', componentBindings: arr(ref('ComponentBindingV1'), 1, 64, { mode: 'SET_BY_FIELDS', keyFields: ['componentRole'], keyKinds: ['ASCII'] }),
+    externalHostConstraintDigest: 'digest', compatibleHostContractSchemaSetDigest: 'digest', compatibleResolverSetDigest: 'digest',
+    migrationProfileDigest: nullable('digest'), allowedOperationProfileDigests: digestSet(1, 256)
+  }),
+  ActivationRecordV1: record({
+    candidateActiveSetDigest: 'digest', priorActiveSetDigest: nullable('digest'), compatibilityEntryDigest: 'digest', migrationEvidenceDigest: nullable('digest'),
+    rollbackEvidenceDigest: nullable('digest'), state: enumeration('STAGED', 'VALIDATED', 'ACTIVE', 'REJECTED', 'ROLLED_BACK'),
+    reasonCodes: asciiSet('reasonCodes', 128), createdAt: 'timestamp', decidedAt: nullable('timestamp')
+  }),
+  OperationLeaseV1: record({
+    requestDigest: 'digest', operationId: registry('operationIds'), activeSetDigest: 'digest', policyDigest: 'digest', hostEvidenceSetDigest: 'digest',
+    repositoryContextDigest: 'digest', admissionEpoch: 'uint', issuedAt: 'timestamp', expiresAt: 'timestamp', state: enumeration('ADMITTED', 'FENCED', 'COMPLETED', 'RECONCILE')
+  }),
+  OperationReceiptV1: record({
+    requestDigest: 'digest', resultDigest: 'digest', operationId: registry('operationIds'), operationClassId: registry('operationClassIds'), activeSetDigest: 'digest',
+    producerId: 'ascii', receiptKind: registry('receiptKinds'), producerReceiptDigest: nullable('digest'), localAuditDigest: nullable('digest'), issuedAt: 'timestamp'
+  }),
+  QuarantineEventV1: record({
+    subjectType: registry('quarantineSubjectTypes'), subjectDigest: 'digest', scopeOperationIds: asciiSet('operationIds'), reasonCode: registry('reasonCodes'),
+    sourceEvidenceDigest: 'digest', previousEligibilityDigests: digestSet(0, 256), effectiveAt: 'timestamp', expiresAt: nullable('timestamp'), eventAnchorDigest: 'digest'
+  }),
+  SchemaOfferV1: record({
+    hostInstanceDigest: 'digest', schemaSetDigests: digestSet(1, 32), resolverSetDigests: digestSet(1, 32),
+    operationProfileDigests: digestSet(0, 256), offeredAt: 'timestamp', expiresAt: 'timestamp'
+  }),
+  SchemaSelectionV1: record({
+    offerDigest: 'digest', selectedSchemaSetDigest: 'digest', selectedResolverSetDigest: 'digest', selectedOperationProfileDigests: digestSet(0, 256),
+    compatibilityEntryDigest: 'digest', selectedAt: 'timestamp', expiresAt: 'timestamp'
+  }),
+  HistoricalResolutionReceiptV1: record({
+    artifactDigest: 'digest', artifactSchemaSetDigest: 'digest', artifactSchemaDigest: 'digest', resolverSetDigest: 'digest',
+    validationOutcome: enumeration('VALID', 'INVALID', 'UNAVAILABLE'), resolvedAt: 'timestamp', evidenceDigest: 'digest'
+  })
+});
+
+export const HOST_ARTIFACT_IDENTITIES = Object.freeze(Object.fromEntries(
+  Object.keys(HOST_ARTIFACT_SCHEMAS).map((name) => {
+    const stem = name.replace(/V1$/u, '').replace(/([a-z0-9])([A-Z])/gu, '$1-$2').toLowerCase();
+    return [name, Object.freeze({ schemaId: `kstack.${stem}.v1`, schemaVersion: 1, domain: `KSTACK-${stem.toUpperCase()}-V1` })];
+  })
+));
+
+function schemaName(prefix, name) {
+  const stem = name.replace(/V1$/u, '').replace(/([a-z0-9])([A-Z])/gu, '$1-$2').toLowerCase();
+  return `kstack.${prefix}.${stem}.v1`;
+}
+
+const PRIMITIVE_CLOSED_SCHEMAS = Object.freeze({
+  digest: Object.freeze({ type: 'string', minLength: 71, maxLength: 71, pattern: '^sha256:[0-9a-f]{64}$' }),
+  ascii: Object.freeze({ type: 'string', minLength: 1, maxLength: 128, pattern: '^[a-z0-9][a-z0-9._-]{0,127}$' }),
+  registryId: Object.freeze({ oneOf: [
+    { type: 'string', minLength: 1, maxLength: 128, pattern: '^[a-z0-9][a-z0-9._-]{0,127}$' },
+    { type: 'string', minLength: 1, maxLength: 128, pattern: '^[A-Z][A-Z0-9_]{0,127}$' }
+  ] }),
+  timestamp: Object.freeze({ type: 'string', minLength: 24, maxLength: 24, pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}[.][0-9]{3}Z$' }),
+  uint: Object.freeze({ type: 'integer', minimum: 0, maximum: Number.MAX_SAFE_INTEGER }),
+  positive: Object.freeze({ type: 'integer', minimum: 1, maximum: Number.MAX_SAFE_INTEGER }),
+  artifactDomain: Object.freeze({ type: 'string', minLength: 1, maxLength: 128, pattern: '^KSTACK-[A-Z0-9-]+-V[0-9]+$' }),
+  boolean: Object.freeze({ type: 'boolean' }),
+  null: Object.freeze({ type: 'null' })
+});
+
+function expandClosedType(type, nestedPrefix, registryContext) {
+  if (typeof type === 'string') return structuredClone(PRIMITIVE_CLOSED_SCHEMAS[type]);
+  if (Object.hasOwn(type, 'const')) return { const: type.const };
+  if (type.enum) return { enum: [...type.enum] };
+  if (type.nullable) return { oneOf: [{ type: 'null' }, expandClosedType(type.nullable, nestedPrefix, registryContext)] };
+  if (type.ref) {
+    if (registryContext?.inlineNested) return expandClosedRecord(NESTED_RECORDS[type.ref], nestedPrefix, registryContext);
+    return { $ref: schemaName(nestedPrefix, type.ref) };
+  }
+  if (type.registry) {
+    const collectionId = REGISTRY_COLLECTION_IDS[type.registry];
+    const hasCollection = registryContext?.registryIds?.has(collectionId) || (registryContext instanceof Set && registryContext.has(collectionId));
+    if (!collectionId || !hasCollection) fail('KSTACK_HOST_VOCABULARY_REQUIRED');
+    if (registryContext?.registryValues) return { enum: [...registryContext.registryValues[collectionId]] };
+    return { $ref: `kstack.registry.${collectionId}.v1` };
+  }
+  if (type.array) {
+    return {
+      type: 'array', items: expandClosedType(type.array, nestedPrefix, registryContext), minItems: type.min, maxItems: type.max,
+      'x-kstack-collection': structuredClone(type.collection)
+    };
+  }
+  fail('KSTACK_HOST_TYPE_INVALID');
+}
+
+function expandClosedRecord(fields, nestedPrefix, registryContext, head = null) {
+  const properties = {};
+  if (head) {
+    properties.schemaId = { const: head.schemaId };
+    properties.schemaVersion = { const: 1 };
+    properties.schemaSetDigest = structuredClone(PRIMITIVE_CLOSED_SCHEMAS.digest);
+  }
+  for (const [field, type] of Object.entries(fields)) properties[field] = expandClosedType(type, nestedPrefix, registryContext);
+  return { type: 'object', properties, required: Object.keys(properties), additionalProperties: false };
+}
+
+function freezeSchemaDocuments(entries) {
+  const deepFreeze = (value) => {
+    if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+    for (const member of Object.values(value)) deepFreeze(member);
+    return Object.freeze(value);
+  };
+  return Object.freeze(entries.map((entry) => {
+    const canonical = hostCanonicalBytes(entry.schema);
+    return Object.freeze({
+      schemaId: entry.schemaId,
+      schema: deepFreeze(entry.schema),
+      canonicalJson: canonical.toString('utf8'),
+      schemaDigest: sha256Digest(canonical)
+    });
+  }));
+}
+
+function buildBootstrapSchemaDocuments() {
+  const entries = [];
+  for (const [name, fields] of Object.entries(BOOTSTRAP_NESTED_RECORDS)) entries.push({
+    schemaId: schemaName('bootstrap-type', name), schema: expandClosedRecord(fields, 'bootstrap-type', null)
+  });
+  for (const [name, fields] of Object.entries(HOST_BOOTSTRAP_SCHEMAS)) entries.push({
+    schemaId: schemaName('bootstrap', name), schema: expandClosedRecord(fields, 'bootstrap-type', null)
+  });
+  return freezeSchemaDocuments(entries);
+}
+
+export const HOST_BOOTSTRAP_SCHEMA_DOCUMENTS = buildBootstrapSchemaDocuments();
+export const HOST_BOOTSTRAP_SCHEMA_DIGESTS = Object.freeze(Object.fromEntries(
+  HOST_BOOTSTRAP_SCHEMA_DOCUMENTS.map((entry) => [entry.schemaId, entry.schemaDigest])
+));
+
+let bootstrapSchemaCompiler = null;
+
+export function buildHostArtifactSchemaSet(vocabulary) {
+  const normalized = normalizeVocabulary(vocabulary);
+  const registryIds = new Set(Object.keys(normalized).map((name) => REGISTRY_COLLECTION_IDS[name] || name));
+  const registryValues = {};
+  for (const collectionId of registryIds) {
+    const symbolic = Object.keys(REGISTRY_COLLECTION_IDS).find((name) => REGISTRY_COLLECTION_IDS[name] === collectionId);
+    const values = [...(normalized[collectionId] || normalized[symbolic] || [])].sort();
+    if (values.length === 0) fail('KSTACK_HOST_VOCABULARY_INVALID');
+    registryValues[collectionId] = values;
+  }
+  const context = { registryIds, registryValues, inlineNested: true };
+  const entries = [];
+  for (const [name, fields] of Object.entries(HOST_ARTIFACT_SCHEMAS)) entries.push({
+    schemaId: HOST_ARTIFACT_IDENTITIES[name].schemaId,
+    schema: expandClosedRecord(fields, 'type', context, HOST_ARTIFACT_IDENTITIES[name])
+  });
+  const documents = freezeSchemaDocuments(entries);
+  const compiler = compileClosedSchemaSet(documents.map((entry) => ({ schemaId: entry.schemaId, schema: entry.schema })));
+  return Object.freeze({
+    documents,
+    schemaDigests: Object.freeze(Object.fromEntries(documents.map((entry) => [entry.schemaId, entry.schemaDigest]))),
+    validate(schemaId, value) { return compiler.validate(schemaId, value); }
+  });
+}
+
+function normalizeVocabulary(vocabulary) {
+  if (!vocabulary || typeof vocabulary !== 'object' || Array.isArray(vocabulary)) fail('KSTACK_HOST_VOCABULARY_REQUIRED');
+  const output = {};
+  for (const [collection, entries] of Object.entries(vocabulary)) {
+    if (!/^[A-Za-z][A-Za-z0-9-]{0,63}$/u.test(collection)) fail('KSTACK_HOST_VOCABULARY_INVALID');
+    if (!Array.isArray(entries) && !(entries instanceof Set)) fail('KSTACK_HOST_VOCABULARY_INVALID');
+    const values = [...entries];
+    const set = new Set();
+    for (const entry of values) {
+      assertRegistryId(entry);
+      if (set.has(entry)) fail('KSTACK_HOST_VOCABULARY_DUPLICATE');
+      set.add(entry);
+    }
+    output[collection] = set;
+  }
+  return output;
+}
+
+function validateRecord(name, value, fields, context, artifact = false) {
+  const head = artifact ? ['schemaId', 'schemaVersion', 'schemaSetDigest'] : [];
+  exactKeys(value, [...head, ...Object.keys(fields)]);
+  if (artifact) {
+    const identity = HOST_ARTIFACT_IDENTITIES[name];
+    if (value.schemaId !== identity.schemaId || value.schemaVersion !== 1) fail('KSTACK_HOST_ARTIFACT_HEAD_INVALID');
+    assertDigest(value.schemaSetDigest);
+  }
+  for (const [field, type] of Object.entries(fields)) validateType(value[field], type, context);
+  return value;
+}
+
+function localInvariants(name, value) {
+  if (name === 'OperationRequestV1' && value.createdAt >= value.expiresAt) fail('KSTACK_HOST_INVARIANT_REQUEST_TIME_ORDER_V1');
+  if (name === 'OperationResultV1') {
+    if (value.startedAt > value.completedAt) fail('KSTACK_HOST_INVARIANT_RESULT_SHAPE_V1');
+    const success = value.status === 'SUCCEEDED';
+    if ((success && value.errorDigest !== null) || (!success && value.errorDigest === null) || (!success && value.outputs.length !== 0)) fail('KSTACK_HOST_INVARIANT_RESULT_SHAPE_V1');
+  }
+  if (name === 'HostObservationV1') {
+    for (const row of value.observations) if ((row.state === 'UNKNOWN') !== (row.observationEvidenceDigest === null)) fail('KSTACK_HOST_INVARIANT_OBSERVATION_SHAPE_V1');
+    if (value.observedAt >= value.expiresAt) fail('KSTACK_HOST_INVARIANT_EVIDENCE_TIME_V1');
+  }
+  if ((name === 'HostConformanceEvidenceBodyV1' || name === 'HostConformanceEvidenceV1') && value.issuedAt >= value.expiresAt) fail('KSTACK_HOST_INVARIANT_EVIDENCE_TIME_V1');
+  if (name === 'HostEvidenceSetV1') {
+    if (value.assembledAt >= value.shortestExpiryAt
+        || value.evidenceRefs.some((entry) => entry.issuedAt >= entry.expiresAt)
+        || value.shortestExpiryAt !== value.evidenceRefs.reduce((minimum, entry) => entry.expiresAt < minimum ? entry.expiresAt : minimum, value.evidenceRefs[0].expiresAt)) {
+      fail('KSTACK_HOST_INVARIANT_EVIDENCE_TIME_V1');
+    }
+  }
+  if (name === 'OperationEligibilityV1') {
+    if (value.evaluatedAt >= value.expiresAt) fail('KSTACK_HOST_INVARIANT_EVIDENCE_TIME_V1');
+    const degraded = value.status === 'DEGRADED_REGISTERED';
+    if (degraded !== (value.alternateProfileId !== null)) fail('KSTACK_HOST_INVARIANT_ELIGIBILITY_PARTITION_V1');
+    const proven = new Set(value.provenCapabilityIds);
+    if (value.missingCapabilityIds.some((entry) => proven.has(entry))) fail('KSTACK_HOST_INVARIANT_ELIGIBILITY_PARTITION_V1');
+  }
+  if (name === 'OperationReceiptV1' && value.producerReceiptDigest === null && value.localAuditDigest === null) fail('KSTACK_HOST_INVARIANT_RECEIPT_ACYCLIC_V1');
+  if (name === 'OperationLeaseV1' && value.issuedAt >= value.expiresAt) fail('KSTACK_HOST_INVARIANT_EVIDENCE_TIME_V1');
+  if (name === 'ActivationRecordV1' && ((value.state === 'STAGED') !== (value.decidedAt === null))) fail('KSTACK_HOST_INVARIANT_ACTIVATION_SHAPE_V1');
+  if (name === 'SchemaOfferV1' && value.offeredAt >= value.expiresAt) fail('KSTACK_HOST_INVARIANT_EVIDENCE_TIME_V1');
+  if (name === 'SchemaSelectionV1' && value.selectedAt >= value.expiresAt) fail('KSTACK_HOST_INVARIANT_EVIDENCE_TIME_V1');
+}
+
+export function validateHostArtifact(name, value, options = {}) {
+  const fields = HOST_ARTIFACT_SCHEMAS[name];
+  if (!fields) fail('KSTACK_HOST_SCHEMA_UNKNOWN');
+  assertTreeBounds(value);
+  const vocabulary = normalizeVocabulary(options.vocabulary);
+  const context = {
+    vocabulary,
+    validate(typeName, member) {
+      const nested = NESTED_RECORDS[typeName];
+      if (!nested) fail('KSTACK_HOST_SCHEMA_UNKNOWN');
+      return validateRecord(typeName, member, nested, context, false);
+    }
+  };
+  validateRecord(name, value, fields, context, true);
+  localInvariants(name, value);
+  return Object.freeze({
+    schemaName: name,
+    schemaId: value.schemaId,
+    canonicalBytes: hostCanonicalBytes(value),
+    objectDigest: hostAddress(HOST_ARTIFACT_IDENTITIES[name].domain, value)
+  });
+}
+
+function resolveBoundArtifact(options, digest, name, vocabulary, sourceSchemaSetDigest) {
+  if (typeof options.resolveArtifact !== 'function') fail('KSTACK_HOST_INVARIANT_CONTEXT_REQUIRED');
+  const value = options.resolveArtifact(digest, name);
+  if (!value || typeof value !== 'object') fail('KSTACK_HOST_INVARIANT_REFERENCE_UNAVAILABLE');
+  const validated = validateHostArtifact(name, value, { vocabulary });
+  if (validated.objectDigest !== digest || value.schemaSetDigest !== sourceSchemaSetDigest) fail('KSTACK_HOST_INVARIANT_REFERENCE_MISMATCH');
+  return value;
+}
+
+function resolveBoundBootstrap(options, digest, name) {
+  if (typeof options.resolveBootstrap !== 'function') fail('KSTACK_HOST_INVARIANT_CONTEXT_REQUIRED');
+  const value = options.resolveBootstrap(digest, name);
+  if (!value || typeof value !== 'object') fail('KSTACK_HOST_INVARIANT_REFERENCE_UNAVAILABLE');
+  if (validateHostBootstrap(name, value).objectDigest !== digest) fail('KSTACK_HOST_INVARIANT_REFERENCE_MISMATCH');
+  return value;
+}
+
+function sameValues(left, right) {
+  return left.length === right.length && left.every((entry, index) => entry === right[index]);
+}
+
+function validateRequestAuthorityContext(value, options, vocabulary) {
+  const profile = resolveBoundArtifact(options, value.requirementProfileDigest, 'OperationRequirementProfileV1', vocabulary, value.schemaSetDigest);
+  if (profile.operationId !== value.operationId || profile.operationSchemaDigest !== value.operationSchemaDigest) fail('KSTACK_HOST_INVARIANT_REQUEST_AUTHORITY_SHAPE_V1');
+  if (typeof options.resolveOperationClassRule !== 'function') fail('KSTACK_HOST_INVARIANT_CONTEXT_REQUIRED');
+  const rule = options.resolveOperationClassRule(profile.operationClassId, value.activeSetDigest);
+  if (!rule || typeof rule !== 'object' || Array.isArray(rule)
+      || Object.keys(rule).sort().join(',') !== 'activeSetDigest,approvalRequired,operationClassId'
+      || rule.operationClassId !== profile.operationClassId || rule.activeSetDigest !== value.activeSetDigest
+      || typeof rule.approvalRequired !== 'boolean'
+      || rule.approvalRequired !== (value.authorityEnvelopeDigest !== null)) fail('KSTACK_HOST_INVARIANT_REQUEST_AUTHORITY_SHAPE_V1');
+}
+
+function validateEligibilityContext(value, options, vocabulary) {
+  const profile = resolveBoundArtifact(options, value.requirementProfileDigest, 'OperationRequirementProfileV1', vocabulary, value.schemaSetDigest);
+  if (profile.operationId !== value.operationId) fail('KSTACK_HOST_INVARIANT_ELIGIBILITY_PARTITION_V1');
+  const required = profile.requiredCapabilities.map((entry) => entry.capabilityId).sort();
+  const partition = [...value.provenCapabilityIds, ...value.missingCapabilityIds].sort();
+  if (!sameValues(required, partition)) fail('KSTACK_HOST_INVARIANT_ELIGIBILITY_PARTITION_V1');
+  if (value.status === 'DEGRADED_REGISTERED'
+      && !profile.alternateProfiles.some((entry) => entry.profileId === value.alternateProfileId)) fail('KSTACK_HOST_INVARIANT_ELIGIBILITY_PARTITION_V1');
+}
+
+function validateReceiptContext(value, options, vocabulary) {
+  const result = resolveBoundArtifact(options, value.resultDigest, 'OperationResultV1', vocabulary, value.schemaSetDigest);
+  const request = resolveBoundArtifact(options, result.requestDigest, 'OperationRequestV1', vocabulary, value.schemaSetDigest);
+  const profile = resolveBoundArtifact(options, request.requirementProfileDigest, 'OperationRequirementProfileV1', vocabulary, value.schemaSetDigest);
+  if (value.requestDigest !== result.requestDigest || value.requestDigest !== hostAddress(HOST_ARTIFACT_IDENTITIES.OperationRequestV1.domain, request)
+      || value.operationId !== result.operationId || value.operationId !== request.operationId || value.operationId !== profile.operationId
+      || value.activeSetDigest !== result.activeSetDigest || value.activeSetDigest !== request.activeSetDigest
+      || value.operationClassId !== profile.operationClassId) fail('KSTACK_HOST_INVARIANT_RECEIPT_ACYCLIC_V1');
+}
+
+function validateSelectionContext(value, options, vocabulary) {
+  const offer = resolveBoundArtifact(options, value.offerDigest, 'SchemaOfferV1', vocabulary, value.schemaSetDigest);
+  const compatibility = resolveBoundArtifact(options, value.compatibilityEntryDigest, 'CompatibilityEntryV1', vocabulary, value.schemaSetDigest);
+  if (!offer.schemaSetDigests.includes(value.selectedSchemaSetDigest) || !offer.resolverSetDigests.includes(value.selectedResolverSetDigest)
+      || value.selectedOperationProfileDigests.some((entry) => !offer.operationProfileDigests.includes(entry))
+      || value.selectedAt < offer.offeredAt || value.selectedAt > offer.expiresAt || value.expiresAt > offer.expiresAt
+      || compatibility.compatibleHostContractSchemaSetDigest !== value.selectedSchemaSetDigest
+      || compatibility.compatibleResolverSetDigest !== value.selectedResolverSetDigest
+      || !sameValues(compatibility.allowedOperationProfileDigests, value.selectedOperationProfileDigests)) fail('KSTACK_HOST_INVARIANT_SELECTION_EXACT_V1');
+  const schemaSet = resolveBoundBootstrap(options, value.selectedSchemaSetDigest, 'HostContractSchemaSetV1');
+  const resolverSet = resolveBoundBootstrap(options, value.selectedResolverSetDigest, 'HistoricalResolverSetV1');
+  exactResolver(schemaSet, resolverSet);
+}
+
+export function validateHostArtifactContext(name, value, options = {}) {
+  const vocabulary = options.vocabulary;
+  const structural = validateHostArtifact(name, value, { vocabulary });
+  if (name === 'OperationRequestV1') validateRequestAuthorityContext(value, options, vocabulary);
+  else if (name === 'HostConformanceEvidenceV1') {
+    if (typeof options.validateEvidenceWrapper !== 'function' || options.validateEvidenceWrapper(value) !== true) {
+      fail('KSTACK_HOST_INVARIANT_EVIDENCE_WRAPPER_V1');
+    }
+  }
+  else if (name === 'OperationEligibilityV1') validateEligibilityContext(value, options, vocabulary);
+  else if (name === 'OperationReceiptV1') validateReceiptContext(value, options, vocabulary);
+  else if (name === 'SchemaSelectionV1') validateSelectionContext(value, options, vocabulary);
+  else fail('KSTACK_HOST_INVARIANT_CONTEXT_NOT_APPLICABLE');
+  return structural;
+}
+
+export function artifactHead(name, schemaSetDigest) {
+  const identity = HOST_ARTIFACT_IDENTITIES[name];
+  if (!identity) fail('KSTACK_HOST_SCHEMA_UNKNOWN');
+  return Object.freeze({ schemaId: identity.schemaId, schemaVersion: 1, schemaSetDigest: assertDigest(schemaSetDigest) });
+}
+
+export const REQUIRED_INVARIANT_IDS = Object.freeze([
+  'result-shape-v1', 'evidence-time-v1', 'resolver-pair-v1', 'receipt-acyclic-v1', 'selection-exact-v1',
+  'activation-shape-v1', 'observation-shape-v1', 'request-time-order-v1', 'eligibility-partition-v1', 'request-authority-shape-v1',
+  'host-conformance-evidence-wrapper-v1'
+]);
+
+export const HOST_INVARIANT_PROGRAMS = Object.freeze({
+  'request-time-order-v1': Object.freeze({ version: 1, operation: 'request-time-order' }),
+  'request-authority-shape-v1': Object.freeze({ version: 1, operation: 'request-authority-shape' }),
+  'result-shape-v1': Object.freeze({ version: 1, operation: 'result-shape' }),
+  'observation-shape-v1': Object.freeze({ version: 1, operation: 'observation-shape' }),
+  'evidence-time-v1': Object.freeze({ version: 1, operation: 'evidence-time' }),
+  'host-conformance-evidence-wrapper-v1': Object.freeze({ version: 1, operation: 'host-conformance-evidence-wrapper' }),
+  'eligibility-partition-v1': Object.freeze({ version: 1, operation: 'eligibility-partition' }),
+  'receipt-acyclic-v1': Object.freeze({ version: 1, operation: 'receipt-acyclic' }),
+  'activation-shape-v1': Object.freeze({ version: 1, operation: 'activation-shape' }),
+  'selection-exact-v1': Object.freeze({ version: 1, operation: 'selection-exact' }),
+  'resolver-pair-v1': Object.freeze({ version: 1, operation: 'resolver-pair' })
+});
+
+export const HOST_INVARIANT_IMPLEMENTATION_DIGESTS = Object.freeze(Object.fromEntries(
+  Object.entries(HOST_INVARIANT_PROGRAMS).map(([invariantId, program]) => [
+    invariantId, sha256Digest(hostCanonicalBytes({ invariantId, program }))
+  ])
+));
+
+export const HOST_INVARIANT_APPLICABLE_SCHEMAS = Object.freeze({
+  'request-time-order-v1': Object.freeze(['kstack.operation-request.v1']),
+  'request-authority-shape-v1': Object.freeze(['kstack.operation-request.v1']),
+  'result-shape-v1': Object.freeze(['kstack.operation-result.v1']),
+  'observation-shape-v1': Object.freeze(['kstack.host-observation.v1']),
+  'evidence-time-v1': Object.freeze([
+    'kstack.host-conformance-evidence-body.v1', 'kstack.host-conformance-evidence.v1', 'kstack.host-evidence-set.v1', 'kstack.host-observation.v1',
+    'kstack.operation-eligibility.v1', 'kstack.operation-lease.v1'
+  ]),
+  'host-conformance-evidence-wrapper-v1': Object.freeze(['kstack.host-conformance-evidence.v1']),
+  'eligibility-partition-v1': Object.freeze(['kstack.operation-eligibility.v1']),
+  'receipt-acyclic-v1': Object.freeze(['kstack.operation-receipt.v1', 'kstack.operation-result.v1']),
+  'activation-shape-v1': Object.freeze(['kstack.activation-record.v1']),
+  'selection-exact-v1': Object.freeze(['kstack.schema-selection.v1']),
+  'resolver-pair-v1': Object.freeze(['kstack.schema-selection.v1'])
+});
+
+export function validateHostBootstrap(name, value) {
+  const fields = HOST_BOOTSTRAP_SCHEMAS[name];
+  const identity = HOST_BOOTSTRAP_IDENTITIES[name];
+  if (!fields || !identity) fail('KSTACK_HOST_BOOTSTRAP_SCHEMA_UNKNOWN');
+  assertTreeBounds(value);
+  const context = {
+    vocabulary: {},
+    validate(typeName, member) {
+      const nested = BOOTSTRAP_NESTED_RECORDS[typeName] || NESTED_RECORDS[typeName];
+      if (!nested) fail('KSTACK_HOST_SCHEMA_UNKNOWN');
+      return validateRecord(typeName, member, nested, context, false);
+    }
+  };
+  validateRecord(name, value, fields, context, false);
+  if (name === 'KStackClosedMetaschemaV1' && (value.permittedKeywords.length !== KEYWORDS.length
+      || value.permittedKeywords.some((entry, index) => entry !== KEYWORDS[index]))) fail('KSTACK_HOST_METASCHEMA_KEYWORDS_INVALID');
+  if (name === 'InvariantRegistryV1') {
+    const ids = value.entries.map((entry) => entry.invariantId);
+    if (ids.length !== REQUIRED_INVARIANT_IDS.length || ids.some((entry, index) => entry !== REQUIRED_INVARIANT_IDS[index])) fail('KSTACK_HOST_INVARIANT_REGISTRY_INCOMPLETE');
+    if (value.entries.some((entry) => entry.implementationDigest !== HOST_INVARIANT_IMPLEMENTATION_DIGESTS[entry.invariantId])) fail('KSTACK_HOST_INVARIANT_IMPLEMENTATION_MISMATCH');
+    if (value.entries.some((entry) => !sameValues(entry.applicableSchemaIds, HOST_INVARIANT_APPLICABLE_SCHEMAS[entry.invariantId]))) fail('KSTACK_HOST_INVARIANT_APPLICABILITY_MISMATCH');
+  }
+  if (name === 'HostContractSchemaSetV1') {
+    const domains = value.schemaEntries.map((entry) => entry.artifactDomain);
+    if (new Set(domains).size !== domains.length) fail('KSTACK_HOST_ARTIFACT_DOMAIN_DUPLICATE');
+  }
+  bootstrapSchemaCompiler ??= compileClosedSchemaSet(HOST_BOOTSTRAP_SCHEMA_DOCUMENTS.map((entry) => ({
+    schemaId: entry.schemaId, schema: entry.schema
+  })));
+  bootstrapSchemaCompiler.validate(schemaName('bootstrap', name), value);
+  return Object.freeze({
+    schemaName: name,
+    schemaId: identity.schemaId,
+    canonicalBytes: hostCanonicalBytes(value),
+    objectDigest: hostAddress(identity.domain, value)
+  });
+}
+
+export function vocabularyFromRegistry(value) {
+  validateHostBootstrap('ClosedVocabularyRegistryV1', value);
+  return Object.freeze(Object.fromEntries(value.collections.map((collection) => [
+    collection.collectionId,
+    Object.freeze(collection.entries.map((entry) => entry.id))
+  ])));
+}
+
+export function constructHostContractClosure(input) {
+  exactKeys(input, ['metaschema', 'canonicalizationProfile', 'vocabularyRegistry', 'invariantRegistry', 'resolverSet', 'vectorSet']);
+  const bootstrap = [
+    ['KStackClosedMetaschemaV1', input.metaschema],
+    ['CanonicalizationProfileV1', input.canonicalizationProfile],
+    ['ClosedVocabularyRegistryV1', input.vocabularyRegistry],
+    ['InvariantRegistryV1', input.invariantRegistry],
+    ['HistoricalResolverSetV1', input.resolverSet],
+    ['CrossRuntimeVectorSetV1', input.vectorSet]
+  ];
+  const validated = Object.fromEntries(bootstrap.map(([name, value]) => [name, validateHostBootstrap(name, value)]));
+  const vocabulary = vocabularyFromRegistry(input.vocabularyRegistry);
+  const artifacts = buildHostArtifactSchemaSet(vocabulary);
+  const schemaEntries = artifacts.documents.map((document) => {
+    const name = Object.keys(HOST_ARTIFACT_IDENTITIES).find((candidate) => HOST_ARTIFACT_IDENTITIES[candidate].schemaId === document.schemaId);
+    return {
+      schemaId: document.schemaId, schemaVersion: 1, schemaDigest: document.schemaDigest,
+      artifactDomain: HOST_ARTIFACT_IDENTITIES[name].domain
+    };
+  }).sort((left, right) => Buffer.compare(
+    tupleKey(left, ['schemaId', 'schemaVersion'], ['ASCII', 'ASCII_CANONICAL_UINT']),
+    tupleKey(right, ['schemaId', 'schemaVersion'], ['ASCII', 'ASCII_CANONICAL_UINT'])
+  ));
+  const schemaSet = {
+    schemaId: 'kstack.host-contract-schema-set.v1', schemaVersion: 1,
+    metaschemaDigest: validated.KStackClosedMetaschemaV1.objectDigest,
+    schemaLanguageVersion: 'kstack-closed-schema-v1',
+    canonicalizationProfileDigest: validated.CanonicalizationProfileV1.objectDigest,
+    schemaEntries,
+    closedVocabularyRegistryDigest: validated.ClosedVocabularyRegistryV1.objectDigest,
+    invariantRegistryDigest: validated.InvariantRegistryV1.objectDigest,
+    historicalResolverSetDigest: validated.HistoricalResolverSetV1.objectDigest,
+    crossRuntimeVectorSetDigest: validated.CrossRuntimeVectorSetV1.objectDigest
+  };
+  const schemaSetValidation = validateHostBootstrap('HostContractSchemaSetV1', schemaSet);
+  exactResolver(schemaSet, input.resolverSet);
+  const store = new Map();
+  const put = (digest, source) => {
+    const bytesValue = Buffer.from(source);
+    const prior = store.get(digest);
+    if (prior && !prior.equals(bytesValue)) fail('KSTACK_HOST_CLOSURE_DIGEST_COLLISION');
+    store.set(digest, bytesValue);
+  };
+  for (const document of artifacts.documents) put(document.schemaDigest, Buffer.from(document.canonicalJson, 'utf8'));
+  for (const [name] of bootstrap) {
+    put(validated[name].objectDigest, validated[name].canonicalBytes);
+  }
+  put(schemaSetValidation.objectDigest, schemaSetValidation.canonicalBytes);
+  return Object.freeze({
+    schemaSet: Object.freeze(schemaSet), schemaSetDigest: schemaSetValidation.objectDigest,
+    schemaDigests: artifacts.schemaDigests,
+    getObject(digest) { const value = store.get(digest); return value ? Buffer.from(value) : null; },
+    objectCount: store.size
+  });
+}
+
+const CLOSED_KEYWORDS = new Set(KEYWORDS);
+const CLOSED_TYPES = new Set(['null', 'boolean', 'integer', 'string', 'array', 'object']);
+
+function compileClosedPattern(pattern) {
+  if (typeof pattern !== 'string' || Buffer.byteLength(pattern, 'ascii') > HOST_CONTRACT_LIMITS.maxPatternBytes
+      || !/^[\x20-\x7e]+$/u.test(pattern) || pattern[0] !== '^' || pattern.at(-1) !== '$') fail('KSTACK_HOST_PATTERN_INVALID');
+  const body = pattern.slice(1, -1);
+  const token = /(?:\[[^\]\\]+\]|[A-Za-z0-9_:.-])(?:\{([0-9]+)(?:,([0-9]+))?\}|[+*?])?/uy;
+  let offset = 0;
+  let states = 1;
+  while (offset < body.length) {
+    token.lastIndex = offset;
+    const match = token.exec(body);
+    if (!match || match.index !== offset) fail('KSTACK_HOST_PATTERN_INVALID');
+    const suffix = match[0].at(-1);
+    let contribution = 1;
+    if (suffix === '+' || suffix === '*') contribution = 2;
+    else if (suffix === '?') contribution = 1;
+    else if (match[1] !== undefined) contribution = Number(match[2] ?? match[1]);
+    if (!Number.isSafeInteger(contribution) || contribution < 0) fail('KSTACK_HOST_PATTERN_INVALID');
+    states += contribution;
+    if (states > HOST_CONTRACT_LIMITS.maxPatternDfaStates) fail('KSTACK_HOST_PATTERN_DFA_LIMIT');
+    offset = token.lastIndex;
+  }
+  try { return new RegExp(pattern, 'u'); } catch { fail('KSTACK_HOST_PATTERN_INVALID'); }
+}
+
+function validateClosedDeclaration(schema, state, depth = 0) {
+  if (depth > HOST_CONTRACT_LIMITS.maxDepth || !schema || typeof schema !== 'object' || Array.isArray(schema)) fail('KSTACK_HOST_SCHEMA_DECLARATION_INVALID');
+  const keys = Object.keys(schema);
+  if (keys.length === 0 || keys.length > HOST_CONTRACT_LIMITS.maxObjectProperties) fail('KSTACK_HOST_SCHEMA_DECLARATION_INVALID');
+  for (const key of keys) if (!CLOSED_KEYWORDS.has(key)) fail('KSTACK_HOST_SCHEMA_KEYWORD_FORBIDDEN');
+  if (Object.hasOwn(schema, '$ref')) {
+    if (keys.length !== 1) fail('KSTACK_HOST_SCHEMA_REF_SIBLING');
+    assertAsciiId(schema.$ref);
+    state.refs.push(schema.$ref);
+    if (state.refs.length > HOST_CONTRACT_LIMITS.maxRefEdges) fail('KSTACK_HOST_SCHEMA_REF_LIMIT');
+    return;
+  }
+  if (schema.type !== undefined && !CLOSED_TYPES.has(schema.type)) fail('KSTACK_HOST_SCHEMA_TYPE_INVALID');
+  if (schema.properties !== undefined) {
+    if (schema.type !== 'object' || !schema.properties || typeof schema.properties !== 'object' || Array.isArray(schema.properties)) fail('KSTACK_HOST_SCHEMA_PROPERTIES_INVALID');
+    const propertyKeys = Object.keys(schema.properties);
+    if (propertyKeys.length > HOST_CONTRACT_LIMITS.maxObjectProperties) fail('KSTACK_HOST_SCHEMA_PROPERTIES_INVALID');
+    for (const key of propertyKeys) { assertNfcString(key); validateClosedDeclaration(schema.properties[key], state, depth + 1); }
+    if (!Array.isArray(schema.required) || new Set(schema.required).size !== schema.required.length
+        || schema.required.some((key) => !Object.hasOwn(schema.properties, key))) fail('KSTACK_HOST_SCHEMA_REQUIRED_INVALID');
+    if (schema.additionalProperties !== false) fail('KSTACK_HOST_SCHEMA_NOT_CLOSED');
+  } else if (schema.type === 'object' || schema.required !== undefined || schema.additionalProperties !== undefined) fail('KSTACK_HOST_SCHEMA_PROPERTIES_INVALID');
+  if (schema.items !== undefined) {
+    if (schema.type !== 'array') fail('KSTACK_HOST_SCHEMA_ITEMS_INVALID');
+    validateClosedDeclaration(schema.items, state, depth + 1);
+  } else if (schema.type === 'array') fail('KSTACK_HOST_SCHEMA_ITEMS_INVALID');
+  for (const pair of [['minItems', 'maxItems'], ['minLength', 'maxLength'], ['minimum', 'maximum']]) {
+    for (const key of pair) if (schema[key] !== undefined) assertSafeUInt(schema[key]);
+    if (schema[pair[0]] !== undefined && schema[pair[1]] !== undefined && schema[pair[0]] > schema[pair[1]]) fail('KSTACK_HOST_SCHEMA_BOUNDS_INVALID');
+  }
+  if ((schema.minItems !== undefined || schema.maxItems !== undefined) && schema.type !== 'array') fail('KSTACK_HOST_SCHEMA_BOUNDS_INVALID');
+  if ((schema.minLength !== undefined || schema.maxLength !== undefined || schema.pattern !== undefined) && schema.type !== 'string') fail('KSTACK_HOST_SCHEMA_BOUNDS_INVALID');
+  if ((schema.minimum !== undefined || schema.maximum !== undefined) && schema.type !== 'integer') fail('KSTACK_HOST_SCHEMA_BOUNDS_INVALID');
+  if (schema.pattern !== undefined) state.patterns.set(schema, compileClosedPattern(schema.pattern));
+  if (schema.enum !== undefined) {
+    if (!Array.isArray(schema.enum) || schema.enum.length === 0 || schema.enum.length > 1024) fail('KSTACK_HOST_SCHEMA_ENUM_INVALID');
+    if (new Set(schema.enum.map((entry) => hostCanonicalBytes(entry).toString('hex'))).size !== schema.enum.length) fail('KSTACK_HOST_SCHEMA_ENUM_INVALID');
+  }
+  if (schema.oneOf !== undefined) {
+    if (!Array.isArray(schema.oneOf) || schema.oneOf.length < 2 || schema.oneOf.length > 32) fail('KSTACK_HOST_SCHEMA_ONE_OF_INVALID');
+    for (const branch of schema.oneOf) validateClosedDeclaration(branch, state, depth + 1);
+  }
+  if (schema['x-kstack-collection'] !== undefined) {
+    if (schema.type !== 'array') fail('KSTACK_HOST_COLLECTION_INVALID');
+    validateCollectionDeclaration(schema['x-kstack-collection']);
+  }
+}
+
+function valueMatches(schema, value, compiled, activeRefs) {
+  if (schema.$ref !== undefined) {
+    if (activeRefs.has(schema.$ref)) fail('KSTACK_HOST_SCHEMA_REF_CYCLE');
+    activeRefs.add(schema.$ref);
+    const result = valueMatches(compiled.schemas.get(schema.$ref), value, compiled, activeRefs);
+    activeRefs.delete(schema.$ref);
+    return result;
+  }
+  if (schema.type === 'null' && value !== null) return false;
+  if (schema.type === 'boolean' && typeof value !== 'boolean') return false;
+  if (schema.type === 'integer' && !Number.isSafeInteger(value)) return false;
+  if (schema.type === 'string' && typeof value !== 'string') return false;
+  if (schema.type === 'array' && !Array.isArray(value)) return false;
+  if (schema.type === 'object' && (!value || typeof value !== 'object' || Array.isArray(value))) return false;
+  if (Object.hasOwn(schema, 'const') && !hostCanonicalBytes(value).equals(hostCanonicalBytes(schema.const))) return false;
+  if (schema.enum && !schema.enum.some((entry) => hostCanonicalBytes(entry).equals(hostCanonicalBytes(value)))) return false;
+  if (typeof value === 'string') {
+    const length = [...value].length;
+    if ((schema.minLength !== undefined && length < schema.minLength) || (schema.maxLength !== undefined && length > schema.maxLength)) return false;
+    if (schema.pattern !== undefined && !compiled.patterns.get(schema).test(value)) return false;
+  }
+  if (typeof value === 'number' && ((schema.minimum !== undefined && value < schema.minimum) || (schema.maximum !== undefined && value > schema.maximum))) return false;
+  if (Array.isArray(value)) {
+    if ((schema.minItems !== undefined && value.length < schema.minItems) || (schema.maxItems !== undefined && value.length > schema.maxItems)) return false;
+    if (!value.every((entry) => valueMatches(schema.items, entry, compiled, activeRefs))) return false;
+    if (schema['x-kstack-collection']) assertCollectionOrder(value, schema['x-kstack-collection']);
+  }
+  if (schema.type === 'object') {
+    if (Object.keys(value).some((key) => !Object.hasOwn(schema.properties, key))) return false;
+    if (schema.required.some((key) => !Object.hasOwn(value, key))) return false;
+    for (const [key, member] of Object.entries(value)) if (!valueMatches(schema.properties[key], member, compiled, activeRefs)) return false;
+  }
+  if (schema.oneOf) {
+    let matches = 0;
+    for (const branch of schema.oneOf) if (valueMatches(branch, value, compiled, new Set(activeRefs))) matches += 1;
+    if (matches !== 1) return false;
+  }
+  return true;
+}
+
+function assertAcyclicRefs(schemas) {
+  const visited = new Set();
+  const active = new Set();
+  function walk(id) {
+    if (active.has(id)) fail('KSTACK_HOST_SCHEMA_REF_CYCLE');
+    if (visited.has(id)) return;
+    active.add(id);
+    const stack = [schemas.get(id)];
+    while (stack.length) {
+      const schema = stack.pop();
+      if (schema.$ref !== undefined) {
+        if (!schemas.has(schema.$ref)) fail('KSTACK_HOST_SCHEMA_REF_UNRESOLVED');
+        walk(schema.$ref);
+      }
+      if (schema.properties) stack.push(...Object.values(schema.properties));
+      if (schema.items) stack.push(schema.items);
+      if (schema.oneOf) stack.push(...schema.oneOf);
+    }
+    active.delete(id);
+    visited.add(id);
+  }
+  for (const id of schemas.keys()) walk(id);
+}
+
+function dereferenceDeclaration(schema, schemas) {
+  let current = schema;
+  const seen = new Set();
+  while (current.$ref !== undefined) {
+    if (seen.has(current.$ref)) fail('KSTACK_HOST_SCHEMA_REF_CYCLE');
+    seen.add(current.$ref);
+    current = schemas.get(current.$ref);
+    if (!current) fail('KSTACK_HOST_SCHEMA_REF_UNRESOLVED');
+  }
+  return current;
+}
+
+function validateCollectionSchemaShapes(schemas) {
+  const visited = new Set();
+  const stringSchema = (schema) => schema.type === 'string'
+    || Array.isArray(schema.enum) && schema.enum.every((entry) => typeof entry === 'string')
+    || Array.isArray(schema.oneOf) && schema.oneOf.length > 0 && schema.oneOf.every((entry) => stringSchema(entry));
+  function walk(schema) {
+    if (visited.has(schema)) return;
+    visited.add(schema);
+    const declaration = dereferenceDeclaration(schema, schemas);
+    const collection = declaration['x-kstack-collection'];
+    if (collection) {
+      const member = dereferenceDeclaration(declaration.items, schemas);
+      if (collection.mode === 'SET_BY_VALUE_ASCII' && !stringSchema(member)) fail('KSTACK_HOST_COLLECTION_MEMBER_SCHEMA_INVALID');
+      if (collection.mode === 'SET_BY_VALUE_DIGEST' && (member.type !== 'string' || member.pattern !== '^sha256:[0-9a-f]{64}$')) fail('KSTACK_HOST_COLLECTION_MEMBER_SCHEMA_INVALID');
+      if (collection.mode === 'SET_BY_FIELDS') {
+        if (member.type !== 'object') fail('KSTACK_HOST_COLLECTION_MEMBER_SCHEMA_INVALID');
+        collection.keyFields.forEach((field, index) => {
+          if (!member.required.includes(field)) fail('KSTACK_HOST_COLLECTION_KEY_SCHEMA_INVALID');
+          const keySchema = dereferenceDeclaration(member.properties[field], schemas);
+          if (keySchema.type === 'null' || ['array', 'object'].includes(keySchema.type)
+              || keySchema.oneOf?.some((entry) => entry.type === 'null')) fail('KSTACK_HOST_COLLECTION_KEY_SCHEMA_INVALID');
+          const kind = collection.keyKinds[index];
+          if (kind === 'ASCII' && !stringSchema(keySchema)) fail('KSTACK_HOST_COLLECTION_KEY_SCHEMA_INVALID');
+          if (kind === 'DIGEST' && (keySchema.type !== 'string' || keySchema.pattern !== '^sha256:[0-9a-f]{64}$')) fail('KSTACK_HOST_COLLECTION_KEY_SCHEMA_INVALID');
+          if (kind === 'ASCII_CANONICAL_UINT' && (keySchema.type !== 'integer' || (keySchema.minimum ?? -1) < 0)) fail('KSTACK_HOST_COLLECTION_KEY_SCHEMA_INVALID');
+        });
+      }
+    }
+    if (declaration.properties) for (const child of Object.values(declaration.properties)) walk(child);
+    if (declaration.items) walk(declaration.items);
+    if (declaration.oneOf) for (const child of declaration.oneOf) walk(child);
+  }
+  for (const schema of schemas.values()) walk(schema);
+}
+
+export function compileClosedSchemaSet(entries) {
+  if (!Array.isArray(entries) || entries.length < 1 || entries.length > HOST_CONTRACT_LIMITS.maxSchemas) fail('KSTACK_HOST_SCHEMA_SET_INVALID');
+  const schemas = new Map();
+  const state = { refs: [], patterns: new WeakMap() };
+  for (const entry of entries) {
+    exactKeys(entry, ['schemaId', 'schema']);
+    assertAsciiId(entry.schemaId);
+    if (schemas.has(entry.schemaId)) fail('KSTACK_HOST_SCHEMA_DUPLICATE');
+    assertTreeBounds(entry.schema);
+    validateClosedDeclaration(entry.schema, state);
+    schemas.set(entry.schemaId, entry.schema);
+  }
+  assertAcyclicRefs(schemas);
+  validateCollectionSchemaShapes(schemas);
+  const compiled = { schemas, patterns: state.patterns };
+  return Object.freeze({
+    schemaIds: Object.freeze([...schemas.keys()].sort()),
+    validate(schemaId, value) {
+      assertTreeBounds(value);
+      if (!schemas.has(schemaId)) fail('KSTACK_HOST_SCHEMA_UNKNOWN');
+      if (!valueMatches(schemas.get(schemaId), value, compiled, new Set([schemaId]))) fail('KSTACK_HOST_SCHEMA_VALUE_INVALID');
+      return value;
+    }
+  });
+}
+
+function sha256Digest(source) {
+  return `sha256:${crypto.createHash('sha256').update(source).digest('hex')}`;
+}
+
+function requireStoredBytes(store, digest) {
+  assertDigest(digest);
+  if (typeof store !== 'function') fail('KSTACK_HOST_OBJECT_STORE_REQUIRED');
+  const value = store(digest);
+  if (!Buffer.isBuffer(value) && !(value instanceof Uint8Array)) fail('KSTACK_HOST_CLOSURE_UNAVAILABLE');
+  return bytes(value);
+}
+
+function loadBootstrap(store, digest, name) {
+  const source = requireStoredBytes(store, digest);
+  const value = parseHostCanonicalJson(source);
+  const validated = validateHostBootstrap(name, value);
+  if (validated.objectDigest !== digest) fail('KSTACK_HOST_CLOSURE_DIGEST_MISMATCH');
+  return value;
+}
+
+function exactResolver(schemaSet, resolverSet) {
+  const candidates = resolverSet.entries.filter((entry) => entry.schemaLanguageVersion === schemaSet.schemaLanguageVersion
+    && entry.supportedMetaschemaDigests.includes(schemaSet.metaschemaDigest)
+    && entry.supportedCanonicalizationProfileDigests.includes(schemaSet.canonicalizationProfileDigest)
+    && entry.invariantRegistryDigests.includes(schemaSet.invariantRegistryDigest)
+    && entry.vectorSetDigest === schemaSet.crossRuntimeVectorSetDigest);
+  if (candidates.length !== 1) fail('KSTACK_HOST_RESOLVER_PAIR_INVALID');
+  return candidates[0];
+}
+
+function requireImplementationClosure(resolver, invariantRegistry, vectorSet, options) {
+  const installedResolvers = options.installedResolverDigests instanceof Set ? options.installedResolverDigests : new Set(options.installedResolverDigests || []);
+  const installedInvariants = options.installedInvariantDigests instanceof Set ? options.installedInvariantDigests : new Set(options.installedInvariantDigests || []);
+  const passingVectors = options.passingVectorIds instanceof Set ? options.passingVectorIds : new Set(options.passingVectorIds || []);
+  if (!installedResolvers.has(resolver.implementationDigest)) fail('KSTACK_HOST_RESOLVER_UNAVAILABLE');
+  const vectorIds = new Set(vectorSet.entries.map((entry) => entry.vectorId));
+  for (const invariant of invariantRegistry.entries) {
+    if (!installedInvariants.has(invariant.implementationDigest)) fail('KSTACK_HOST_INVARIANT_UNAVAILABLE');
+    for (const vectorId of invariant.vectorIds) {
+      if (!vectorIds.has(vectorId) || !passingVectors.has(vectorId)) fail('KSTACK_HOST_INVARIANT_VECTOR_UNAVAILABLE');
+    }
+  }
+}
+
+function requireInvariantApplicabilityClosure(schemaSet, invariantRegistry) {
+  const schemaIds = new Set(schemaSet.schemaEntries.map((entry) => entry.schemaId));
+  for (const invariant of invariantRegistry.entries) {
+    for (const schemaId of invariant.applicableSchemaIds) {
+      if (!schemaIds.has(schemaId)) fail('KSTACK_HOST_INVARIANT_APPLICABILITY_CLOSURE_INVALID');
+    }
+  }
+}
+
+function storedValueResolver(store) {
+  return (digest) => parseHostCanonicalJson(requireStoredBytes(store, digest));
+}
+
+function executeHistoricalInvariants(name, artifact, vocabulary, invariantRegistry, options) {
+  const applicable = invariantRegistry.entries.filter((entry) => entry.applicableSchemaIds.includes(artifact.schemaId));
+  if (applicable.length === 0) return validateHostArtifact(name, artifact, { vocabulary });
+  const contextualNames = new Set(['OperationRequestV1', 'OperationEligibilityV1', 'OperationReceiptV1', 'SchemaSelectionV1']);
+  if (!contextualNames.has(name)) return validateHostArtifact(name, artifact, { vocabulary });
+  const fallback = storedValueResolver(options.getObject);
+  return validateHostArtifactContext(name, artifact, {
+    vocabulary,
+    resolveArtifact: options.resolveArtifact || fallback,
+    resolveBootstrap: options.resolveBootstrap || fallback,
+    resolveOperationClassRule: options.resolveOperationClassRule
+  });
+}
+
+function resolutionResult(outcome, reasonCode, details = {}) {
+  return Object.freeze({ outcome, reasonCode, ...details });
+}
+
+const CLOSURE_FAILURES = new Set([
+  'KSTACK_HOST_CLOSURE_UNAVAILABLE', 'KSTACK_HOST_CLOSURE_DIGEST_MISMATCH', 'KSTACK_HOST_RESOLVER_UNAVAILABLE',
+  'KSTACK_HOST_INVARIANT_UNAVAILABLE', 'KSTACK_HOST_INVARIANT_VECTOR_UNAVAILABLE'
+]);
+
+export function resolveHistoricalArtifact(input, options = {}) {
+  let artifact;
+  try {
+    artifact = parseHostCanonicalJson(input);
+    if (!artifact || typeof artifact !== 'object' || Array.isArray(artifact)) fail('KSTACK_HOST_ARTIFACT_HEAD_INVALID');
+    for (const key of ['schemaId', 'schemaVersion', 'schemaSetDigest']) if (!Object.hasOwn(artifact, key)) fail('KSTACK_HOST_ARTIFACT_HEAD_INVALID');
+    assertAsciiId(artifact.schemaId);
+    assertSafeUInt(artifact.schemaVersion, true);
+    assertDigest(artifact.schemaSetDigest);
+    assertDigest(options.expectedSchemaDigest);
+  } catch (error) {
+    return resolutionResult('INVALID', error?.code || 'KSTACK_HOST_ARTIFACT_INVALID');
+  }
+
+  try {
+    const schemaSet = loadBootstrap(options.getObject, artifact.schemaSetDigest, 'HostContractSchemaSetV1');
+    const matches = schemaSet.schemaEntries.filter((entry) => entry.schemaId === artifact.schemaId && entry.schemaVersion === artifact.schemaVersion);
+    if (matches.length !== 1 || matches[0].schemaDigest !== options.expectedSchemaDigest) fail('KSTACK_HOST_SCHEMA_BINDING_INVALID');
+    const schemaEntry = matches[0];
+
+    loadBootstrap(options.getObject, schemaSet.metaschemaDigest, 'KStackClosedMetaschemaV1');
+    loadBootstrap(options.getObject, schemaSet.canonicalizationProfileDigest, 'CanonicalizationProfileV1');
+    const vocabularyRegistry = loadBootstrap(options.getObject, schemaSet.closedVocabularyRegistryDigest, 'ClosedVocabularyRegistryV1');
+    const invariantRegistry = loadBootstrap(options.getObject, schemaSet.invariantRegistryDigest, 'InvariantRegistryV1');
+    const resolverSet = loadBootstrap(options.getObject, schemaSet.historicalResolverSetDigest, 'HistoricalResolverSetV1');
+    const vectorSet = loadBootstrap(options.getObject, schemaSet.crossRuntimeVectorSetDigest, 'CrossRuntimeVectorSetV1');
+    const resolver = exactResolver(schemaSet, resolverSet);
+    requireImplementationClosure(resolver, invariantRegistry, vectorSet, options);
+    requireInvariantApplicabilityClosure(schemaSet, invariantRegistry);
+
+    const declarations = [];
+    for (const entry of schemaSet.schemaEntries) {
+      const source = requireStoredBytes(options.getObject, entry.schemaDigest);
+      if (sha256Digest(source) !== entry.schemaDigest) fail('KSTACK_HOST_CLOSURE_DIGEST_MISMATCH');
+      declarations.push({ schemaId: entry.schemaId, schema: parseHostCanonicalJson(source) });
+    }
+    const compiled = compileClosedSchemaSet(declarations);
+    compiled.validate(artifact.schemaId, artifact);
+
+    const knownName = Object.keys(HOST_ARTIFACT_IDENTITIES).find((name) => HOST_ARTIFACT_IDENTITIES[name].schemaId === artifact.schemaId);
+    if (knownName) executeHistoricalInvariants(knownName, artifact, vocabularyFromRegistry(vocabularyRegistry), invariantRegistry, options);
+    return resolutionResult('VALID', 'KSTACK_HOST_ARTIFACT_VALID', {
+      artifactDigest: hostAddress(schemaEntry.artifactDomain, artifact),
+      schemaDigest: schemaEntry.schemaDigest,
+      schemaSetDigest: artifact.schemaSetDigest,
+      resolverId: resolver.resolverId,
+      resolverImplementationDigest: resolver.implementationDigest
+    });
+  } catch (error) {
+    const reasonCode = error?.code || 'KSTACK_HOST_ARTIFACT_INVALID';
+    const unavailable = CLOSURE_FAILURES.has(reasonCode) || reasonCode.endsWith('_UNAVAILABLE');
+    return resolutionResult(unavailable ? 'UNAVAILABLE' : 'INVALID', reasonCode);
+  }
+}

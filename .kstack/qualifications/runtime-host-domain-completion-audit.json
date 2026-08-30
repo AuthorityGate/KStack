@@ -1,0 +1,713 @@
+{
+  "schema": "kstack-runtime-host-domain-completion-audit-v1",
+  "generatedAt": "2026-08-30T20:17:04.175Z",
+  "roadmapDigest": "a54eb5d7bf54d405da9ae0ffe101e4b2e728d2e2befbd6843874805175038b44",
+  "bindings": {
+    "hostImplementationEvidenceDigest": "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+    "domainImplementationEvidenceDigest": "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+    "secondHostEvidenceDigest": "767d3454f825cfa41fd7142697115655687760592f3da9a026e36c4127b158e4",
+    "openCodeEvidenceDigest": "sha256:8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f",
+    "gooseEvidenceDigest": "sha256:4b14bddf46e0cf52a1e93d057b79542affbc4fdec2653698a9507ceae3f0bb7f",
+    "closureLedgerDigest": null
+  },
+  "hostItems": [
+    {
+      "itemId": "hp-tc01-schemas",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "0b501e5082c5c3ccaee9bc18a75d82bf0e3b80c9372cd8f7e6c8ca0d4f1747f8",
+        "adfa2ec92815da5d6a4971ab93818eb4e7afa4a1f6a5ce0f7a2d46ab23209020"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc02-request-context",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "47ea632ea4c19d5b1d2b38e25ab54fbacec3583332db67a25ee9266eee8ad35b",
+        "e59c3c9380b59d67edf57ccb64a50a07642aa30484c83246c07daccbfdd77116"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc03-replay-time",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "3887f13fbafb2fb6dd5fd046ab25fad1dc35faf25984e8667c33351b251cf024",
+        "236b9483ace985ff6d6db774ebb86c4283052932e49cca34c2f0a2dbb7f65a42"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc04-evidence-selection",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "bdab12f24a2491dce253083a8165164588a5fd41f08ce1a13bbf7bd03eaff31e",
+        "47a9994fa05557983fd6fa8d79183e0142909590ea07cd54435187459ab11875"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc05-eligibility-quarantine",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "f4880554cbe774f05e0324c26254fe9868073d9ffab9a4b3a6f6b5069c116f3b",
+        "b8a326bd980b9bc46e3ed505ccaf921955d08b5a8f0fc7fb88f98c787f7d7d4b"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc06-harness-bypass",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "edf753335f97b7eac248a172e078abd23d76dd31b219184bea5250296897b83d",
+        "380dc691f03abba54a1923742f566bdcf5b1cee13cefaf08d1d04b928a9d109f"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc07-structural-broker",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "54cc932d89e921e6b8185f1f08020e4bf1de77f6eb41d4550e4e9cd2c8489fed",
+        "23bd5d609c6dc10fbaab54d4e27d8e192cb29d086cab9b038c8ab595904ff76d"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc08-race-mutation",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "5747f5fad6c3bafc6c431ec5a9a557aeb2e224e51d5b855ccdec6df0eeb4ce66",
+        "2c939da55cf72cbcc9b4085db57d43cd8e5b9ffc27b9592245b2806180572156"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc09-mcp-boundary",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "c5d475d67eea25d054f8cbef242e665198072d5b6921dd68bbfa4e65fdbe3b4b",
+        "c0de6ad6a1d11d108d2287d14081530d65caabb69dabd07a3e67261dc901ce4b"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc10-receipt-trust",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "2d6c2b4aaac766d383f9e92327f141ddfeec99c67b376d8e1cb1bd473f32ed7f",
+        "76ae37de6b5835d2eca497f217a069fcbb19bd81b7f46c317fdfdcd4eca82ade"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc11-leases-activation",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "dc5ed531cb88c4d46d500bb0ce3bd789f92f08f52b319c5eee1c505c0249398b",
+        "60d94e869eab7fd709057af515bb445522abfcc4b0d795621ae3e2256fef7218"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hp-tc12-migrations-rollout",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "47013f4a66b3300c49a8341d80af32f291833607bb1ba0bdf535fff3d7d15dd5",
+        "86c7f24f3a57cdbc64af8f9ebb3819f2966cea6cfb5fb2c9f4b3dcdee7767d4b"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hb-tc01-canonical-package",
+      "lane": "HOST_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "8b03e9d11f4a0fa5204354cc11b3693e1bfc78c1361c32a84a3512043d4f5a30",
+        "81bfef2d06901a17d343b5dc4b6cca566093ec79e6d80d318e30b8630106945a"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hb-tc02-installer",
+      "lane": "HOST_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "7c5bb05147dfcd0e1f53384fa5f1ebbf30a45f486ce1282bcfe5681f2e9647d2",
+        "caeaec8dd2a4f1773562c1f167a3ad6170af46ceee6230e416cebf5ce56af11c"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hb-tc03-opencode-package",
+      "lane": "HOST_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "4b370d45b6e9f62769b38cee50bcd51001ca6afb02e29a7652eca5936c18a24f",
+        "47bcfa6823d795427c4ad61db80bba5be303a9c88a735c99872ae3c1306fb7ab"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hb-tc04-readonly-mcp",
+      "lane": "HOST_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "c5d475d67eea25d054f8cbef242e665198072d5b6921dd68bbfa4e65fdbe3b4b",
+        "7e1660385e660cf20f604f2fdcf6e001a42c6cb33f60d5cc58690e51686d5260"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hb-tc05-opencode-conformance",
+      "lane": "HOST_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1",
+        "5aeefbc527942eb180fd2de98e707f4ca04e7c24f346c3ef4d406b93def75c68",
+        "0f16a751a63e195c9d3e2681627b7f93f6d014dfc0bf56f8ddc703550452b93e"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hb-tc06-second-host-proof",
+      "lane": "HOST_BREADTH",
+      "technicalState": "DISTINCT_TWO_HOST_TECHNICAL_PROOF_READY",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "767d3454f825cfa41fd7142697115655687760592f3da9a026e36c4127b158e4",
+        "0059d0767ac77370f81079df09d03c6cd0ebfb5e01274521411594668285b5cc",
+        "49c064e777059c04e6a9ce484a1760d5b2443aeb222f7ab5b91bd0143c5d4cf3"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "abstraction-proof-promotion",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hb-tc07-hermes-host",
+      "lane": "HOST_BREADTH",
+      "technicalState": "NEGATIVE_SOURCE_QUALIFICATION_CURRENT",
+      "completionState": "UNSUPPORTED_DISPOSITION_REVIEW_PENDING",
+      "evidenceDigests": [
+        "12932e705566d4cfc00638248b8e8a3cfc4f268b917436b0bfd956a4320661c6",
+        "dcf4368287e256eaf205afb646ea4e8cbdc61b4e9b4fc761948a29562eb9bf6a",
+        "4e3f3af25ce5aa38caafd3942cfdf7290512c8ba77652504d322cbc6ccb28aab"
+      ],
+      "remainingRequirements": [
+        "independent-review-of-negative-qualification",
+        "owner-accept-or-requalify-later-release",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hb-tc08-openclaw-orchestration",
+      "lane": "HOST_BREADTH",
+      "technicalState": "NEGATIVE_SOURCE_AND_SANDBOX_QUALIFICATION_CURRENT",
+      "completionState": "UNSUPPORTED_DISPOSITION_REVIEW_PENDING",
+      "evidenceDigests": [
+        "dcf4368287e256eaf205afb646ea4e8cbdc61b4e9b4fc761948a29562eb9bf6a",
+        "65bc24364a9ac399e59a0e050eaf1395e2b36da524f3c45896147714da000e9c",
+        "660f47abaa126ab18286e4a91b14b34789413837039f783e2b0f14655adc0d50",
+        "4e3f3af25ce5aa38caafd3942cfdf7290512c8ba77652504d322cbc6ccb28aab"
+      ],
+      "remainingRequirements": [
+        "independent-review-of-negative-qualification",
+        "owner-accept-or-requalify-clean-release",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "hb-tc09-goose-host",
+      "lane": "HOST_BREADTH",
+      "technicalState": "OPERATION_SCOPED_PROTECTED_QUALIFICATION_PASS",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "sha256:4b14bddf46e0cf52a1e93d057b79542affbc4fdec2653698a9507ceae3f0bb7f",
+        "sha256:49c064e777059c04e6a9ce484a1760d5b2443aeb222f7ab5b91bd0143c5d4cf3",
+        "0f2346f3dd16056d5ab7777c899a6d21ede7230b0da4fac0cec23dced59d3600"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "host-admission-with-hb-tc06",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "linux-distro-matrix",
+      "lane": "HOST_BREADTH",
+      "technicalState": "ONE_OF_FOUR_PLATFORM_CELLS_QUALIFIED",
+      "completionState": "EXTERNAL_PLATFORM_CELLS_PENDING",
+      "evidenceDigests": [
+        "76442dd6a22133cc42aaff31a60a50178592f9405a353b22ff36f6c8122cd31c",
+        "9b105ec26d491f56dd4273fd0e6642fa021e869003e490ba39d6883a96ba6415",
+        "18418f57a924c0b79bc4e14a8ee5ff05c4d684ca4caa6326ca90e88f89614a90",
+        "77bd58ebf90176e30b62d479241014326fee10174f8a920ae1b2712766a349e5",
+        "077227463db8cfea364656bc9b3e80d585370e38053ccfac0ba736a52cfbecc5",
+        "73e87e39baccf17443d5e31344e5bcbc5f1da59c5396c0976d1331e1501a6d06",
+        "6927ed5047f50d03a2b82265696dcaa37a3b85caa7b990c1dc580570d3f404a0"
+      ],
+      "remainingRequirements": [
+        "ubuntu-native-x64",
+        "debian-native-x64",
+        "fedora-native-x64",
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "linux-lifecycle-qualification",
+      "lane": "HOST_BREADTH",
+      "technicalState": "LIFECYCLE_CONTRACT_IMPLEMENTED_ZERO_OF_FOUR_CELLS",
+      "completionState": "TWO_RELEASE_EXTERNAL_LIFECYCLES_PENDING",
+      "evidenceDigests": [
+        "9b105ec26d491f56dd4273fd0e6642fa021e869003e490ba39d6883a96ba6415",
+        "18418f57a924c0b79bc4e14a8ee5ff05c4d684ca4caa6326ca90e88f89614a90",
+        "44feca30936df67cb8c37a0f9c463ea7088d2bb8af71697eb4f4460825aa9d49",
+        "6927ed5047f50d03a2b82265696dcaa37a3b85caa7b990c1dc580570d3f404a0"
+      ],
+      "remainingRequirements": [
+        "four-clean-install-upgrade-rollback-recovery-cells",
+        "two-exact-release-identities",
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "linux-privileged-backends",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "CONTRACT_IMPLEMENTED_ZERO_OF_TWELVE_BACKEND_CELLS",
+      "completionState": "AUTHORIZED_PRIVILEGED_EXECUTION_PENDING",
+      "evidenceDigests": [
+        "9b105ec26d491f56dd4273fd0e6642fa021e869003e490ba39d6883a96ba6415",
+        "18418f57a924c0b79bc4e14a8ee5ff05c4d684ca4caa6326ca90e88f89614a90",
+        "76442dd6a22133cc42aaff31a60a50178592f9405a353b22ff36f6c8122cd31c",
+        "6927ed5047f50d03a2b82265696dcaa37a3b85caa7b990c1dc580570d3f404a0"
+      ],
+      "remainingRequirements": [
+        "cgroup-v2-on-four-cells",
+        "ebpf-on-four-cells",
+        "pidfd-on-four-cells",
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "kcrp-host-provider-trial",
+      "lane": "HOST_PORTABILITY",
+      "technicalState": "WINDOW1_PREPARED_PROVIDER_EXECUTION_AUTHORIZATION_PENDING",
+      "completionState": "PROVIDER_AB_TRIAL_PENDING",
+      "evidenceDigests": [
+        "51ad71884cafae7696ff1efa075e3e0c1b326902d01565a0f27f22096a965ccb",
+        "8d7cf95e63dc03ddcb70634b70f8dc4c1cf0276807fc26337a8ed6fad95e3c93",
+        "fe4d138282fc3382b29c1fdbcb1881ea21d2854187bb87c0f71a6ee9bdae2b8f",
+        "bec869e992305a849e15509747c3f732d4f9cbc247218f5a5575259e44abf91c"
+      ],
+      "remainingRequirements": [
+        "three-distinct-date-full-versus-reduced-provider-windows",
+        "token-latency-cost-measurements",
+        "blind-quality-noninferiority",
+        "durable-jira-closure"
+      ]
+    }
+  ],
+  "domainItems": [
+    {
+      "itemId": "domain-d0-catalog-runtime",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "9c39dc3713d572de799c18a7e63b6bfccdfe7799c0a7617db8ee2aeec0de2882",
+        "e3229baa861f60716cc4eff39dd2a29b3fb0be70d9e6bccc827e47bf3eb7d7b8"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d1-identity",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "7140d69694738a4658f0e6ec5e51b60e6ed87a0a1830e2a01bb5c77cfd4a618e",
+        "eb4a7b0bc36f878c1ee047ae5a348c27b45ca9d7a55d5303580f746f106ab2a0"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d2f1-inventory",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "99f61a468e4855be9404df6a55e7622e22cddc84ca162b7d45e22fd2cf2fa928",
+        "f8d950f188c2faffeb42ee3e8dc715a2e1af8f9972014d5c12781a66a6e0378d"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d2f2-policy",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "99f61a468e4855be9404df6a55e7622e22cddc84ca162b7d45e22fd2cf2fa928",
+        "57f2a4616745b1e6ee473de551f913fddbce6be87328100867241a418ac8b73c"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d2f3-selection",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "99f61a468e4855be9404df6a55e7622e22cddc84ca162b7d45e22fd2cf2fa928",
+        "1b4325abaeb287e104adcf3c4b50dae3ecd32b188df1c03664035f42cfe5d5fa"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d3-separation",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "1f221d49482e15a97008c09ba82cf1aa726cba713b518fcc56777802124c2c4d",
+        "61dfe77cdbdfb4ee216561bd20f0f329bda509ac3342c9d5f71975cd0b09487e"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d4d10-evidence",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "328e99d8afba314994865202c2a17e9221ca5b9c730789f1190980a006a8118b",
+        "6c88dbf091ef0d12dbb064ccc5103a4bdb8151ca8e23f74a09e5e44b237be33d"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d5f1-schemas",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "78ca8e49dab30c2e56356b62bd40b43206b2ab2652b34ef655e232188a1bf46f",
+        "32db727fa1fdcbe7ea17e608bd8e00e858cd4e0171e84e0bdec492245e6c4d2c"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d5f2-activation",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "12a3c94aad44e243297d0d7361902fd5c9da00e8e13993de5fc285dbb52cb75d",
+        "f79b71c229838fe4f28ab16e6ca63d20e956dfe91bb5da6a8d03e417bdbe95c9"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d6-budgets",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "a7ac1b239ea24d24a883cded42541a9c82c0fbe8692460d6f912bc41c2dbacd9",
+        "f1df852d0fbb5c7e31abf335163d2bfb99cd260771b2024f7c87ed7cd23f1b15"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d7-evaluation",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "1ac8465b752c5e25709e8eeb993833f267b46599d9d34cbe74d6d12cc21a0ab9",
+        "4c8d9daf73d3c6532ddc01f20d4fded465a21c291b04fc3137fb4c932e47ebc7"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-d8-time",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "IMPLEMENTED_VALIDATED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "073ff5f12832fd19838c983d7d6895da3bd3b9506c880e97ab167bc7fe7af5a8",
+        "147fbc19ff35d3fa8e6bc5d052212fbd4f545f3570722b0ded12fcceb37f27ab"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "pack-release-operations",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "CANONICAL_CANDIDATE_VALIDATED",
+      "completionState": "PACK_QUALIFICATION_AND_ACTIVATION_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "716e1b498d0efaefcfdac64fe6e174bb287c779e02171dbe0f103cd460cd59c6",
+        "5b83edf918cdc287957a951775bab5e4d08140ae9a57ba213bca7c562bc6f1ee"
+      ],
+      "remainingRequirements": [
+        "held-out-incremental-evaluation",
+        "natural-person-adjudication",
+        "d4-d10-and-d6-qualification",
+        "independent-final-review",
+        "owner-d5-activation",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "pack-product-experience",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "CANONICAL_CANDIDATE_VALIDATED",
+      "completionState": "PACK_QUALIFICATION_AND_ACTIVATION_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "e8e7785c5d0b878a72ce9153a12faea5cc1ec3fdd41607cd2f9f065727ba2a7b",
+        "b5da23f684a59f9294f532b6ed6f49fd3604eea977664ff69c40e94a73e17fb4"
+      ],
+      "remainingRequirements": [
+        "held-out-incremental-evaluation",
+        "natural-person-adjudication",
+        "d4-d10-and-d6-qualification",
+        "independent-final-review",
+        "owner-d5-activation",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "pack-assurance",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "CANONICAL_CANDIDATE_VALIDATED",
+      "completionState": "PACK_QUALIFICATION_AND_ACTIVATION_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "fc7b682baaafcdcd8bf2d57f93137195b8eb45b2106dbf8df78751cfd06cac2e",
+        "8756ae4a33325529e4be3a509fa91864bd7ea30d0ef7992e74a73d70fbfb41cd"
+      ],
+      "remainingRequirements": [
+        "held-out-incremental-evaluation",
+        "natural-person-adjudication",
+        "d4-d10-and-d6-qualification",
+        "independent-final-review",
+        "owner-d5-activation",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "pack-research-knowledge",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "CANONICAL_CANDIDATE_VALIDATED",
+      "completionState": "PACK_QUALIFICATION_AND_ACTIVATION_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "069eae5978b4d25851dc7147826aa6f4292e94b5a6df199f40e91c41259d5ed5",
+        "93b45b85c9a47db6902a4e3aa961034509ea65e31a7c15a109a601cce4572937"
+      ],
+      "remainingRequirements": [
+        "held-out-incremental-evaluation",
+        "natural-person-adjudication",
+        "d4-d10-and-d6-qualification",
+        "independent-final-review",
+        "owner-d5-activation",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "domain-acquisition-trial",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "OFFLINE_ACQUISITION_TRIAL_IMPLEMENTED",
+      "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
+      "evidenceDigests": [
+        "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae",
+        "30235799aecab11e164525a025d89b4a2fbefcbec677a615740e30e4d1519bc2",
+        "e9185016a3b757ede5d3f4c8bcef72bb11040961d5cf8651bfbfe65db8748d24"
+      ],
+      "remainingRequirements": [
+        "independent-final-review",
+        "owner-accept-offline-only-disposition",
+        "durable-jira-closure"
+      ]
+    },
+    {
+      "itemId": "kcrp-domain-provider-trial",
+      "lane": "DOMAIN_BREADTH",
+      "technicalState": "WINDOW1_PREPARED_PROVIDER_EXECUTION_AUTHORIZATION_PENDING",
+      "completionState": "PROVIDER_AB_TRIAL_PENDING",
+      "evidenceDigests": [
+        "51ad71884cafae7696ff1efa075e3e0c1b326902d01565a0f27f22096a965ccb",
+        "699c07f48beae51972de9523e81cfcc5c4fa3b8298bd8010325b7fd8993596c2",
+        "fe4d138282fc3382b29c1fdbcb1881ea21d2854187bb87c0f71a6ee9bdae2b8f",
+        "f76405d8c974b5bda8ed1b993f23c27e663c10051fe1d21b324850a6fea59919"
+      ],
+      "remainingRequirements": [
+        "three-distinct-date-full-versus-reduced-provider-windows",
+        "token-latency-cost-measurements",
+        "blind-quality-noninferiority",
+        "durable-jira-closure"
+      ]
+    }
+  ],
+  "summary": {
+    "hostItems": 25,
+    "domainItems": 18,
+    "technicallyImplementedOrQualified": 34,
+    "fullyClosed": 0,
+    "externalExecutionPending": 43
+  },
+  "formalRuntimeReportUpdated": false,
+  "evidenceDigest": "606a6d3a19844c5beb71b12b64dafeff49ae324376a89384c3bbb03f607d7ad6"
+}

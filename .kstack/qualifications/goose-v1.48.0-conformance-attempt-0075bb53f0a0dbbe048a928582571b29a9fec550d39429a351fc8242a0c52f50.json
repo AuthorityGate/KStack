@@ -1,0 +1,2582 @@
+{
+  "schema": "kstack-goose-v1.48.0-protected-conformance-v1",
+  "sourceEvidence": {
+    "releaseTag": "v1.48.0",
+    "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+    "supplyChainEvidenceDigest": "sha256:0f2346f3dd16056d5ab7777c899a6d21ede7230b0da4fac0cec23dced59d3600",
+    "reproducibleBuildEvidenceDigest": "sha256:0917e50f0f045157065715bad80c11284b5150b39c98c1c0d7e352b592a798ab"
+  },
+  "isolation": {
+    "environmentFacts": {
+      "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+      "runningHostBuildDigest": "sha256:cc81170e89e4f622d11d745aeafdd56fcca6a412139cd3dc7d817235d1561875",
+      "adapterDigest": "sha256:fd8e8f37346ec98a35d8da57ff803f183e4c3ebcec8343558de713fbd73a1806",
+      "conformanceDigest": "sha256:d2adad76a190c8e803832d879f49c013ea6e225d3e9a38bc4a100ae9540e5aac",
+      "providerScriptDigest": "sha256:91ae7f601b3928cf17a8fc9963b438d7b9792d08604839b112de500bca00634e",
+      "pid1ReaperSourceDigest": "sha256:6cd19410eb124db0ee7664b01f3761c122dc02ef6a876257604bc6c190343b01",
+      "supplyChainEvidenceDigest": "sha256:0f2346f3dd16056d5ab7777c899a6d21ede7230b0da4fac0cec23dced59d3600",
+      "reproducibleBuildEvidenceDigest": "sha256:0917e50f0f045157065715bad80c11284b5150b39c98c1c0d7e352b592a798ab",
+      "platform": "linux-x64",
+      "networkInterfaces": [
+        "lo"
+      ],
+      "nativePermission": "NO_NATIVE_TOOLS",
+      "providerMode": "SYNTHETIC_LOOPBACK_NO_CREDENTIAL",
+      "externalPlugins": false,
+      "sessionPersistence": false,
+      "namespaces": {
+        "user": "user:[4026532237]",
+        "net": "net:[4026532240]",
+        "mount": "mnt:[4026532238]",
+        "pid": "pid:[4026532239]"
+      }
+    },
+    "cleanupEvidence": {
+      "fixtureCount": 20,
+      "fixtureCleanupPassed": true,
+      "liveBeforeProviderStop": [],
+      "liveAfterProviderStop": [],
+      "providerStopped": true,
+      "loopbackOnly": true
+    },
+    "credentialsPresent": false,
+    "productionTargetsPresent": false
+  },
+  "dependencyGateSet": {
+    "schemaId": "kstack.goose-conformance-dependency-gate-set.v1",
+    "schemaVersion": 1,
+    "operationProfileId": "goose.advisory-public-read.v1",
+    "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+    "operationFamily": "ADVISORY",
+    "rows": [
+      {
+        "schemaId": "kstack.goose-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC01",
+        "requiredImplementationDigest": "sha256:d46e8dc2fa919b5c67c252b856107e076e423a7ae52d3453b538dec0d47af8eb",
+        "requiredValidationReceiptDigest": "sha256:b885e5a518be4e5261ca71125c671f72b353bfba5d4860e28ca6e5c3eadc44b7",
+        "activeSetMembershipProofDigest": "sha256:2f8372d5cd13dcbe6eb6f9f50268260e66acab6aa95e7edc39f22818c0a645b7",
+        "currentnessEvidenceDigest": "sha256:50eca8d75b7b34edb24efb6328e4b545340cae40c179638b3e88cda7e062a57f",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.goose-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC02",
+        "requiredImplementationDigest": "sha256:e8d15b85d1669711eceaa37d1df4340189a01bff05c0886810928433476a3bbb",
+        "requiredValidationReceiptDigest": "sha256:bd3a902315a980b779d5bf51a66e9408e11bbfef046c4cc86d9be37c3ab8de77",
+        "activeSetMembershipProofDigest": "sha256:6bd481913f96e25f534e88678489d840cabd473f91b2543730b33d2628c31075",
+        "currentnessEvidenceDigest": "sha256:cba961bcb9f0b2d82c2231f5c0d61ea5f57e692a16e4935a56c3b699b49a540d",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.goose-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC03",
+        "requiredImplementationDigest": "sha256:0b4368848075fbca6ac9615bdb931ae7a71aa0ae3cb41d8323a6d8664c08b3f9",
+        "requiredValidationReceiptDigest": "sha256:af579c317826f407b8a587021a7ac87fa85af7413c8f0fa6c7b7c07b3de30823",
+        "activeSetMembershipProofDigest": "sha256:8f40ec7d198103e6453ec0a156a479bff2fecd7af04942c783ea69b1e1885a65",
+        "currentnessEvidenceDigest": "sha256:2ec58cacfef8f19d5678dd22222df0e182bf2764f0afa86938a465bab37c90bc",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.goose-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC04",
+        "requiredImplementationDigest": "sha256:8d53e91cb5b20e257f490d67365795a0cbdc10e71b2eabd3e1fdf568f207a431",
+        "requiredValidationReceiptDigest": "sha256:0a65edead7ff75b53bf468546033e7dddee723e774273704b89fbfe2c2e55ac3",
+        "activeSetMembershipProofDigest": "sha256:02251198cde39eb77e4fcacafca250c754e1b06be3484474584825a6efafe011",
+        "currentnessEvidenceDigest": "sha256:720de252e2f36df28a93bf2f15f49d2b66f7f7ed9b337743b40b0b9509e7d886",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.goose-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC05",
+        "requiredImplementationDigest": "sha256:816b27652a2a1918e1e1d10139910f9fcb73d308292bbcf4b7e8cc7aa1bac08e",
+        "requiredValidationReceiptDigest": "sha256:3e90003c7e2f33de455e67e81c91dea5c91527f51d50f78c1d16e00ec992280b",
+        "activeSetMembershipProofDigest": "sha256:065585834297507b6b3802a39422f1ef3fd0f5137a725869b0bd3497c8589c39",
+        "currentnessEvidenceDigest": "sha256:29d6a892e7432a5aee89e81e1d35b8977bcffb22fd07c9a7a5edbf439f2116b4",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.goose-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC06",
+        "requiredImplementationDigest": "sha256:91752c91571b2130d513e4563910235a432745ee5e1a88e083009d7081c6e00c",
+        "requiredValidationReceiptDigest": "sha256:58327f5a10485788a78c0c38d2349be79a96fd43ebf63ca14a5387aad3cd8ce4",
+        "activeSetMembershipProofDigest": "sha256:4faa7a26db6bf0162454c9f1fed18da2a7fc65b88714b923e697a67714a49353",
+        "currentnessEvidenceDigest": "sha256:1cb28d9205413d3bb2b2a242dbeebe29a9b1204b238dc1e2d5d0cfcf0ea36c83",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      },
+      {
+        "schemaId": "kstack.goose-conformance-dependency-gate.v1",
+        "schemaVersion": 1,
+        "hpItemId": "HP-TC11",
+        "requiredImplementationDigest": "sha256:9c8b03f49bcae1a822a8af3e4c99c3e11fe4f4773fd4b7ccd3095b4736565252",
+        "requiredValidationReceiptDigest": "sha256:93114974559149b9f6a697b6c6a2959e1cd16ad62fe433793c11f472464306fb",
+        "activeSetMembershipProofDigest": "sha256:fcb97a6bd3de863d8963beaaaa2ba73434ee9fbc3394377f1c20eb0217c2ef45",
+        "currentnessEvidenceDigest": "sha256:c14fd42bac63aaa09e4098821e7bbd199379c11ae83eda999ae321d8b30d377b",
+        "status": "SATISFIED",
+        "reasonCode": "DEPENDENCY_SATISFIED"
+      }
+    ],
+    "evaluatedAt": "2026-08-30T02:54:36.851Z",
+    "expiresAt": "2026-09-06T02:54:36.853Z",
+    "executable": true,
+    "reasonCodes": []
+  },
+  "dependencyGateSetDigest": "sha256:d5dbe914b2e387cab94ea1b92eb04a3ff162f3f9dde7f5a2ea28b3b3b76305cc",
+  "plan": {
+    "schemaId": "kstack.goose-conformance-plan.v1",
+    "schemaVersion": 1,
+    "hostId": "goose",
+    "runningHostBuildDigest": "sha256:cc81170e89e4f622d11d745aeafdd56fcca6a412139cd3dc7d817235d1561875",
+    "hostExecutableIdentityDigest": "sha256:057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+    "adapterDigest": "sha256:fd8e8f37346ec98a35d8da57ff803f183e4c3ebcec8343558de713fbd73a1806",
+    "activeSetDigest": "sha256:497aa43223fee70f1a41573c83fefd03058d6087587f3d15c3aae19d459a05d1",
+    "policyDigest": "sha256:d49cd0f5f1d7875c623db8c71153a3ef28b9c35300af32f2c06ae65e99e9e78b",
+    "registrySetDigest": "sha256:d2adad76a190c8e803832d879f49c013ea6e225d3e9a38bc4a100ae9540e5aac",
+    "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+    "dependencyGateSetDigest": "sha256:d5dbe914b2e387cab94ea1b92eb04a3ff162f3f9dde7f5a2ea28b3b3b76305cc",
+    "environmentMeasurementProfileDigest": "sha256:bf3ba1f618d7178ec98d26e06541c0afd685a51ee7590db45c0f752e7828868d",
+    "harnessDigest": "sha256:c8cdd5212f7dcea77ff9fb9444a853f286050de5d3abda283264ab8dc0ed1c80",
+    "observerSetDigest": "sha256:451d28276ab2f669b0e12c40465af4a17a37c7d60dbfb7aed0a6dc5f1d7b2b14",
+    "fixtureSetDigest": "sha256:dd0d5d1ce3e95673e376996ef0a479c7eb7527b461eacecc365d738aa2c4a77d",
+    "bypassInventoryDigest": "sha256:703f7b8928ef41b927179f5d072b493358c33ff09a4f51f64d65b3c6f33b73dd",
+    "isolationTargetDigest": "sha256:11e4aa7b60be44d2fd735c5c6917bd4e8e2de4d75837c83ce84b1e419e546527",
+    "sideEffectBudgetDigest": "sha256:c5c23c00364d99460f82b12fc97f92a01e843556545208bd105d6e59d3fbf2ef",
+    "authoritativeClockDigest": "sha256:571588d972c69ef68f544c2c95a6a91768e489cf527386c206828810f9bba27f",
+    "plannedAt": "2026-08-30T02:54:36.856Z",
+    "expiresAt": "2026-09-06T02:54:36.853Z"
+  },
+  "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+  "fixtureSet": {
+    "schemaId": "kstack.goose-conformance-fixture-set.v1",
+    "schemaVersion": 1,
+    "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+    "requiredGroupIds": [
+      "approval-broker",
+      "background-lifecycle",
+      "hostile-data",
+      "identity-currentness",
+      "instruction-package",
+      "native-permissions",
+      "preservation",
+      "public-mcp-facade",
+      "receipt-ambiguity",
+      "workspace"
+    ],
+    "fixtures": [
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "approval-broker.negative.v1",
+        "fixtureGroupId": "approval-broker",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:41da1acba4a1541b050a49692cf962817028fecf90cf578b192eb9e7b255af32",
+        "inputArtifactDigests": [
+          "sha256:6b2c9deeeb1b87339131151d0efe3bbfdd246dcb627ebb8cb88077ff0d4e7979"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_VERSION_OBSERVED",
+          "BROKER_TICKET_REJECTED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:f06f91ca4e891f10d0bf0eb1ad353888469dee3cad93a9e6247929a0e04d291c"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:e01bcb83955c7a16c79a56bd3505febfbdd0dd12a8ad4f0fcad74ff051d24d7b",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:201012fd9e1ffb3a60236f93c895e92ba0b6246895be010ba23ed9e77e1e622c",
+        "stableFailureCodes": [
+          "APPROVAL_BROKER_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "approval-broker.positive.v1",
+        "fixtureGroupId": "approval-broker",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:89c300e90062a024338b7fc8578a6b632330c5b46278168e031c4122f0ec3992",
+        "inputArtifactDigests": [
+          "sha256:8f1a214014aa6c1f7f9f794df8fb5d7833b7ff3de2a7e303c828bb23abc45106"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_VERSION_OBSERVED",
+          "BROKER_TICKET_VERIFIED",
+          "NATIVE_SKILL_ALLOWED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:7666eb5281bf45ea7691d4b7ff2534d6c75c68916855e2fb4e77d4596dce801c"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:ff9d990a5ae2a22ac5d50f819559627bec7305c4b49c37d2dcba21145758a0f6",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:201012fd9e1ffb3a60236f93c895e92ba0b6246895be010ba23ed9e77e1e622c",
+        "stableFailureCodes": [
+          "APPROVAL_BROKER_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "background-lifecycle.negative.v1",
+        "fixtureGroupId": "background-lifecycle",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:b18dce4799a7fc8e71d51edf7db23077b125fac65078b85ffb84fffd6d4adc71",
+        "inputArtifactDigests": [
+          "sha256:d14efd09ebac78f5d00e19dfee3fe5fffc1146c411415fa09a03fdf66ba06441"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_PROCESS_STARTED",
+          "DEADLINE_EXPIRED",
+          "HOST_PROCESS_CANCELLED",
+          "ZERO_ORPHANS_OBSERVED"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:e04f18fdb4e84c7abf76a58eea20fe61eefb643aa35f4119b778385e669f4e74"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:55de9ee4c3ab5e0c9001186fd12023ff49420259f9bd98861d5499efcf46dc93",
+        "deadlineMs": 30000,
+        "cleanupContractDigest": "sha256:789e62f41c3b48b99a7b90bb74c1c9b0ebdf6eb3d7d6002df19835031ff90351",
+        "stableFailureCodes": [
+          "BACKGROUND_LIFECYCLE_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "background-lifecycle.positive.v1",
+        "fixtureGroupId": "background-lifecycle",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:39cfdc4f339cdd9b410e0d046fd15878ab1a8e2498546ef5cb390560d80ee70b",
+        "inputArtifactDigests": [
+          "sha256:c3d05b13abf096a34894f8907ab07ecc5a5d6f1c3e69c4d2d7539d7abdc779d2"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_PROCESS_STARTED",
+          "HOST_PROCESS_EXITED",
+          "ZERO_ORPHANS_OBSERVED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:7f0d54e756838d47efc49b3d04dbe6c51dc693076137015b0eceb08a41fc4ffa"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:27d1ef70ec1928dd29c866c9850c4e6d5d8f09b733644b9556ee5d6c58de3c13",
+        "deadlineMs": 30000,
+        "cleanupContractDigest": "sha256:789e62f41c3b48b99a7b90bb74c1c9b0ebdf6eb3d7d6002df19835031ff90351",
+        "stableFailureCodes": [
+          "BACKGROUND_LIFECYCLE_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "hostile-data.negative.v1",
+        "fixtureGroupId": "hostile-data",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:696ad28a5da6ef0cc1ffc31d4faa9f9d2eddb2b2e829b98b8397911b1233cccf",
+        "inputArtifactDigests": [
+          "sha256:18367e1bf7529e36701ddaf66855d8f273891f00c512145d4ebadf6a3b288989"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_SKILL_ALLOWED",
+          "HOSTILE_OUTPUT_REJECTED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:0ba33ed7945340d2069966c35003837ad3d8606aa7b4dec71e23d9a2734c28a1"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:af1e9ada5a70f3aed64822e464e13fb891b3fd6d486816b151ce7747dea9da8f",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:e3db0653bf777f18d1d862d31419af21e977e36be264e34f73e93f09227f5ded",
+        "stableFailureCodes": [
+          "HOSTILE_DATA_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "hostile-data.positive.v1",
+        "fixtureGroupId": "hostile-data",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:e1589edadbb05396472f1c2d688c473f0de8c55b08afe1ab4d7118be473a0b4d",
+        "inputArtifactDigests": [
+          "sha256:58bd87ec445483e0f5aa9ac7cf356cce7912d756198e9a1da1c89f129bd5d787"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_SKILL_ALLOWED",
+          "STRUCTURED_OUTPUT_ACCEPTED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:88851cb7cae7555d552b9b41f0ce100dcd2f2c7196c8e65651d50ecbd1adcc54"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:35d1574bd4cdc29203914b9ded90c6df14c7f3e45443fedf96b09c2e09408542",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:e3db0653bf777f18d1d862d31419af21e977e36be264e34f73e93f09227f5ded",
+        "stableFailureCodes": [
+          "HOSTILE_DATA_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "identity-currentness.negative.v1",
+        "fixtureGroupId": "identity-currentness",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:0b091b878c50f26553e34534c294f9761fca462a54033d851e93bb760e3e257b",
+        "inputArtifactDigests": [
+          "sha256:1d8b4948da6aa16d287859dcbd31754a104565d0963998193ebc898c7635fcde"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_VERSION_OBSERVED",
+          "CURRENTNESS_MISMATCHED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:dbfb56c0123f96bc42b876d2b928006f469c6564b0b3b069044236312b1de816"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:5ead197d82d2f54569547a823dfb967edc00b6f6e05a89f0e468f578b42c22ba",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:ecaf661d87122966e792cafd4f48c751970a998c2e5ddcbba094bbb6b0e2e765",
+        "stableFailureCodes": [
+          "IDENTITY_CURRENTNESS_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "identity-currentness.positive.v1",
+        "fixtureGroupId": "identity-currentness",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:f0e290865a3e7459c275e03240942dd0ef97b0a21f935b7b358fdf96165b8d82",
+        "inputArtifactDigests": [
+          "sha256:60d0c883dc5867ac5fcee3348f26ca0dafb347aeb321483c5a005bf7d8001123"
+        ],
+        "expectedNativeEventSequence": [
+          "HOST_VERSION_OBSERVED",
+          "CURRENTNESS_MATCHED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:07af80e334c5e06fbe5d021193a75632529f5e6535ee53039eba7add35955166"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:9d269f60f172086f6c3a16b8c2a0802f469dbe5c30be9d8806f889659e3a9e4c",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:ecaf661d87122966e792cafd4f48c751970a998c2e5ddcbba094bbb6b0e2e765",
+        "stableFailureCodes": [
+          "IDENTITY_CURRENTNESS_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "instruction-package.negative.v1",
+        "fixtureGroupId": "instruction-package",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:43a1f4c30bf2bafea00c88df171bbb1e86aeaf70b38d8976f76c62d9d45e0fa7",
+        "inputArtifactDigests": [
+          "sha256:732121737d0612315e04bb6347bfadfb00984fb23f3a3e091a19d433dad6060b"
+        ],
+        "expectedNativeEventSequence": [
+          "DUPLICATE_SKILL_DISCOVERED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:ab92a9d6c49c375bdc3f7211bce19f0bee0a3208a6f494807e07f703d6e91586"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:f32d72f7a7af382646e40310fc102985a14bddc69bc40364024a55285dfb40ab",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:489b28084dd35d00df455d18c10fc75bfc96f70c630897727589669afdeea0dd",
+        "stableFailureCodes": [
+          "INSTRUCTION_PACKAGE_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "instruction-package.positive.v1",
+        "fixtureGroupId": "instruction-package",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:71ff202a16ff9532370f197d9ad284805b643bcebecfbafe7e12652c7bf3dd5b",
+        "inputArtifactDigests": [
+          "sha256:e850d27a86a09f1c3e0015fc826bf07e6cf198e5498df5d5261493808b3ae59d"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_SKILL_DISCOVERED",
+          "NATIVE_SKILL_ALLOWED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:e4883a7003d412f135c29e5bfb2197e4c335cd678575ddf000d78f3de71f3366"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:62753c12362692c599b26a37bc729e59ac1b86a8fa903ea92e9e8b5f55b58e76",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:489b28084dd35d00df455d18c10fc75bfc96f70c630897727589669afdeea0dd",
+        "stableFailureCodes": [
+          "INSTRUCTION_PACKAGE_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "native-permissions.negative.v1",
+        "fixtureGroupId": "native-permissions",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:1980b60c87eb4fc99b3def82e865649c0455c1da07d31cdab6778c86f988698f",
+        "inputArtifactDigests": [
+          "sha256:1844e3b94700769ac7d28179e4b195a49410851778d4f1870152aa4146ff222c"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_TOOL_DENIED",
+          "NATIVE_PERMISSION_MATCHED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:2b003e60d6c9cb1e4837670f9fbf491b6248feb382042bedb07763f688e0ed69"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:4afee85486daa3bb8a650217114997478bffca19ff99f08a1469b4c9e379c793",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:0fae90c3dda81c270b3d8a963d208635eae0c8b1256c55bf800b6f36b97a616c",
+        "stableFailureCodes": [
+          "NATIVE_PERMISSIONS_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "native-permissions.positive.v1",
+        "fixtureGroupId": "native-permissions",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:b90f3929a8a8d7ebae821c44c775b65f920dfe3e3fb7b6c5d101ce4c00980dfb",
+        "inputArtifactDigests": [
+          "sha256:6cc5e2426e87247ccd8278a8bceeb865b3923355edb74f4fe0404fdda0e59d4e"
+        ],
+        "expectedNativeEventSequence": [
+          "NATIVE_SKILL_ALLOWED",
+          "NATIVE_PERMISSION_MATCHED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:512a903d05282751c98651b1f2d44be9ce8d6d5fcab18abf30042fe990351175"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:c92c391abc9c91f18b682928275caeba5690041d37b3b72b149c92fcaa64f5eb",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:0fae90c3dda81c270b3d8a963d208635eae0c8b1256c55bf800b6f36b97a616c",
+        "stableFailureCodes": [
+          "NATIVE_PERMISSIONS_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "preservation.negative.v1",
+        "fixtureGroupId": "preservation",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:61cc92e9b28c1f0e8f8d5de3e223f347c4d2c1ceb4526dc1f4cec947e2d4ac24",
+        "inputArtifactDigests": [
+          "sha256:73fc3c850220aea598d644b30fcbb7259917a23b07fe393f8dad60008c838934"
+        ],
+        "expectedNativeEventSequence": [
+          "PRESERVATION_BASELINE_MISMATCHED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:634d9ded19f6e6262d9a3a1987da6b22a9e153acfa4b0fb7579d84babdd91a8f"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:ec0c1d864a59ab9dd19163176bd2fefb1ec4d71da555f9f8571b4e2ef252fe1f",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:0bcc5f6d13c40f78a791ae3842d7c0b8224552cfbee0ec600669fd4388e5ebc0",
+        "stableFailureCodes": [
+          "PRESERVATION_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "preservation.positive.v1",
+        "fixtureGroupId": "preservation",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:ffba809f89102112ce2492a21a97219cd53d0c8b62fafe90ff7003b994ceb328",
+        "inputArtifactDigests": [
+          "sha256:a8ea59dc5dd1c59794ec399fca67b8ae4ae477ead561088ed816bc438a513f5f"
+        ],
+        "expectedNativeEventSequence": [
+          "CODEX_BASELINE_MATCHED",
+          "CLAUDE_BASELINE_MATCHED",
+          "GOOSE_BASELINE_MATCHED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:edff99ef0e6a2d5e2e9d85e9b94c26fa23a4f971b1e0c31834c941670aaa5589"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:cdec52afe957f3a6599c314ef28c3634ffd21f87427204ee488c6be738c08350",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:0bcc5f6d13c40f78a791ae3842d7c0b8224552cfbee0ec600669fd4388e5ebc0",
+        "stableFailureCodes": [
+          "PRESERVATION_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "public-mcp-facade.negative.v1",
+        "fixtureGroupId": "public-mcp-facade",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:a50b7460c439923674c6ef38fa008e4707c5168e089053d58b50221bf083efdd",
+        "inputArtifactDigests": [
+          "sha256:5ec17473bfe5a9f0e35be3ee95068edad62a986ec43cf7ed055e4ab63d2a4a6e"
+        ],
+        "expectedNativeEventSequence": [
+          "PUBLIC_MCP_LEASE_REJECTED",
+          "NO_PROMOTION_OBSERVED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:0fff9366de367dfce8a9f2ed9235a0e75018821b2260b33bbf21c14b4bc4f1b6"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:251a3cc84ac83acc71db17f9811a30599894864202891c8be35517b0731c9e9f",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:f17eccecc2306667b0dcf0ab316ac4a9d0aae33bc85951b9c9cea3af9c2f1a76",
+        "stableFailureCodes": [
+          "PUBLIC_MCP_FACADE_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "public-mcp-facade.positive.v1",
+        "fixtureGroupId": "public-mcp-facade",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:347d0ff88068df23f1aafa850fe55635479fcbdd099da7587f421d8c5c6563db",
+        "inputArtifactDigests": [
+          "sha256:0bd611142ca94a0fb181faed0c62c550b56e571b17b1fecbb17466c031f5e40b"
+        ],
+        "expectedNativeEventSequence": [
+          "PUBLIC_MCP_LIST_OBSERVED",
+          "PUBLIC_MCP_READ_OBSERVED",
+          "NO_PROMOTION_OBSERVED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:331d65a2443df179de0d7562a9b582f11973368f82e1d0f3ac5eccfc7fe45577"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:ec92f1c567139ccf50464e33be9907e2bcf4a12dfec5126db3eda7453db1d761",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:f17eccecc2306667b0dcf0ab316ac4a9d0aae33bc85951b9c9cea3af9c2f1a76",
+        "stableFailureCodes": [
+          "PUBLIC_MCP_FACADE_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "receipt-ambiguity.negative.v1",
+        "fixtureGroupId": "receipt-ambiguity",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:a2ec79206732a1e82d8f64701753692ce0c16122e4f35a59cb219b57f0b9e9b3",
+        "inputArtifactDigests": [
+          "sha256:3e5eb5f73668777ed9c7ae8e76629f50c1bee963413d6463685e7363efc21e69"
+        ],
+        "expectedNativeEventSequence": [
+          "PROVIDER_RESPONSE_LOST",
+          "BLIND_RETRY_ABSENT",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:2f970ef40f2dab0d97dfaaa7f7d6347480ac0319e1088dc25030018395b8c9e6"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:0d68000c9c4692b634bffa5a94e394e54da9bef26f41dea3215a3e19fc1081a7",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:fe19b117e79d22ea9691e5100f12293792bdc8a873d4dbe116b2e53172364b3c",
+        "stableFailureCodes": [
+          "RECEIPT_AMBIGUITY_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "receipt-ambiguity.positive.v1",
+        "fixtureGroupId": "receipt-ambiguity",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:76417793a9254f2091dc38857e6a2105baeace1d542cb7d01bc543e8deb9efb4",
+        "inputArtifactDigests": [
+          "sha256:4420123f090db596c53fcce85adae9f0ec367e0d522a5281d759f55b052fc29d"
+        ],
+        "expectedNativeEventSequence": [
+          "PROVIDER_REQUEST_OBSERVED",
+          "PROVIDER_RECEIPT_MATCHED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:830365a2f3325a4599f4e2a37eec2ec5691bf83e6cd7ac38b2ac81d962b24055"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:1c57325a9057de7057b98a0fc87ef3fd6b0a2aae7de6924b5098a33b3cb373fb",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:fe19b117e79d22ea9691e5100f12293792bdc8a873d4dbe116b2e53172364b3c",
+        "stableFailureCodes": [
+          "RECEIPT_AMBIGUITY_POSITIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "workspace.negative.v1",
+        "fixtureGroupId": "workspace",
+        "polarity": "NEGATIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:722beb41dfb3217a0490fedc0d4adeed3e67392fd49eeb8c1723c5fa676d1d9e",
+        "inputArtifactDigests": [
+          "sha256:a2819f434d4f0aae9979682150942f122a20d62a1efd536a7ac94869ede5448a"
+        ],
+        "expectedNativeEventSequence": [
+          "WORKSPACE_ALIAS_REJECTED",
+          "REPOSITORY_UNCHANGED",
+          "PROTECTED_DENY"
+        ],
+        "expectedDecisionCode": "DENY",
+        "observerExpectationDigests": [
+          "sha256:fe9e29951bc9eaa73b1f99a6afeb61c621010dad955fd3f95f3a3132de254ce2"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:7cac7f592ba32860d4b14f308993539121805a73424738fc31f092d97800d6cf",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:555ee7a7ca4b9c48db75b76f66bf02a43568e1317bf17d4930437bedceb6b5d0",
+        "stableFailureCodes": [
+          "WORKSPACE_NEGATIVE_FAILED"
+        ]
+      },
+      {
+        "schemaId": "kstack.goose-conformance-fixture.v1",
+        "schemaVersion": 1,
+        "fixtureId": "workspace.positive.v1",
+        "fixtureGroupId": "workspace",
+        "polarity": "POSITIVE",
+        "operationProfileDigest": "sha256:09e88e6feecf7a5f2e5361120c45b9548bdd2c03c580b81cfe9c09d08edf7587",
+        "preconditionDigest": "sha256:953ef637e71005e3c86df5a9fa8f106c4f4d83756633f9599e74b3126182afab",
+        "inputArtifactDigests": [
+          "sha256:a7513fc2da015019757081b8fabc5ec3821e51757f36dcf8c43dfb00708c77e6"
+        ],
+        "expectedNativeEventSequence": [
+          "WORKSPACE_IDENTITY_MATCHED",
+          "REPOSITORY_UNCHANGED"
+        ],
+        "expectedDecisionCode": "ALLOW",
+        "observerExpectationDigests": [
+          "sha256:319d80f63931a80f11d6b151aae54cf4b6224f75ffbcdadbcd5e0b868653b647"
+        ],
+        "maximumPermittedSideEffectsDigest": "sha256:403c0a4fb1ccbcc43fcba9f4a5bba137ea15f6b32e6b3ccb52e95a16aa5169ca",
+        "deadlineMs": 20000,
+        "cleanupContractDigest": "sha256:555ee7a7ca4b9c48db75b76f66bf02a43568e1317bf17d4930437bedceb6b5d0",
+        "stableFailureCodes": [
+          "WORKSPACE_POSITIVE_FAILED"
+        ]
+      }
+    ]
+  },
+  "fixtureSetDigest": "sha256:dd0d5d1ce3e95673e376996ef0a479c7eb7527b461eacecc365d738aa2c4a77d",
+  "observerReceipts": [
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "approval-broker.negative.v1",
+      "observerId": "protected.approval-broker.negative",
+      "observerKind": "BROKER_SENTINEL",
+      "observationDigest": "sha256:43c26ecda7d656770628602b0ee232f00d26d453899f582bdec71f24e4a2fe68",
+      "observedAt": "2026-08-30T02:54:37.161Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "approval-broker.positive.v1",
+      "observerId": "protected.approval-broker.positive",
+      "observerKind": "BROKER_SENTINEL",
+      "observationDigest": "sha256:59e31ad3ec1765ee617dfccad2de9e5739a85bf6907b823d67b3c397fc8c050d",
+      "observedAt": "2026-08-30T02:54:37.826Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "background-lifecycle.negative.v1",
+      "observerId": "protected.background-lifecycle.negative",
+      "observerKind": "PROCESS_LIFECYCLE",
+      "observationDigest": "sha256:931a95a14e5ded5b646a6c0312998ecced144158eb7773b8b882d93bd815a9d6",
+      "observedAt": "2026-08-30T02:54:39.206Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "background-lifecycle.positive.v1",
+      "observerId": "protected.background-lifecycle.positive",
+      "observerKind": "PROCESS_LIFECYCLE",
+      "observationDigest": "sha256:88dfc99a7698b8912cb680d65191ad614732262e6c35cacf271226f15a963d7e",
+      "observedAt": "2026-08-30T02:54:39.769Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "hostile-data.negative.v1",
+      "observerId": "protected.hostile-data.negative",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:e3282a3429e91d25f21148e41428898b80d35aa286ea2e0cb6789af4038cfedb",
+      "observedAt": "2026-08-30T02:54:40.334Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "hostile-data.positive.v1",
+      "observerId": "protected.hostile-data.positive",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:b6daaf55cd2897b9d3d7ef2e7f244580bd76be5d6e133378c5d15355f627a06f",
+      "observedAt": "2026-08-30T02:54:40.910Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "identity-currentness.negative.v1",
+      "observerId": "protected.identity-currentness.negative",
+      "observerKind": "ENVIRONMENT_MEASUREMENT",
+      "observationDigest": "sha256:8be4c54b7eeff89eac48b7a1dee155e6377b12c9b1f5504ff0c1c8faa2016127",
+      "observedAt": "2026-08-30T02:54:41.105Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "identity-currentness.positive.v1",
+      "observerId": "protected.identity-currentness.positive",
+      "observerKind": "ENVIRONMENT_MEASUREMENT",
+      "observationDigest": "sha256:98e3b1b3eceda4875135acb7e693f6e7ca076c4d123aa5c1fe5a93b7667e2668",
+      "observedAt": "2026-08-30T02:54:41.301Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "instruction-package.negative.v1",
+      "observerId": "protected.instruction-package.negative",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:368214d2c508881e8f9849bbeae78b42f0abb796f03c538765dfc488722c6616",
+      "observedAt": "2026-08-30T02:54:41.749Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "instruction-package.positive.v1",
+      "observerId": "protected.instruction-package.positive",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:9aed1f49c7080a8ebb104714ad12de949e5fe1451daa19bcf48968dad1b05660",
+      "observedAt": "2026-08-30T02:54:42.581Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "native-permissions.negative.v1",
+      "observerId": "protected.native-permissions.negative",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:1aae1f93359ba0cfa32ee6e59a17c94c4c6520892683a1cebe24d0a9264171ad",
+      "observedAt": "2026-08-30T02:54:43.152Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "native-permissions.positive.v1",
+      "observerId": "protected.native-permissions.positive",
+      "observerKind": "HOST_NATIVE_EVENTS",
+      "observationDigest": "sha256:3e6b773591eaf795024c74dce09fe54bb6331ca7357987e6608cf4a37c0a5c1d",
+      "observedAt": "2026-08-30T02:54:43.709Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "preservation.negative.v1",
+      "observerId": "protected.preservation.negative",
+      "observerKind": "PRESERVATION_BASELINE",
+      "observationDigest": "sha256:c2d3ea8d1bcc3b32d8afbcb454d866a84089ca0f4b1f14e2703f4ff4ae61d1a3",
+      "observedAt": "2026-08-30T02:54:44.253Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "preservation.positive.v1",
+      "observerId": "protected.preservation.positive",
+      "observerKind": "PRESERVATION_BASELINE",
+      "observationDigest": "sha256:6cc44e6e4e8323948e1e8adb83a2eff2204941e1dd95573bdfff56963f372e18",
+      "observedAt": "2026-08-30T02:54:44.797Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "observerId": "protected.public-mcp-facade.negative",
+      "observerKind": "MCP_FRAME_COLLECTOR",
+      "observationDigest": "sha256:1c0f9a3badb724000555a48dc39135caa1601f1acc88836dce5f506ddaa437c3",
+      "observedAt": "2026-08-30T02:54:45.083Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "observerId": "protected.public-mcp-facade.positive",
+      "observerKind": "MCP_FRAME_COLLECTOR",
+      "observationDigest": "sha256:73760d4414e98a8b1f9a5ea195c2be872c765c867e3536572fad31c657903e2c",
+      "observedAt": "2026-08-30T02:54:45.370Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "observerId": "protected.receipt-ambiguity.negative",
+      "observerKind": "PROVIDER_RECEIPT",
+      "observationDigest": "sha256:34407109f1f1b2b89c6a786a8447a53bc4976fc12ffffa96e2519f7c47673efd",
+      "observedAt": "2026-08-30T02:54:45.587Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "observerId": "protected.receipt-ambiguity.positive",
+      "observerKind": "PROVIDER_RECEIPT",
+      "observationDigest": "sha256:a624566d08806f96d21e3a824a7ad68d5528237a7946cb71086e0ae30231597f",
+      "observedAt": "2026-08-30T02:54:46.155Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "workspace.negative.v1",
+      "observerId": "protected.workspace.negative",
+      "observerKind": "FILESYSTEM_IDENTITY",
+      "observationDigest": "sha256:2755bb0cb15a03b64f0c65ced59be8d36860d84fa2a441e87b4e51f52ac52e6f",
+      "observedAt": "2026-08-30T02:54:46.355Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    },
+    {
+      "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+      "schemaVersion": 1,
+      "fixtureId": "workspace.positive.v1",
+      "observerId": "protected.workspace.positive",
+      "observerKind": "FILESYSTEM_IDENTITY",
+      "observationDigest": "sha256:0216ed704b9fd05f13da313df791607e789f6243279dd6e02435f49f4305c694",
+      "observedAt": "2026-08-30T02:54:46.809Z",
+      "owner": "PROTECTED_HARNESS",
+      "subjectWritable": false,
+      "available": true,
+      "contradicted": false
+    }
+  ],
+  "adjudicationRows": [
+    {
+      "fixtureId": "approval-broker.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "BROKER_TICKET_REJECTED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "approval-broker.negative.v1",
+        "observerId": "protected.approval-broker.negative",
+        "observerKind": "BROKER_SENTINEL",
+        "observationDigest": "sha256:43c26ecda7d656770628602b0ee232f00d26d453899f582bdec71f24e4a2fe68",
+        "observedAt": "2026-08-30T02:54:37.161Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.approval-broker.negative.v1.b5d5dda26fe2",
+      "startedAt": "2026-08-30T02:54:36.953Z",
+      "completedAt": "2026-08-30T02:54:37.161Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:43c26ecda7d656770628602b0ee232f00d26d453899f582bdec71f24e4a2fe68"
+    },
+    {
+      "fixtureId": "approval-broker.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "BROKER_TICKET_VERIFIED",
+        "NATIVE_SKILL_ALLOWED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "approval-broker.positive.v1",
+        "observerId": "protected.approval-broker.positive",
+        "observerKind": "BROKER_SENTINEL",
+        "observationDigest": "sha256:59e31ad3ec1765ee617dfccad2de9e5739a85bf6907b823d67b3c397fc8c050d",
+        "observedAt": "2026-08-30T02:54:37.826Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.approval-broker.positive.v1.4e11577ea459",
+      "startedAt": "2026-08-30T02:54:37.161Z",
+      "completedAt": "2026-08-30T02:54:37.826Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:59e31ad3ec1765ee617dfccad2de9e5739a85bf6907b823d67b3c397fc8c050d"
+    },
+    {
+      "fixtureId": "background-lifecycle.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "HOST_PROCESS_STARTED",
+        "DEADLINE_EXPIRED",
+        "HOST_PROCESS_CANCELLED",
+        "ZERO_ORPHANS_OBSERVED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "background-lifecycle.negative.v1",
+        "observerId": "protected.background-lifecycle.negative",
+        "observerKind": "PROCESS_LIFECYCLE",
+        "observationDigest": "sha256:931a95a14e5ded5b646a6c0312998ecced144158eb7773b8b882d93bd815a9d6",
+        "observedAt": "2026-08-30T02:54:39.206Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.background-lifecycle.negative.v1.18d16e1c4b20",
+      "startedAt": "2026-08-30T02:54:37.826Z",
+      "completedAt": "2026-08-30T02:54:39.206Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:931a95a14e5ded5b646a6c0312998ecced144158eb7773b8b882d93bd815a9d6"
+    },
+    {
+      "fixtureId": "background-lifecycle.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "HOST_PROCESS_STARTED",
+        "HOST_PROCESS_EXITED",
+        "ZERO_ORPHANS_OBSERVED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "background-lifecycle.positive.v1",
+        "observerId": "protected.background-lifecycle.positive",
+        "observerKind": "PROCESS_LIFECYCLE",
+        "observationDigest": "sha256:88dfc99a7698b8912cb680d65191ad614732262e6c35cacf271226f15a963d7e",
+        "observedAt": "2026-08-30T02:54:39.769Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.background-lifecycle.positive.v1.77c4a2560dfc",
+      "startedAt": "2026-08-30T02:54:39.206Z",
+      "completedAt": "2026-08-30T02:54:39.769Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:88dfc99a7698b8912cb680d65191ad614732262e6c35cacf271226f15a963d7e"
+    },
+    {
+      "fixtureId": "hostile-data.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "HOSTILE_OUTPUT_REJECTED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "hostile-data.negative.v1",
+        "observerId": "protected.hostile-data.negative",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:e3282a3429e91d25f21148e41428898b80d35aa286ea2e0cb6789af4038cfedb",
+        "observedAt": "2026-08-30T02:54:40.334Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.hostile-data.negative.v1.58f498ac7f0a",
+      "startedAt": "2026-08-30T02:54:39.769Z",
+      "completedAt": "2026-08-30T02:54:40.334Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:e3282a3429e91d25f21148e41428898b80d35aa286ea2e0cb6789af4038cfedb"
+    },
+    {
+      "fixtureId": "hostile-data.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "STRUCTURED_OUTPUT_ACCEPTED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "hostile-data.positive.v1",
+        "observerId": "protected.hostile-data.positive",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:b6daaf55cd2897b9d3d7ef2e7f244580bd76be5d6e133378c5d15355f627a06f",
+        "observedAt": "2026-08-30T02:54:40.910Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.hostile-data.positive.v1.3ef0ea3cf66f",
+      "startedAt": "2026-08-30T02:54:40.334Z",
+      "completedAt": "2026-08-30T02:54:40.910Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:b6daaf55cd2897b9d3d7ef2e7f244580bd76be5d6e133378c5d15355f627a06f"
+    },
+    {
+      "fixtureId": "identity-currentness.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "CURRENTNESS_MISMATCHED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "identity-currentness.negative.v1",
+        "observerId": "protected.identity-currentness.negative",
+        "observerKind": "ENVIRONMENT_MEASUREMENT",
+        "observationDigest": "sha256:8be4c54b7eeff89eac48b7a1dee155e6377b12c9b1f5504ff0c1c8faa2016127",
+        "observedAt": "2026-08-30T02:54:41.105Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.identity-currentness.negative.v1.0a5f97b30e20",
+      "startedAt": "2026-08-30T02:54:40.910Z",
+      "completedAt": "2026-08-30T02:54:41.105Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:8be4c54b7eeff89eac48b7a1dee155e6377b12c9b1f5504ff0c1c8faa2016127"
+    },
+    {
+      "fixtureId": "identity-currentness.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "HOST_VERSION_OBSERVED",
+        "CURRENTNESS_MATCHED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "identity-currentness.positive.v1",
+        "observerId": "protected.identity-currentness.positive",
+        "observerKind": "ENVIRONMENT_MEASUREMENT",
+        "observationDigest": "sha256:98e3b1b3eceda4875135acb7e693f6e7ca076c4d123aa5c1fe5a93b7667e2668",
+        "observedAt": "2026-08-30T02:54:41.301Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.identity-currentness.positive.v1.c376f84e5693",
+      "startedAt": "2026-08-30T02:54:41.105Z",
+      "completedAt": "2026-08-30T02:54:41.301Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:98e3b1b3eceda4875135acb7e693f6e7ca076c4d123aa5c1fe5a93b7667e2668"
+    },
+    {
+      "fixtureId": "instruction-package.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "DUPLICATE_SKILL_DISCOVERED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "instruction-package.negative.v1",
+        "observerId": "protected.instruction-package.negative",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:368214d2c508881e8f9849bbeae78b42f0abb796f03c538765dfc488722c6616",
+        "observedAt": "2026-08-30T02:54:41.749Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.instruction-package.negative.v1.9519b7797200",
+      "startedAt": "2026-08-30T02:54:41.301Z",
+      "completedAt": "2026-08-30T02:54:41.749Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:368214d2c508881e8f9849bbeae78b42f0abb796f03c538765dfc488722c6616"
+    },
+    {
+      "fixtureId": "instruction-package.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_DISCOVERED",
+        "NATIVE_SKILL_ALLOWED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "instruction-package.positive.v1",
+        "observerId": "protected.instruction-package.positive",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:9aed1f49c7080a8ebb104714ad12de949e5fe1451daa19bcf48968dad1b05660",
+        "observedAt": "2026-08-30T02:54:42.581Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.instruction-package.positive.v1.2dd4657ad910",
+      "startedAt": "2026-08-30T02:54:41.749Z",
+      "completedAt": "2026-08-30T02:54:42.581Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:9aed1f49c7080a8ebb104714ad12de949e5fe1451daa19bcf48968dad1b05660"
+    },
+    {
+      "fixtureId": "native-permissions.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "NATIVE_TOOL_DENIED",
+        "NATIVE_PERMISSION_MATCHED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "native-permissions.negative.v1",
+        "observerId": "protected.native-permissions.negative",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:1aae1f93359ba0cfa32ee6e59a17c94c4c6520892683a1cebe24d0a9264171ad",
+        "observedAt": "2026-08-30T02:54:43.152Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.native-permissions.negative.v1.aa3f217c9dce",
+      "startedAt": "2026-08-30T02:54:42.581Z",
+      "completedAt": "2026-08-30T02:54:43.152Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:1aae1f93359ba0cfa32ee6e59a17c94c4c6520892683a1cebe24d0a9264171ad"
+    },
+    {
+      "fixtureId": "native-permissions.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "NATIVE_SKILL_ALLOWED",
+        "NATIVE_PERMISSION_MATCHED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "native-permissions.positive.v1",
+        "observerId": "protected.native-permissions.positive",
+        "observerKind": "HOST_NATIVE_EVENTS",
+        "observationDigest": "sha256:3e6b773591eaf795024c74dce09fe54bb6331ca7357987e6608cf4a37c0a5c1d",
+        "observedAt": "2026-08-30T02:54:43.709Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.native-permissions.positive.v1.2d4b3730c18d",
+      "startedAt": "2026-08-30T02:54:43.152Z",
+      "completedAt": "2026-08-30T02:54:43.709Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:3e6b773591eaf795024c74dce09fe54bb6331ca7357987e6608cf4a37c0a5c1d"
+    },
+    {
+      "fixtureId": "preservation.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "PRESERVATION_BASELINE_MISMATCHED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "preservation.negative.v1",
+        "observerId": "protected.preservation.negative",
+        "observerKind": "PRESERVATION_BASELINE",
+        "observationDigest": "sha256:c2d3ea8d1bcc3b32d8afbcb454d866a84089ca0f4b1f14e2703f4ff4ae61d1a3",
+        "observedAt": "2026-08-30T02:54:44.253Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.preservation.negative.v1.13f9a4386cce",
+      "startedAt": "2026-08-30T02:54:43.709Z",
+      "completedAt": "2026-08-30T02:54:44.253Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:c2d3ea8d1bcc3b32d8afbcb454d866a84089ca0f4b1f14e2703f4ff4ae61d1a3"
+    },
+    {
+      "fixtureId": "preservation.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "CODEX_BASELINE_MATCHED",
+        "CLAUDE_BASELINE_MATCHED",
+        "GOOSE_BASELINE_MATCHED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "preservation.positive.v1",
+        "observerId": "protected.preservation.positive",
+        "observerKind": "PRESERVATION_BASELINE",
+        "observationDigest": "sha256:6cc44e6e4e8323948e1e8adb83a2eff2204941e1dd95573bdfff56963f372e18",
+        "observedAt": "2026-08-30T02:54:44.797Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.preservation.positive.v1.c77ae0efc492",
+      "startedAt": "2026-08-30T02:54:44.253Z",
+      "completedAt": "2026-08-30T02:54:44.797Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:6cc44e6e4e8323948e1e8adb83a2eff2204941e1dd95573bdfff56963f372e18"
+    },
+    {
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "PUBLIC_MCP_LEASE_REJECTED",
+        "NO_PROMOTION_OBSERVED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "public-mcp-facade.negative.v1",
+        "observerId": "protected.public-mcp-facade.negative",
+        "observerKind": "MCP_FRAME_COLLECTOR",
+        "observationDigest": "sha256:1c0f9a3badb724000555a48dc39135caa1601f1acc88836dce5f506ddaa437c3",
+        "observedAt": "2026-08-30T02:54:45.083Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.public-mcp-facade.negative.v1.56238291a235",
+      "startedAt": "2026-08-30T02:54:44.797Z",
+      "completedAt": "2026-08-30T02:54:45.083Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:1c0f9a3badb724000555a48dc39135caa1601f1acc88836dce5f506ddaa437c3"
+    },
+    {
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "PUBLIC_MCP_LIST_OBSERVED",
+        "PUBLIC_MCP_READ_OBSERVED",
+        "NO_PROMOTION_OBSERVED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "public-mcp-facade.positive.v1",
+        "observerId": "protected.public-mcp-facade.positive",
+        "observerKind": "MCP_FRAME_COLLECTOR",
+        "observationDigest": "sha256:73760d4414e98a8b1f9a5ea195c2be872c765c867e3536572fad31c657903e2c",
+        "observedAt": "2026-08-30T02:54:45.370Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.public-mcp-facade.positive.v1.ed4b80a3b438",
+      "startedAt": "2026-08-30T02:54:45.083Z",
+      "completedAt": "2026-08-30T02:54:45.370Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:73760d4414e98a8b1f9a5ea195c2be872c765c867e3536572fad31c657903e2c"
+    },
+    {
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "PROVIDER_RESPONSE_LOST",
+        "BLIND_RETRY_ABSENT",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "receipt-ambiguity.negative.v1",
+        "observerId": "protected.receipt-ambiguity.negative",
+        "observerKind": "PROVIDER_RECEIPT",
+        "observationDigest": "sha256:34407109f1f1b2b89c6a786a8447a53bc4976fc12ffffa96e2519f7c47673efd",
+        "observedAt": "2026-08-30T02:54:45.587Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.receipt-ambiguity.negative.v1.e30c317c5a21",
+      "startedAt": "2026-08-30T02:54:45.370Z",
+      "completedAt": "2026-08-30T02:54:45.587Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:34407109f1f1b2b89c6a786a8447a53bc4976fc12ffffa96e2519f7c47673efd"
+    },
+    {
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "PROVIDER_REQUEST_OBSERVED",
+        "PROVIDER_RECEIPT_MATCHED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "receipt-ambiguity.positive.v1",
+        "observerId": "protected.receipt-ambiguity.positive",
+        "observerKind": "PROVIDER_RECEIPT",
+        "observationDigest": "sha256:a624566d08806f96d21e3a824a7ad68d5528237a7946cb71086e0ae30231597f",
+        "observedAt": "2026-08-30T02:54:46.155Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.receipt-ambiguity.positive.v1.e667129007c5",
+      "startedAt": "2026-08-30T02:54:45.587Z",
+      "completedAt": "2026-08-30T02:54:46.155Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:a624566d08806f96d21e3a824a7ad68d5528237a7946cb71086e0ae30231597f"
+    },
+    {
+      "fixtureId": "workspace.negative.v1",
+      "observedDecisionCode": "DENY",
+      "nativeEventSequence": [
+        "WORKSPACE_ALIAS_REJECTED",
+        "REPOSITORY_UNCHANGED",
+        "PROTECTED_DENY"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "workspace.negative.v1",
+        "observerId": "protected.workspace.negative",
+        "observerKind": "FILESYSTEM_IDENTITY",
+        "observationDigest": "sha256:2755bb0cb15a03b64f0c65ced59be8d36860d84fa2a441e87b4e51f52ac52e6f",
+        "observedAt": "2026-08-30T02:54:46.355Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.workspace.negative.v1.02c11d2b443c",
+      "startedAt": "2026-08-30T02:54:46.155Z",
+      "completedAt": "2026-08-30T02:54:46.355Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:2755bb0cb15a03b64f0c65ced59be8d36860d84fa2a441e87b4e51f52ac52e6f"
+    },
+    {
+      "fixtureId": "workspace.positive.v1",
+      "observedDecisionCode": "ALLOW",
+      "nativeEventSequence": [
+        "WORKSPACE_IDENTITY_MATCHED",
+        "REPOSITORY_UNCHANGED"
+      ],
+      "observerReceipt": {
+        "schemaId": "kstack.goose-conformance-observer-receipt.v1",
+        "schemaVersion": 1,
+        "fixtureId": "workspace.positive.v1",
+        "observerId": "protected.workspace.positive",
+        "observerKind": "FILESYSTEM_IDENTITY",
+        "observationDigest": "sha256:0216ed704b9fd05f13da313df791607e789f6243279dd6e02435f49f4305c694",
+        "observedAt": "2026-08-30T02:54:46.809Z",
+        "owner": "PROTECTED_HARNESS",
+        "subjectWritable": false,
+        "available": true,
+        "contradicted": false
+      },
+      "attemptId": "attempt.workspace.positive.v1.7cb3402cc55e",
+      "startedAt": "2026-08-30T02:54:46.355Z",
+      "completedAt": "2026-08-30T02:54:46.809Z",
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null,
+      "detailDigest": "sha256:0216ed704b9fd05f13da313df791607e789f6243279dd6e02435f49f4305c694"
+    }
+  ],
+  "executions": [
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "approval-broker.negative.v1",
+      "fixtureDigest": "sha256:d79caddf99c54a035d214ac93b7a00fe9b31c0722b109b412778b9608c0d8573",
+      "attemptId": "attempt.approval-broker.negative.v1.b5d5dda26fe2",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:96bfdebdafa0d3102be537906c2e12172c96fa4d81fe5044f683c7fc663c866f"
+      ],
+      "startedAt": "2026-08-30T02:54:36.953Z",
+      "completedAt": "2026-08-30T02:54:37.161Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "approval-broker.positive.v1",
+      "fixtureDigest": "sha256:f5aac862db08ac36696e3ae4acc99dd1842aad7cae2bd75534c65f71f5405cde",
+      "attemptId": "attempt.approval-broker.positive.v1.4e11577ea459",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:2516c2257f7b877f5b930405d4374de8dea5e174dc852b72e3c98e36a32dda2d"
+      ],
+      "startedAt": "2026-08-30T02:54:37.161Z",
+      "completedAt": "2026-08-30T02:54:37.826Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "background-lifecycle.negative.v1",
+      "fixtureDigest": "sha256:f0052e6e8f38d82a61ce64ba04f469fff0e7819fc1061edb0227933e7160a0b8",
+      "attemptId": "attempt.background-lifecycle.negative.v1.18d16e1c4b20",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:5dee9d562ba4abdc59623851cd9fa2517d8b87d5673fc29042e240b3ac9ae88c"
+      ],
+      "startedAt": "2026-08-30T02:54:37.826Z",
+      "completedAt": "2026-08-30T02:54:39.206Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "background-lifecycle.positive.v1",
+      "fixtureDigest": "sha256:acab63c26a2d132a1e2fdd7ab0893fbdfd6882e9e49e335b1a08d8f15f44bd6e",
+      "attemptId": "attempt.background-lifecycle.positive.v1.77c4a2560dfc",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:23d7a33648b5e61d085094da97412a9c1e0f7b06461f140c6a85515d03675bc2"
+      ],
+      "startedAt": "2026-08-30T02:54:39.206Z",
+      "completedAt": "2026-08-30T02:54:39.769Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "hostile-data.negative.v1",
+      "fixtureDigest": "sha256:e315a61390cc9c34b62ad34a37932b68c9c54bf0aaa1d1d7ad68e405cfccfd32",
+      "attemptId": "attempt.hostile-data.negative.v1.58f498ac7f0a",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:8f3ec411bd972fbaa731e66ed2e0fd1a023d332b3b7adf8b96ba483dc69d36b7"
+      ],
+      "startedAt": "2026-08-30T02:54:39.769Z",
+      "completedAt": "2026-08-30T02:54:40.334Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "hostile-data.positive.v1",
+      "fixtureDigest": "sha256:f39d251a65cc286e2669a594370d171996d29fa32503ea4b78213d883dae44b5",
+      "attemptId": "attempt.hostile-data.positive.v1.3ef0ea3cf66f",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:406843a3aec2988f74bd0172f75348bfdc27d5fdd2b7fdd4b6bb6777484791b0"
+      ],
+      "startedAt": "2026-08-30T02:54:40.334Z",
+      "completedAt": "2026-08-30T02:54:40.910Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "identity-currentness.negative.v1",
+      "fixtureDigest": "sha256:9568cdcef81b5878a6c05d0c43b2a368af49b521ec6baa6697e10956970a2088",
+      "attemptId": "attempt.identity-currentness.negative.v1.0a5f97b30e20",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:fe855b73b9513a04d5ffd4d4b4a019fa6b262ca662ce7c8d205a70fa412f9eb1"
+      ],
+      "startedAt": "2026-08-30T02:54:40.910Z",
+      "completedAt": "2026-08-30T02:54:41.105Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "identity-currentness.positive.v1",
+      "fixtureDigest": "sha256:8583dbfa809220a2ba09339fdcf553575abc8db4a01b544c98ac37e866e27d69",
+      "attemptId": "attempt.identity-currentness.positive.v1.c376f84e5693",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:076bcdffd6f25f074b93a8da309c439c0364524cfab8ee342c113aa9d15354cb"
+      ],
+      "startedAt": "2026-08-30T02:54:41.105Z",
+      "completedAt": "2026-08-30T02:54:41.301Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "instruction-package.negative.v1",
+      "fixtureDigest": "sha256:7289aa82e2a64b43dc0b69c398c30aab95e3c16f9746fe9e3d22e20c76459c03",
+      "attemptId": "attempt.instruction-package.negative.v1.9519b7797200",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:f9cb7e824af4c1e8f7a4dcb1e731fdddafb77c22977050b4862164d3fb3167cf"
+      ],
+      "startedAt": "2026-08-30T02:54:41.301Z",
+      "completedAt": "2026-08-30T02:54:41.749Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "instruction-package.positive.v1",
+      "fixtureDigest": "sha256:9b12c9d1818239d78091b53df70f1f6e2f63e67a82b26e54a23974d38ee2c15e",
+      "attemptId": "attempt.instruction-package.positive.v1.2dd4657ad910",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:4ba2dd9d2422a47aeff8e1990db8d377e1f6e9eb675ea32d3fbcaad241b55b3c"
+      ],
+      "startedAt": "2026-08-30T02:54:41.749Z",
+      "completedAt": "2026-08-30T02:54:42.581Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "native-permissions.negative.v1",
+      "fixtureDigest": "sha256:a92d4eed9306239b26f20ca2d66b459b50e4732fb593d75107be60c1f784eb5b",
+      "attemptId": "attempt.native-permissions.negative.v1.aa3f217c9dce",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:3dc6cd855d8731cf0cecd020fbbd091ad91021a25c35ceb50145fc99af0f604d"
+      ],
+      "startedAt": "2026-08-30T02:54:42.581Z",
+      "completedAt": "2026-08-30T02:54:43.152Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "native-permissions.positive.v1",
+      "fixtureDigest": "sha256:f508c15a8dbbf75348e81a55020676c47509ae98780133e381b3c82255326535",
+      "attemptId": "attempt.native-permissions.positive.v1.2d4b3730c18d",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:bbf2de8a06fb436b20271df0eecd7ad983676a76ff9ed3ec0eb46077cd7521e4"
+      ],
+      "startedAt": "2026-08-30T02:54:43.152Z",
+      "completedAt": "2026-08-30T02:54:43.709Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "preservation.negative.v1",
+      "fixtureDigest": "sha256:535287808e80bb83f070dc07d0a0a45b5f7d24223061ebdc4888c6c3e399c6b1",
+      "attemptId": "attempt.preservation.negative.v1.13f9a4386cce",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:bcc549352e55fddf066152de618f70a43e912a8d4ccc39abc5f736d23a0df937"
+      ],
+      "startedAt": "2026-08-30T02:54:43.709Z",
+      "completedAt": "2026-08-30T02:54:44.253Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "preservation.positive.v1",
+      "fixtureDigest": "sha256:ede3d833035034335f2378d7af0ec7ed3e616e6d832adf792f7a0e6480d1c0bb",
+      "attemptId": "attempt.preservation.positive.v1.c77ae0efc492",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:12cdca9c6dabe2d5da828ae34d930dd752c05a3d7073461d56cb3c1eead7c301"
+      ],
+      "startedAt": "2026-08-30T02:54:44.253Z",
+      "completedAt": "2026-08-30T02:54:44.797Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "fixtureDigest": "sha256:9a5cb10f4d5a10d5e38d640ec548f1607307f4f4f9cdeb1ec0ad699102655cae",
+      "attemptId": "attempt.public-mcp-facade.negative.v1.56238291a235",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:7e32df79ac00fa55a57d9ef7c55ec711baa908171a2c04d6e029f212c5b5d23c"
+      ],
+      "startedAt": "2026-08-30T02:54:44.797Z",
+      "completedAt": "2026-08-30T02:54:45.083Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "fixtureDigest": "sha256:c30da98cccd0ca8936c856de56e250b2b25b286705b8fedf8561f959823c9c77",
+      "attemptId": "attempt.public-mcp-facade.positive.v1.ed4b80a3b438",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:c32b2b56bb02e9bd244aa481000b680c45f10764717d9fdabb8f4a94f2c46984"
+      ],
+      "startedAt": "2026-08-30T02:54:45.083Z",
+      "completedAt": "2026-08-30T02:54:45.370Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "fixtureDigest": "sha256:3ebeb69072b48c81984c95e1571428a3f735b73a7dbb439a8db210d0f782d21e",
+      "attemptId": "attempt.receipt-ambiguity.negative.v1.e30c317c5a21",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:94ea3835536db69978ac2c74ea85c291723331425db045a45f8e2258f364b2d8"
+      ],
+      "startedAt": "2026-08-30T02:54:45.370Z",
+      "completedAt": "2026-08-30T02:54:45.587Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "fixtureDigest": "sha256:5a6b114f73bdc5b6d828a43b501e902951baeb2c72911a1718aa04889e57cb75",
+      "attemptId": "attempt.receipt-ambiguity.positive.v1.e667129007c5",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:72f7a6d995ce0dd5441b5db951f50666b6ca4d6ff571549457d8079763b44fa4"
+      ],
+      "startedAt": "2026-08-30T02:54:45.587Z",
+      "completedAt": "2026-08-30T02:54:46.155Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "workspace.negative.v1",
+      "fixtureDigest": "sha256:5c2ccf37a554bed4c7a70b81d40710c5a3a4b457d2be97d8b470c69128fe0896",
+      "attemptId": "attempt.workspace.negative.v1.02c11d2b443c",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:0cc502de5e72d7347baede0cafe1e033a184113ef824ce7c344b573e14e83376"
+      ],
+      "startedAt": "2026-08-30T02:54:46.155Z",
+      "completedAt": "2026-08-30T02:54:46.355Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    },
+    {
+      "schemaId": "kstack.goose-conformance-execution.v1",
+      "schemaVersion": 1,
+      "fixtureId": "workspace.positive.v1",
+      "fixtureDigest": "sha256:2d4ce179c569d2afe227421a4e78394d8539004dfa170eaa0326271d964b8166",
+      "attemptId": "attempt.workspace.positive.v1.7cb3402cc55e",
+      "state": "PASS",
+      "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+      "environmentStartDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "environmentEndDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+      "observerReceiptDigests": [
+        "sha256:3a9a28f52a030bdc47d22d45d3100e49d8cb9bc25d505704dca473dcbe0a74ae"
+      ],
+      "startedAt": "2026-08-30T02:54:46.355Z",
+      "completedAt": "2026-08-30T02:54:46.809Z",
+      "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+      "oraclePassed": true,
+      "observersAgree": true,
+      "forbiddenSideEffects": false,
+      "limitsPassed": true,
+      "cleanupPassed": true,
+      "actionBoundaryCrossed": false,
+      "outcomeProven": true,
+      "failureCode": null
+    }
+  ],
+  "evidenceSet": {
+    "schemaId": "kstack.goose-conformance-evidence-set.v1",
+    "schemaVersion": 1,
+    "planDigest": "sha256:8faa19dd08e062696a27a953e87103f37997ff426e26c530f2772295e148d74f",
+    "fixtureSetDigest": "sha256:dd0d5d1ce3e95673e376996ef0a479c7eb7527b461eacecc365d738aa2c4a77d",
+    "executionDigests": [
+      "sha256:0db4f15a7b3596ab703aec32ad6902d4fa0f676b55f6c166418880e30609c7a6",
+      "sha256:2dfd87cc21e725d4eb8623dea6429b106e8e8b9ed70f89c92747ea8dff6c3175",
+      "sha256:487ef3164af7ca1b78d942bbfcc3666a7d37a76b830266b4ba63449b7c02db90",
+      "sha256:4cb7483ab2632bbc760e899849d588cd23f15d479f8cb3e0ef9fd584564c2e29",
+      "sha256:5741051fd059a0b1f90f2edb725c06a8149e1c4f3a21bf732d19cd31915f8965",
+      "sha256:58f761e8904d2ec3052e9b81329a694a271670962f2631d9488636c1dbebc427",
+      "sha256:6597229905eb251753b4a44bbbb9e8bd4b67aac0bc04d1b24302936f5a56db1c",
+      "sha256:73977c7807e7a941a51b36db39300d0dc1be5f2918f2574ab41d5f571aa1d1cb",
+      "sha256:80a5dab90a5b3385c76a4db1e2854dc8efd7a2c773e60bf214838d1888d9372d",
+      "sha256:8a36c9701a290f04c94ca7192f99056f68ccacbc58650c621b7b10f7c947be37",
+      "sha256:9c63c9862680d525774e3aad1618d7a9b3007400d9a3a50c4b9a3949273b7f0f",
+      "sha256:9d3ff3ca6506d605802beecedefe47175ffe6cea1bd9a4279bd3158e2b0c82f2",
+      "sha256:a023451204dc6ee1fa74c956a9fce60b682f50f8fcf7610204c0dec7f2986b6b",
+      "sha256:a57172ab68cf301f8ed50677c13837c607e79ac891c66847bc4a0bce55a35ea0",
+      "sha256:abb325b2b2d0cb1beb7e5f308a0d91c818a40e6ba44b1995faf58090c2f1fad4",
+      "sha256:b116366beeffdf964dcc268622c665d23ad6037cd0025a48d99415553ce6aa67",
+      "sha256:bf3afd5507ba329eb0402d8fde9f22a7145170af6deb24ae493cc84e0ccc21e9",
+      "sha256:bf8c12c19320c1c917ad1f5d36747ed0b6f72f3b12b7a7837b36558adcdea683",
+      "sha256:c202e64aa1005ef0c2d95892504d2625f080a3c6153d845b59c968d8a2a649a7",
+      "sha256:eebf9eacf8b2e3a07c846aae9771c61a049a0f2cdeb492c00890be8b3d5ba105"
+    ],
+    "fixtureIds": [
+      "approval-broker.negative.v1",
+      "approval-broker.positive.v1",
+      "background-lifecycle.negative.v1",
+      "background-lifecycle.positive.v1",
+      "hostile-data.negative.v1",
+      "hostile-data.positive.v1",
+      "identity-currentness.negative.v1",
+      "identity-currentness.positive.v1",
+      "instruction-package.negative.v1",
+      "instruction-package.positive.v1",
+      "native-permissions.negative.v1",
+      "native-permissions.positive.v1",
+      "preservation.negative.v1",
+      "preservation.positive.v1",
+      "public-mcp-facade.negative.v1",
+      "public-mcp-facade.positive.v1",
+      "receipt-ambiguity.negative.v1",
+      "receipt-ambiguity.positive.v1",
+      "workspace.negative.v1",
+      "workspace.positive.v1"
+    ],
+    "observerReceiptDigests": [
+      "sha256:076bcdffd6f25f074b93a8da309c439c0364524cfab8ee342c113aa9d15354cb",
+      "sha256:0cc502de5e72d7347baede0cafe1e033a184113ef824ce7c344b573e14e83376",
+      "sha256:12cdca9c6dabe2d5da828ae34d930dd752c05a3d7073461d56cb3c1eead7c301",
+      "sha256:23d7a33648b5e61d085094da97412a9c1e0f7b06461f140c6a85515d03675bc2",
+      "sha256:2516c2257f7b877f5b930405d4374de8dea5e174dc852b72e3c98e36a32dda2d",
+      "sha256:3a9a28f52a030bdc47d22d45d3100e49d8cb9bc25d505704dca473dcbe0a74ae",
+      "sha256:3dc6cd855d8731cf0cecd020fbbd091ad91021a25c35ceb50145fc99af0f604d",
+      "sha256:406843a3aec2988f74bd0172f75348bfdc27d5fdd2b7fdd4b6bb6777484791b0",
+      "sha256:4ba2dd9d2422a47aeff8e1990db8d377e1f6e9eb675ea32d3fbcaad241b55b3c",
+      "sha256:5dee9d562ba4abdc59623851cd9fa2517d8b87d5673fc29042e240b3ac9ae88c",
+      "sha256:72f7a6d995ce0dd5441b5db951f50666b6ca4d6ff571549457d8079763b44fa4",
+      "sha256:7e32df79ac00fa55a57d9ef7c55ec711baa908171a2c04d6e029f212c5b5d23c",
+      "sha256:8f3ec411bd972fbaa731e66ed2e0fd1a023d332b3b7adf8b96ba483dc69d36b7",
+      "sha256:94ea3835536db69978ac2c74ea85c291723331425db045a45f8e2258f364b2d8",
+      "sha256:96bfdebdafa0d3102be537906c2e12172c96fa4d81fe5044f683c7fc663c866f",
+      "sha256:bbf2de8a06fb436b20271df0eecd7ad983676a76ff9ed3ec0eb46077cd7521e4",
+      "sha256:bcc549352e55fddf066152de618f70a43e912a8d4ccc39abc5f736d23a0df937",
+      "sha256:c32b2b56bb02e9bd244aa481000b680c45f10764717d9fdabb8f4a94f2c46984",
+      "sha256:f9cb7e824af4c1e8f7a4dcb1e731fdddafb77c22977050b4862164d3fb3167cf",
+      "sha256:fe855b73b9513a04d5ffd4d4b4a019fa6b262ca662ce7c8d205a70fa412f9eb1"
+    ],
+    "startMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+    "endMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+    "currentnessMeasurementDigest": "sha256:14f82f3c94526cf9cc0fc485d1db417f1f94de36601fa903a088c73bc89e0076",
+    "cleanupEvidenceDigest": "sha256:44043d9adf88fd54b9ca80b770f5b335c2b5a66ce84bc812d836ee6a47250528",
+    "expiresAt": "2026-09-06T02:54:36.853Z",
+    "aggregate": "PASS"
+  },
+  "evidenceSetDigest": "sha256:34d29ed510e4bd6565b3b7373f07d867cd205971a1e866f10821b4c99b2a87b1",
+  "operationStatus": {
+    "schemaId": "kstack.goose-operation-status.v1",
+    "schemaVersion": 1,
+    "hostId": "goose",
+    "maximumClaim": "OPERATION_SCOPED_ONLY",
+    "operationId": "advisory",
+    "operationProfileId": "goose.advisory-public-read.v1",
+    "profileClass": "FULL",
+    "registeredAlternate": false,
+    "hostBuildDigest": "sha256:cc81170e89e4f622d11d745aeafdd56fcca6a412139cd3dc7d817235d1561875",
+    "adapterDigest": "sha256:fd8e8f37346ec98a35d8da57ff803f183e4c3ebcec8343558de713fbd73a1806",
+    "platformDigest": "sha256:15fe35a5423bc25bb1acd2c5275bf074ed624a1095c2b4b1c2678c3bb15c0ed6",
+    "activeSetDigest": "sha256:497aa43223fee70f1a41573c83fefd03058d6087587f3d15c3aae19d459a05d1",
+    "policyDigest": "sha256:d49cd0f5f1d7875c623db8c71153a3ef28b9c35300af32f2c06ae65e99e9e78b",
+    "evidenceSetDigest": "sha256:34d29ed510e4bd6565b3b7373f07d867cd205971a1e866f10821b4c99b2a87b1",
+    "fixtureSetDigest": "sha256:dd0d5d1ce3e95673e376996ef0a479c7eb7527b461eacecc365d738aa2c4a77d",
+    "observerSetDigest": "sha256:451d28276ab2f669b0e12c40465af4a17a37c7d60dbfb7aed0a6dc5f1d7b2b14",
+    "evaluatedAt": "2026-08-30T02:54:46.820Z",
+    "expiresAt": "2026-09-06T02:54:36.853Z",
+    "aggregate": "PASS",
+    "revoked": false,
+    "drifted": false,
+    "contradicted": false,
+    "missingRequirementIds": [],
+    "bypassIds": [],
+    "status": "FULL",
+    "reasonCodes": []
+  },
+  "operationStatusDigest": "sha256:d09f0c50325ad4bd53fba76b9fcebcd1fecc7264c0767ac8f2b603bc5d08d1fc",
+  "providerRequestCount": 18,
+  "providerRequestDigest": "sha256:714253610d9f8672cdd97f4dfc5d020afc602e60aa76c7549ba2dea5b30d48fa",
+  "failedFixtureIds": [],
+  "fixtureDiagnostics": [
+    {
+      "fixtureId": "approval-broker.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "approval-broker.negative.v1",
+        "group": "approval-broker",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "109a9602b240aca7540f4e7068120bfdb3801a4edea324987529829e6d2e06f2",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:b67f5baa9c2855cf6fd6344987386568090d50e344d2d6079bf72e9836ef0be1",
+        "repositoryFinalDigest": "sha256:b67f5baa9c2855cf6fd6344987386568090d50e344d2d6079bf72e9836ef0be1",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:c0fbe10941185d60e802ad16ea9c06629117a4bdaac4b9f501c5c1a8d02ffefe"
+      }
+    },
+    {
+      "fixtureId": "approval-broker.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "approval-broker.positive.v1",
+        "group": "approval-broker",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "5715f20b3ca5ed144b7fbf00bcd1bafdf37ceb1894d5c755c0afa913e7d1c666",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:47b9b49383e36ba24b4fb481d6f6439e6039d2ec2b0d1b1af9dd088d24a1d429",
+        "repositoryFinalDigest": "sha256:47b9b49383e36ba24b4fb481d6f6439e6039d2ec2b0d1b1af9dd088d24a1d429",
+        "adapterObservationDigest": "150859ce2d61e1ccaecac205f3093f2dc7590331db3fb84bebd61baa41759072",
+        "providerRequestDigest": "sha256:cc486b4d5c07b95b3fb8a7fe47cc12f8835403c2851e41b203a15b26f0a42784",
+        "groupEvidenceDigest": "sha256:7648afb04dd0349cf3e6c201581ca10afca256386fab4ca5a8b88e0cac16d7dc"
+      }
+    },
+    {
+      "fixtureId": "background-lifecycle.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "background-lifecycle.negative.v1",
+        "group": "background-lifecycle",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "a018cf29de9ba39f90655fd001bb9927b99cb6d7b3cf07bd0840fceb5e9d6648",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:3a7fe74653e2aa2278d646fa949e88aabcd38e589d867e678578d5febf0b7550",
+        "repositoryFinalDigest": "sha256:3a7fe74653e2aa2278d646fa949e88aabcd38e589d867e678578d5febf0b7550",
+        "adapterObservationDigest": "d30ab0d80cfef7c418bc8163a8abb5b5ba3f7a5c4646f033194f736f1af7996b",
+        "providerRequestDigest": "sha256:01330bb481a1b69fa38a219827fe567942f900fee93aa4f3cdacd8a4be9eb625",
+        "groupEvidenceDigest": "sha256:304471336d22145a778c9da4d8d739c7be13ab423287c2dc83560151d65a8191",
+        "groupDiagnostics": {
+          "status": null,
+          "signal": "SIGKILL",
+          "deadlineTriggered": true,
+          "elapsedMs": 1019,
+          "liveDescendants": []
+        }
+      }
+    },
+    {
+      "fixtureId": "background-lifecycle.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "background-lifecycle.positive.v1",
+        "group": "background-lifecycle",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "ccdb0e3a518999666333001d08ed5c878c5d8c006c358982146c8863a78a86ba",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:3d6c59aac454bb2306212220490f450a5d0d6d2a175ffc60f1d1f3542b9b643a",
+        "repositoryFinalDigest": "sha256:3d6c59aac454bb2306212220490f450a5d0d6d2a175ffc60f1d1f3542b9b643a",
+        "adapterObservationDigest": "9fc931572487cf68780b52c9d10255631841888fc45d34fbe778e7ab5c70b583",
+        "providerRequestDigest": "sha256:32fc63cb110dd23c6d168b8a6e794857d9a19aca35480f4499eda7475b36a46f",
+        "groupEvidenceDigest": "sha256:17a7850e1cdda458b13f7d0a72813b4a2307a9897cde33cd382fc221f0ef25d2",
+        "groupDiagnostics": {
+          "status": 0,
+          "signal": null,
+          "deadlineTriggered": false,
+          "elapsedMs": 205,
+          "liveDescendants": []
+        }
+      }
+    },
+    {
+      "fixtureId": "hostile-data.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "hostile-data.negative.v1",
+        "group": "hostile-data",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "3b20caf9ecc24b827d3577a711a6d4c165c2d5597e210c040bfc303c6bed323f",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:c2197792dbdb02dc22d9baf8e3059614a927b5084bf5df39a486efa0babaeb8f",
+        "repositoryFinalDigest": "sha256:c2197792dbdb02dc22d9baf8e3059614a927b5084bf5df39a486efa0babaeb8f",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": "sha256:3f64722500c13c13d0e0273fc8f5edbf8fa778ed9b5b81ed614c1dd901b4ab66",
+        "groupEvidenceDigest": "sha256:934fa4df45f55c6ac4dfee86a44201789669d61fd3e35a557e96786f0db94c11"
+      }
+    },
+    {
+      "fixtureId": "hostile-data.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "hostile-data.positive.v1",
+        "group": "hostile-data",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "349bd82ee27f07571c2eadac05019c65cf245be4ec478531aeeee5ce5503b4c1",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:4aa0db7ac4838b044af3d882caa416c2acdb9325516ed626d1184750da67e100",
+        "repositoryFinalDigest": "sha256:4aa0db7ac4838b044af3d882caa416c2acdb9325516ed626d1184750da67e100",
+        "adapterObservationDigest": "cd1759defce91d0948ee9500a627bfcad49cd77654ad317b09fc7602f077d011",
+        "providerRequestDigest": "sha256:8cf04855118f65a524a359542d0f0d68271b2828584d029b2eef96d70322bc2c",
+        "groupEvidenceDigest": "sha256:15df0c723e9d627cb3fee0479d93214be8f64babc3ad35518c5c466fb17feaa5"
+      }
+    },
+    {
+      "fixtureId": "identity-currentness.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "identity-currentness.negative.v1",
+        "group": "identity-currentness",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "8d0131e5043fc1bf3ba6ed0260b06c753a784a73433d5fad3a5445ece6bd4b4a",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:c9373c174cabe485b10e5ca8cd5fabffa1c7c538776d3bea26701311f92675ed",
+        "repositoryFinalDigest": "sha256:c9373c174cabe485b10e5ca8cd5fabffa1c7c538776d3bea26701311f92675ed",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:ab443570a17a5c53213ba95e786a5f8e9b35b2e86587d266584e51ccedcb71b9"
+      }
+    },
+    {
+      "fixtureId": "identity-currentness.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "identity-currentness.positive.v1",
+        "group": "identity-currentness",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "09fd5011b5f1175b0e74650f856d89e944e5fc8f576ee8cd6b32309cc3c96dc5",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:adb9fbe2e12f3ef8e71cf4522613942d25fa149696dafa04a08066f49d6fc41f",
+        "repositoryFinalDigest": "sha256:adb9fbe2e12f3ef8e71cf4522613942d25fa149696dafa04a08066f49d6fc41f",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:94484e93f23d3b418b5159446740a5d84ea68ac0d329227f6907a78fe1775414"
+      }
+    },
+    {
+      "fixtureId": "instruction-package.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "instruction-package.negative.v1",
+        "group": "instruction-package",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "3289e9e4651a98fd8e7d7263505d4b6b8adc98518d714fdc409295215f0da5ff",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:b1783b5b41c0ee494ff7d8f0c489c2df07cbdf5f94d308fe0987a17c120e13ec",
+        "repositoryFinalDigest": "sha256:b1783b5b41c0ee494ff7d8f0c489c2df07cbdf5f94d308fe0987a17c120e13ec",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:6e16940406de9e9a5b60e7da6a911810302627142a1fec9db081fe884fe8c488"
+      }
+    },
+    {
+      "fixtureId": "instruction-package.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "instruction-package.positive.v1",
+        "group": "instruction-package",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "f1d3b3f85ef0f4bfebcc2c0e0a22a977992131d26753fec2e7f1bbe7671e074b",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:9539d31c7a2bfad96bc1fb689d57434491bdc86554f43d994924c74242406f93",
+        "repositoryFinalDigest": "sha256:9539d31c7a2bfad96bc1fb689d57434491bdc86554f43d994924c74242406f93",
+        "adapterObservationDigest": "001985fdf6dcd68c37b612a026cf60fe42eff71379e704f97b05b4d423a4ad53",
+        "providerRequestDigest": "sha256:a2ac990c4bae3a097374e4e3edd0c77cd8bab54c0ccfbd2d4787df9cdd66b5d9",
+        "groupEvidenceDigest": "sha256:0b088938f52279b49bee84fbde5f06c52b4fe256d86a853e7e0de855aefc5d89"
+      }
+    },
+    {
+      "fixtureId": "native-permissions.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "native-permissions.negative.v1",
+        "group": "native-permissions",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "5b8fe620c47e3b866f750dd12b47033581ecc5535a8be8f51f6ba1c0c354044f",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:916cbb358614a782ba8fa59a24d729b12370c20adf81f25b4df3ed5b7917896c",
+        "repositoryFinalDigest": "sha256:916cbb358614a782ba8fa59a24d729b12370c20adf81f25b4df3ed5b7917896c",
+        "adapterObservationDigest": "76fe90ac9f1f05aefdf06aa4a0421a85dd10b4868d31984cb4a23476278abf7a",
+        "providerRequestDigest": "sha256:2f37f126ef2bbc6b019397336cf4f435a9ec4bb1c64c724ce3fac7c884137142",
+        "groupEvidenceDigest": "sha256:cd7f69529055b9a704e0873c287f7da5df31b21758d38b3fe1b37edd33ab2e99"
+      }
+    },
+    {
+      "fixtureId": "native-permissions.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "native-permissions.positive.v1",
+        "group": "native-permissions",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "115267c571cc5545e6f5e9a00b8ed604761ac8edbe6acfc50d51e902f8bec165",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:aec0e5b49cb104a895c8981cfbc41f709f393b5ba465c9af830e259bf8cce877",
+        "repositoryFinalDigest": "sha256:aec0e5b49cb104a895c8981cfbc41f709f393b5ba465c9af830e259bf8cce877",
+        "adapterObservationDigest": "bcdf580b654ad6d03b9ed535326a6a68daad78128e33902757fae74f6a229221",
+        "providerRequestDigest": "sha256:61da9f179d274194371767265c3dd82bed791050c3b29b57c7d7e3da2181beee",
+        "groupEvidenceDigest": null
+      }
+    },
+    {
+      "fixtureId": "preservation.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "preservation.negative.v1",
+        "group": "preservation",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "04e3b8dcd65d1d1c949b89fabd779b5ef26203a0787a81c5454ba41de3b57093",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:2a9116578fd110b22aaa15748ba3b447f8ac0470b24e03655cf8e14e6d0d7955",
+        "repositoryFinalDigest": "sha256:2a9116578fd110b22aaa15748ba3b447f8ac0470b24e03655cf8e14e6d0d7955",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:e783c18f32cc02e65f7f4786bab1e9ecbf7f605c40c0f1c0fb11e643d86da9d6"
+      }
+    },
+    {
+      "fixtureId": "preservation.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "preservation.positive.v1",
+        "group": "preservation",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "68a7f512db7ebfb1f8c094d6c1a0f0df2c339949962f03c16d719858e2d2a23f",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:2c80a00f2f611035cbe9d25ff22274d453c88e44df138ac44d52e8b36b070b49",
+        "repositoryFinalDigest": "sha256:2c80a00f2f611035cbe9d25ff22274d453c88e44df138ac44d52e8b36b070b49",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:d93859e4d9ab2493856f7d4309ac21861b29ec5328d3debaa112c98a72d828fb"
+      }
+    },
+    {
+      "fixtureId": "public-mcp-facade.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "public-mcp-facade.negative.v1",
+        "group": "public-mcp-facade",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "f4fb1a76f48dd634752a194d0bd7be88bc9a4ba29cc63e2b624d4946de6dac51",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:de97d5532b183a17e479b8120f4308387eb487b3bcc04366ea3268b1cbd624aa",
+        "repositoryFinalDigest": "sha256:de97d5532b183a17e479b8120f4308387eb487b3bcc04366ea3268b1cbd624aa",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:cee0240bc6fefac4da301f3e21dde1baa4c64fa6b3bf909a8a110be132fe70c2"
+      }
+    },
+    {
+      "fixtureId": "public-mcp-facade.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "public-mcp-facade.positive.v1",
+        "group": "public-mcp-facade",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "0f7d080688372437c54fe2814ac45f7df4726e6323183f2eeb63e885cb6d4990",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:b4eaf6c1e772adf881bf0ef7123f198841bbf5b2017534eafd977100747c6362",
+        "repositoryFinalDigest": "sha256:b4eaf6c1e772adf881bf0ef7123f198841bbf5b2017534eafd977100747c6362",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:d90fdc2a11b38036eca50fd2a36c347c0ce3dedf92a173ab21dbdf1ad5e572ab"
+      }
+    },
+    {
+      "fixtureId": "receipt-ambiguity.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "receipt-ambiguity.negative.v1",
+        "group": "receipt-ambiguity",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "e17076683205e6cc170439416a71c729bb7c30d7180612c2acc51a6bf7cec1dc",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:15842137c0e85614f10ce1ee2d49d9325cc477ff7145c3187f5d264cb640e3cc",
+        "repositoryFinalDigest": "sha256:15842137c0e85614f10ce1ee2d49d9325cc477ff7145c3187f5d264cb640e3cc",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:e47c05f6bdb2a5881c97a9db135e8b3b876ad330d88f6b46e488a060392005aa"
+      }
+    },
+    {
+      "fixtureId": "receipt-ambiguity.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "receipt-ambiguity.positive.v1",
+        "group": "receipt-ambiguity",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "67a3331d02cfda1b687b0464c030e2bd8dd94ead1bd9c7a1492c8941271fdcc3",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:b825300524781b95bff078faced31d9fc4dd9dd4a15622b563b89ad943b07614",
+        "repositoryFinalDigest": "sha256:b825300524781b95bff078faced31d9fc4dd9dd4a15622b563b89ad943b07614",
+        "adapterObservationDigest": "d501062aca18cbc927879573cad5f9ad9fbdb4bdd3c7e0413926d55e83ce3178",
+        "providerRequestDigest": "sha256:083998be82c8d4d8067976ec83094e2a0419e8e73d8680bd6e1de76e30885b49",
+        "groupEvidenceDigest": "sha256:b966bc9df1fafafec6034f0bef99bae082e13831b03189dc4ae459b88bb32c74"
+      }
+    },
+    {
+      "fixtureId": "workspace.negative.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "workspace.negative.v1",
+        "group": "workspace",
+        "polarity": "NEGATIVE",
+        "versionObservationDigest": "0b0c104c2d96ba65c9ac1c9fc60a41ca4a1dfe6c70cabf3778160b9c064042ab",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:9bd628f6289329ad1707ab5cbd8329686b01b09e54604c821976f9163bff2908",
+        "repositoryFinalDigest": "sha256:676110ba3f5f5ed1ce99799aaf4fea2f97fbce3c5f99906109dd99d57a961bea",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:b0ce9e48a8dcb345a238fe62cfbb65a0a6e304a748066022dac50ff6255423fe"
+      }
+    },
+    {
+      "fixtureId": "workspace.positive.v1",
+      "passed": true,
+      "details": {
+        "fixtureId": "workspace.positive.v1",
+        "group": "workspace",
+        "polarity": "POSITIVE",
+        "versionObservationDigest": "e0344c7e0f5bdf4af405d05e10a46aa36e711cffbcf6fc127d6a0f9f73fd02bb",
+        "binarySha256": "057a1788b48cc1452203920afd31eac274d5b9cb10026734d587e5db33885792",
+        "repositoryInstalledDigest": "sha256:b673b5c72b36961a5e6db0ba2bbaf5736af487abd4899fbe9d4056fd5348bee5",
+        "repositoryFinalDigest": "sha256:b673b5c72b36961a5e6db0ba2bbaf5736af487abd4899fbe9d4056fd5348bee5",
+        "adapterObservationDigest": null,
+        "providerRequestDigest": null,
+        "groupEvidenceDigest": "sha256:3277371b4406e08a758fc463a75f742672982fce34fa4a061d2bb9fda9f08830"
+      }
+    }
+  ],
+  "maximumClaim": "OPERATION_SCOPED_ONLY",
+  "aggregate": "PASS",
+  "evidenceDigest": "sha256:0075bb53f0a0dbbe048a928582571b29a9fec550d39429a351fc8242a0c52f50"
+}

@@ -299,6 +299,8 @@ test('actual dual-review entry point wires smoke, shadow, authenticated reservat
   const config = structuredClone(defaultConfig);
   config.project.name = 'citation-e2e';
   config.workflow.designGate.citationGrounding = 'advisory';
+  delete config.workflow.designGate.reviewSequence;
+  delete config.workflow.designGate.secondaryReview;
   config.models.codex.command = process.execPath;
   config.models.codex.args = [path.join(repositoryRoot, 'tests', 'fixtures', 'fake-codex.mjs')];
   config.models.opus.command = process.execPath;
@@ -351,7 +353,7 @@ test('actual dual-review entry point wires smoke, shadow, authenticated reservat
   assert.equal(shadow.status, 'go');
 
   const promptFile = path.join(project, 'decision.md');
-  fs.writeFileSync(promptFile, 'A genuinely wired citation decision packet.\n');
+  fs.copyFileSync(path.join(repositoryRoot, 'tests', 'fixtures', 'valid-10k-design.md'), promptFile);
   const outDir = path.join(project, 'review');
   const manifest = await runDualReview({ projectRoot: project, promptFile, outDir, citationRuntimeOptions: runtime, onCitationDiagnostic() {} });
   assert.equal(manifest.citationGroundingEffectiveRoute, 'grounding_v2');

@@ -292,10 +292,13 @@ install_runtime() {
     printf 'preserved existing runtime: %s\n' "$backup"
   fi
   mkdir -p "$runtime_root"
+  cp -R "$ROOT/plugins/kstack/acquisition" "$runtime_root/acquisition"
   cp -R "$ROOT/plugins/kstack/scripts" "$runtime_root/scripts"
   cp -R "$ROOT/plugins/kstack/hooks" "$runtime_root/hooks"
+  cp -R "$ROOT/plugins/kstack/packs" "$runtime_root/packs"
   cp -R "$ROOT/plugins/kstack/personas" "$runtime_root/personas"
   cp -R "$ROOT/plugins/kstack/native" "$runtime_root/native"
+  cp -R "$ROOT/plugins/kstack/workers" "$runtime_root/workers"
   cp -R "$ROOT/plugins/kstack/vendor" "$runtime_root/vendor"
   cp -R "$ROOT/plugins/kstack/node_modules" "$runtime_root/node_modules"
   cp "$ROOT/plugins/kstack/package.json" "$ROOT/plugins/kstack/package-lock.json" "$ROOT/plugins/kstack/.npmrc" "$runtime_root/"

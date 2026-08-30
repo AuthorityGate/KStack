@@ -17,6 +17,14 @@ Review the current implementation before KStack calls it complete. This is a
 cooperative review, not reviewer identity attestation or a calibrated
 probability claim.
 
+For user-facing work, read `../../references/PRODUCT_EXPERIENCE.md`. Treat the
+experience contract as approved design evidence and independently inspect its
+critical journeys, state coverage, token/component reuse, accessibility,
+responsive/input behavior, screenshot policy, content/brand consistency, and
+performance budgets. Review one journey/state at a time. A visual confidence
+score cannot waive an objective failure, and automated accessibility cannot be
+reported as complete accessibility.
+
 ## Entry
 
 1. Validate `.kstack/config.json` and require complete `phaseModels`.
@@ -38,6 +46,51 @@ Security, privacy, auth, migration, deployment, signing, artifact identity, and
 public-contract work require both Codex and Opus. The implementer may be one of
 them, but self-review alone never passes. Uncertainty about high-risk scope uses
 the dual route.
+
+## Independent final-review dispatch gate
+
+An independent second final review is the strongly recommended default when a
+separate route exists and is mandatory for KStack itself. It is a closure
+gridlock, not an early drafting aid and not a substitute for finishing the
+primary work.
+
+Before dispatch, bind a primary completion assessment to the exact design,
+plan, Git state, implementation content, and verification evidence. Require
+confidence of at least 93 and no known condition that makes the evidence unsafe,
+stale, or incomplete. Below 93, continue primary implementation and validation;
+do not spend the independent final review to discover ordinary unfinished work.
+The 93 threshold grants only permission to dispatch and never lowers the
+existing 95 QC pass floor.
+
+Create a digest-bound secondary-review decision before dispatch. Use the
+independent-final trigger for closure and the high-risk trigger where applicable;
+do not derive a trigger from remediation or round count. Bind the exact work,
+risk classification, protected configuration, readiness counters, identities,
+and availability. Consume the decision once so replay or configuration drift
+cannot authorize another final review.
+The closed trigger catalog is `OWNER_REQUESTED`, `ROADBLOCK`,
+`MATERIAL_UNCERTAINTY`, `INDEPENDENT_FINAL_REVIEW`, `HIGH_RISK_BOUNDARY`,
+`MATERIAL_DISSENT`, and `AUDIT_SAMPLE`. The staged final acceptance floor of 81
+creates mandatory bug-fix intake but never lowers QC's stricter 95 completion
+floor.
+
+The final reviewer must be fresh and non-authoring: it must not have produced or
+edited the candidate being reviewed. A reviewer used earlier to consult on a
+roadblock is useful advisory evidence but is ineligible to satisfy this final
+review. Do not invoke a secondary reviewer on every implementation or
+remediation round merely to preserve a ritual. For high-risk work, the fresh
+reviewer must also come from a different provider family than the authoring
+route. If that required route is unavailable, keep KStack closure blocked and
+report the missing independent review honestly; never relabel self-review,
+same-author review, a roadblock consultation, or a provider fallback as the
+second final review.
+
+Bind the final review to the same evidence digests used by the primary
+assessment. Any implementation, test, plan, design, or relevant Git-state drift
+invalidates both the dispatch qualification and the final review. Re-establish
+93 on the new exact state before dispatching another fresh final reviewer.
+KStack remains gridlocked until this review and every stricter requirement in
+the Decision section pass.
 
 ## Review
 
@@ -71,6 +124,9 @@ Use this precedence:
 3. Otherwise `fix`, a failed check, or a quality finding returns
    `FIX_REQUIRED`. Plan-changing fixes first run `kstack-interrogate`.
 4. Otherwise unanimous clean pass with unchanged Git state returns `QC_PASSED`.
+   For a user-facing repository this additionally requires a fresh
+   `node ../../scripts/kstack-experience.mjs phase-gate --project-root . --contract .kstack/experience.json --phase qc`
+   result whose contract/source digest matches the reviewed implementation.
 
 After `FIX_REQUIRED`, or after a `redesign`, material finding, or `QC_BLOCKED`
 verdict that represents a genuine implementation/design defect, dispatch a

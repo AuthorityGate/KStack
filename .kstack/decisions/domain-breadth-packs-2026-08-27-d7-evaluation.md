@@ -95,6 +95,19 @@ observed agreement and Cohen's kappa must be at least 90% and 0.80 respectively
 for material finding classification; otherwise the whole trial is
 `ADJUDICATION_UNRELIABLE` and blocked.
 
+Each successful execution also publishes a sorted raw-finding inventory bound
+to the exact raw-output digest. Every inventory row has a stable finding ID and
+raw-finding digest. Each adjudicator mapping must cover that inventory exactly,
+without additions, omissions, reordering, or digest substitution, and records
+per finding the materiality, gold/novel/unsupported class, severity, gold-gap
+or verified-novel-gap mapping, duplicate target, supporting sources, source
+trace, lane ownership, and critical status. Gold-gap recall, finding counts,
+unsupported-case incidence, and duplicate-case incidence are recomputed from
+those rows; submitted aggregates cannot override them. Agreement and
+multiclass Cohen's kappa are computed over the two adjudicators' classification
+of every raw finding, including materiality and duplicate status, rather than
+over aggregate label presence.
+
 ## Frozen estimands and inference
 
 For each condition and pair, compute case-level material-gap recall, base-lane

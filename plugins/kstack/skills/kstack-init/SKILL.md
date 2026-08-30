@@ -36,6 +36,18 @@ Configure KStack without changing the host agent, global memory, or permissions.
    preflight accessible project types. Jira Software uses a saved-filter Agile
    board; Jira Business uses its native Board view and must not receive a Jira
    Software board POST. A configured project key is not validation.
+   Make new project/space creation an available per-project choice. Use
+   `kstack-jira-bootstrap.mjs start` to validate and write this
+   repository's local Jira enrollment plus exact offline preview; do not rely on
+   a manual configuration edit. It replaces the unused default key, binds
+   approval-queued tracking to the repository by default, and refuses to reuse
+   or overwrite another active delivery record. Configure
+   `authority.jiraAdministration` explicitly: `ask` requires approval of the
+   exact preview in the current conversation, `allow` permits an explicit owner
+   request to proceed, and `deny` disables live project/space or board creation.
+   Do not leave the key absent for a project that wants this capability because
+   legacy omission fails closed as deny. Approval/apply still requires an
+   interactive exact-hash confirmation and verified Jira read-back.
    Ask whether the initial backlog should use KStack's five lifecycle items,
    load a discovered repository `kstack-jira-roadmap-v1` manifest, or be empty
    by explicit owner choice. New and existing-project/new-board previews must
@@ -56,7 +68,16 @@ Configure KStack without changing the host agent, global memory, or permissions.
    When a web application is deployed, ask whether post-deploy Playwright
    validation is required for development, staging, and production. Default
    production to required. If enabled, read
-   `../../references/POST_DEPLOY_VALIDATION.md`, discover existing Playwright
+   `../../references/POST_DEPLOY_VALIDATION.md` and
+   `../../references/PRODUCT_EXPERIENCE.md`. Ask the full experience question:
+   should this repository adopt its existing brand/design system, create a
+   shared experience contract, or record that it has no user-facing surface?
+   Discover product principles, tokens, components, assets, critical journeys,
+   accessibility coverage, screenshot baselines, performance budgets, and
+   field telemetry before asking. Preserve repository-owned systems; never
+   replace them with a KStack aesthetic. A user-facing repository must create
+   and validate `.kstack/experience.json` and use post-deploy plan v2 with its
+   exact contract path. Then discover existing Playwright
    config and suitable full-suite paths, and write the non-secret
    `.kstack/post-deploy-validation.json` plan only after confirming its allowed
    origins, projects, timeouts, retry bound, console/network policy, and skip
@@ -66,9 +87,19 @@ Configure KStack without changing the host agent, global memory, or permissions.
    Prefer the active host for init, objectives, and ordinary review; ask which one or two
    roles should design, implement, interrogate deviations, and perform QC.
    Explain that roles change responsibility and token use, never authority.
-   Obtain the design review round limit (`maxRounds`) and explain that every
-   material round dispatches both Codex and Opus. Track rounds, not wall-clock
-   timing. Round-limit exhaustion always returns control to the user; it is not
+   Obtain the design improvement cycle limit (`maxRounds`) and the ordered
+   primary/final roles. Explain that the primary works alone until a clean
+   confidence of at least 93, then the other role performs one independent
+   final review. Configure its separate acceptance threshold, 81 by default;
+   accepted final defects become mandatory bug-fix backlog intake rather than
+   another design cycle. Configure `secondaryReview.mode` as `triggered`, keep
+   final review/different-agent/high-risk-different-family protections enabled,
+   and obtain the deterministic audit sample rate (0-1000 permille, default 0).
+   Explain the closed trigger set and that round count never triggers another
+   model: `OWNER_REQUESTED`, `ROADBLOCK`, `MATERIAL_UNCERTAINTY`,
+   `INDEPENDENT_FINAL_REVIEW`, `HIGH_RISK_BOUNDARY`, `MATERIAL_DISSENT`, and
+   `AUDIT_SAMPLE`. Codex or Opus may hold either role. Track cycles and cumulative
+   provider invocations, not wall-clock timing. Budget exhaustion always returns control to the user; it is not
    an automatic approval or an unbounded retry permission. Configure the design
    confidence tiers: rounds
    1-10 use `minimumConfidence`, round 11+ uses
@@ -101,10 +132,26 @@ Configure KStack without changing the host agent, global memory, or permissions.
    `$kstack-memory` and `/kstack-memory`. When Jira is enabled, show
    `$kstack-jira`/`/kstack-jira` for offline drafting, the host-side
    `kstack-jira.mjs doctor` command, and the selected delivery onboarding state
-   from `.kstack/jira-delivery-stack.json`. Initialization may run
-   `kstack-jira-bootstrap.mjs preview` or `show`, but never `validate`,
-   `approve`, or `apply`; initialization itself never contacts Jira. Explain
-   that approval and apply require the owner to confirm the exact preview hash.
+   from `jira.deliveryRecordPath` when configured, otherwise from
+   `.kstack/jira-delivery-stack.json`. Initialization may run the offline
+   `kstack-jira-bootstrap.mjs preview` or `show` operations while configuration
+   is still being decided. Once the configuration has been written and
+   validated, this same skill and host session may finish the repository's
+   explicitly requested Jira project/space bootstrap with `approve` and
+   `apply`; do not force a handoff to another skill, console, or agent. The
+   active host agent may drive the interactive PTY and enter the exact preview
+   hash. Under `ask`, first obtain owner approval for that exact preview in the
+   current conversation; under `allow`, the explicit project/space creation
+   request supplies that authority. Approval and apply still require an exact
+   hash match and verified Jira read-back. Initialization without that request
+   and authority remains offline. Every initialized repository receives this
+   capability; it is not reserved for the KStack repository or a central Jira
+   administration session. A repository that selects `skip` retains the ability
+   to invoke `kstack-jira` later; that skill may enable and bind Jira in the
+   repository-local configuration before continuing through the same onboarding
+   lifecycle. `jira.enabled: false` means tracking and live Jira operations are
+   currently inactive, not that the project is permanently barred from creating
+   its own Jira project/space.
    When citation grounding is advisory, also provision the committed
    `.kstack/fixtures/citation-grounding/exact-reproduction-v1.json` fixture and
    show the host-side `kstack-citation-admin.mjs check-platform`, `smoke`, and
@@ -114,6 +161,9 @@ Configure KStack without changing the host agent, global memory, or permissions.
    `--sweep-citation-grounding-staging`, and the documented repair/reset flags
    map one-for-one to that script's same-named long options. Run maintenance
    commands only when explicitly requested.
+   For user-facing repositories, also show `$kstack-experience` and
+   `/kstack-experience`, the contract digest, required evidence lanes, and
+   manual accessibility/user-validation work that remains outside automation.
 
 ## Boundaries
 

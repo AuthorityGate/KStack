@@ -1,0 +1,1 @@
+{"fixtureVersion":1,"requiredStates":["entry","success","empty","loading","partial","denied","failure","recovery","return"],"rule":"A missing state is reported as an uncovered experience, never inferred as acceptable."}

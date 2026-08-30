@@ -18,6 +18,7 @@ import {
   configFingerprint,
   credentialHardeningWarnings,
   guardedWriteDraft,
+  jiraRequest,
   loadJiraState,
   releaseDraftLock,
   runVerification,
@@ -38,6 +39,7 @@ function makeState(fetchImpl = async () => new Response('{}', { status: 500 }), 
   const jira = {
     enabled: true,
     siteUrl: 'https://fixture.atlassian.net',
+    apiBaseUrl: null,
     projects: [{ key: 'KSTK', issueTypes: ['Task'], defaultFields: {} }],
     credentialSource: { type: 'env', emailEnvVar: 'KSTACK_TEST_JIRA_EMAIL', tokenEnvVar: 'KSTACK_TEST_JIRA_TOKEN' },
     staticLabels: [],
@@ -58,6 +60,17 @@ function makeState(fetchImpl = async () => new Response('{}', { status: 500 }), 
     poll: { minimumProbes: 1, minimumDurationMs: 0, maximumProbes: 3, maximumDurationMs: 100, ...overrides.poll }
   };
 }
+
+test('scoped Jira API base preserves its cloud path while browser identity remains tenant-bound', async () => {
+  let observed;
+  const state = makeState(async (url) => {
+    observed = String(url);
+    return Response.json({ ok: true });
+  }, { jira: { apiBaseUrl: 'https://api.atlassian.com/ex/jira/ba41d897-4290-40f9-9886-bd4f2601d96a' } });
+  await jiraRequest(state, { email: 'fixture@example.com', token: 'fixture-token' }, '/rest/api/3/myself');
+  assert.equal(observed, 'https://api.atlassian.com/ex/jira/ba41d897-4290-40f9-9886-bd4f2601d96a/rest/api/3/myself');
+  assert.equal(state.jira.siteUrl, 'https://fixture.atlassian.net');
+});
 
 function draftFile(state, id) {
   return path.join(state.queueDir, `${id}.json`);

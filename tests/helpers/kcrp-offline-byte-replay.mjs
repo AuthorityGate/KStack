@@ -12,6 +12,7 @@ import {
   buildDeclaredClosure,
   buildKcrpSourcePacketV1,
   canonicalizeArtifactBytes,
+  frameReviewInputV1,
   validateItemMap,
   verifyDeclaredClosure,
   verifyKcrpSourcePacketV1
@@ -428,6 +429,20 @@ export function replayMemory({ configRelativePath = MEMORY_CONFIG, verifyExpecte
     config, loaded, closureReplay.closure, reducedPacket, config.dispatch.reduced,
     closureReplay.closure.includedItemIds, closureReplay.closure.omittedItemIds
   );
+  const fullReviewInput = frameReviewInputV1({
+    purpose: fullManifest.manifest.purpose,
+    route: fullManifest.manifest.route,
+    reductionFailure: fullManifest.manifest.reductionFailure,
+    manifest: fullManifest.manifest,
+    packet: fullPacket.packetBytes
+  });
+  const reducedReviewInput = frameReviewInputV1({
+    purpose: reducedManifest.manifest.purpose,
+    route: reducedManifest.manifest.route,
+    reductionFailure: reducedManifest.manifest.reductionFailure,
+    manifest: reducedManifest.manifest,
+    packet: reducedPacket.packetBytes
+  });
   const benchmarkInput = {
     benchmarkId: config.benchmark.benchmarkId,
     ...benchmarkIdentity,
@@ -464,6 +479,20 @@ export function replayMemory({ configRelativePath = MEMORY_CONFIG, verifyExpecte
       packetSha256: reducedPacket.binding.packetSha256,
       manifestBytes: reducedManifest.manifestBytes.length,
       manifestSha256: reducedManifest.dispatchManifestSha256
+    }),
+    trialArms: Object.freeze({
+      A: Object.freeze({
+        reviewInput: Buffer.from(fullReviewInput.reviewInput),
+        reviewInputDigest: fullReviewInput.reviewInputSha256,
+        packetDigest: fullPacket.binding.packetSha256,
+        manifestDigest: fullManifest.dispatchManifestSha256
+      }),
+      B3: Object.freeze({
+        reviewInput: Buffer.from(reducedReviewInput.reviewInput),
+        reviewInputDigest: reducedReviewInput.reviewInputSha256,
+        packetDigest: reducedPacket.binding.packetSha256,
+        manifestDigest: reducedManifest.dispatchManifestSha256
+      })
     }),
     report: first.report,
     reportBytes: first.reportBytes,

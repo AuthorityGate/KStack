@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "kind": "kstack-kcrp-offline-byte-replay-config-v1",
+  "schemaVersions": {
+    "canonicalJson": "kstack-kcrp-json-v1",
+    "artifact": "kstack-utf8-lf-v1",
+    "itemMap": "kstack-kcrp-item-map-v1",
+    "sourceRecord": "kstack-kcrp-source-record-v1",
+    "dispatchManifest": "kstack-kcrp-dispatch-manifest-offline-subset-v1",
+    "byteBenchmark": "kstack-kcrp-byte-benchmark-offline-subset-v1"
+  },
+  "limits": {
+    "artifacts": 256, "items": 4096, "spansPerItem": 64, "totalSpans": 16384,
+    "dependenciesPerItem": 256, "requestedItems": 256, "includedItems": 4096,
+    "sourceRecords": 32768, "sourceRecordBytes": 1048576, "sourceArtifactBytes": 4194304,
+    "itemMapBytes": 4194304, "manifestBytes": 4194304, "packetBytes": 1048576,
+    "reviewInputBytes": 1200000, "benchmarkPairs": 256
+  },
+  "identityFraming": {
+    "reviewer": {
+      "domain": "KSTACK.KCRP.LOCAL-CODEX-READONLY-REVIEWER/1",
+      "fields": ["provider=local-codex", "mode=read-only", "date=2026-08-29"],
+      "expectedSha256": "296b0615b6029ec4ed585f6e30a7268c3122ed5fcc32dfe3264b928fff0e9506"
+    },
+    "governance": {
+      "domain": "KSTACK.KCRP.OFFLINE-BYTE-GOVERNANCE/1",
+      "modules": [
+        {"role": "core", "path": "plugins/kstack/scripts/kstack-kcrp-core.mjs", "sha256": "d0e7c7272989edcf6df84a3a65b030c9be6da4532612dc2ba9b702cb09e5c155"},
+        {"role": "dispatch-manifest", "path": "plugins/kstack/scripts/kstack-kcrp-dispatch-manifest.mjs", "sha256": "87e15cdda08552c643e10222da4fc5a8a6641385e4712c5f07f095528f5b099b"},
+        {"role": "byte-benchmark", "path": "plugins/kstack/scripts/kstack-kcrp-byte-benchmark.mjs", "sha256": "521c3b3caa1b52dce912b187519a7ed3c35bc8d601dbe7aabf5b4feb3dfb21f2"}
+      ],
+      "expectedSha256": "b93b7b2ed932cc5dfee6a1e728ac502cb3639dfa37929cb9773cdfbcb805d45b"
+    }
+  },
+  "threadId": "domain-breadth-d7-2026-08-29",
+  "phase": "qc",
+  "objectiveItemId": "DOMAIN_D7_TEST",
+  "requestedItemIds": ["DOMAIN_D7_TEST"],
+  "sourceDefaults": {
+    "artifactRole": "verification", "sourceRole": "context", "inclusion": "full",
+    "risk": "ordinary", "status": "open", "reductionEligibility": "reducible", "mechanismGroupId": null
+  },
+  "sources": [
+    {
+      "itemId": "DOMAIN_D7_DESIGN", "artifactId": "ART_DOMAIN_D7_01", "sourceId": "KCRP_DOMAIN_000001_S000001", "label": "DOMAIN_D7_DESIGN",
+      "relativePath": ".kstack/decisions/domain-breadth-packs-2026-08-27-d7-evaluation.md",
+      "byteLength": 11125, "sha256": "93e9b5b993875081bc0a90d3f31ef3fc48c839eaa514753de3f0df314118fa98",
+      "span": {"byteStart": 0, "byteLength": 11125, "sha256": "93e9b5b993875081bc0a90d3f31ef3fc48c839eaa514753de3f0df314118fa98"},
+      "dependsOn": []
+    },
+    {
+      "itemId": "DOMAIN_D7_IMPLEMENTATION", "artifactId": "ART_DOMAIN_D7_02", "sourceId": "KCRP_DOMAIN_000002_S000001", "label": "DOMAIN_D7_IMPLEMENTATION",
+      "relativePath": "plugins/kstack/scripts/kstack-domain-evaluation.mjs",
+      "byteLength": 43484, "sha256": "a93d876c6c9ea33a1acd1e16056c5371c60e9fe8e72d5c177064665d2bbff31e",
+      "span": {"byteStart": 0, "byteLength": 43484, "sha256": "a93d876c6c9ea33a1acd1e16056c5371c60e9fe8e72d5c177064665d2bbff31e"},
+      "dependsOn": ["DOMAIN_D7_DESIGN"]
+    },
+    {
+      "itemId": "DOMAIN_D7_TEST", "artifactId": "ART_DOMAIN_D7_03", "sourceId": "KCRP_DOMAIN_000003_S000001", "label": "DOMAIN_D7_TEST",
+      "relativePath": "tests/domain-evaluation.test.mjs",
+      "byteLength": 20859, "sha256": "0448467f59e206ebc491d3c59fd861722a8ca6a654fe2fa0fdb559293a68b089",
+      "span": {"byteStart": 0, "byteLength": 20859, "sha256": "0448467f59e206ebc491d3c59fd861722a8ca6a654fe2fa0fdb559293a68b089"},
+      "dependsOn": ["DOMAIN_D7_DESIGN", "DOMAIN_D7_IMPLEMENTATION"]
+    },
+    {
+      "itemId": "DOMAIN_ASSURANCE_UNRELATED", "artifactId": "ART_DOMAIN_D7_04", "sourceId": "KCRP_DOMAIN_000004_S000001", "label": "DOMAIN_ASSURANCE_UNRELATED",
+      "relativePath": ".kstack/decisions/domain-pack-assurance-2026-08-29-candidate.md",
+      "byteLength": 1348, "sha256": "1a4c0ae0b9dd77596835c157f5fb71e8553bcdd9efd3a1d985c55e8fe7f98663",
+      "span": {"byteStart": 0, "byteLength": 1348, "sha256": "1a4c0ae0b9dd77596835c157f5fb71e8553bcdd9efd3a1d985c55e8fe7f98663"},
+      "dependsOn": []
+    }
+  ],
+  "dispatch": {
+    "full": {"invocationId": "domain-d7-full-20260829", "round": 1, "purpose": "closure", "route": "full-required", "reductionFailure": null},
+    "reduced": {"invocationId": "domain-d7-reduced-20260829", "round": 1, "purpose": "remediation", "route": "reduced", "reductionFailure": null}
+  },
+  "benchmark": {"benchmarkId": "DOMAIN-D7-20260829", "pairId": "DOMAIN-D7-PAIR"},
+  "expected": {
+    "itemMapSha256": "6248cc977eae8f5e3daafdee2573a404e6ebce62fd2961dfa6abbbc07751cb20",
+    "includedItemIds": ["DOMAIN_D7_DESIGN", "DOMAIN_D7_IMPLEMENTATION", "DOMAIN_D7_TEST"],
+    "omittedItemIds": ["DOMAIN_ASSURANCE_UNRELATED"],
+    "full": {"packetBytes": 77447, "packetSha256": "7a8cf09d866dc9f22b898b711345171f7371f34a787eb1ba432727d24bcad03b", "manifestBytes": 1337, "manifestSha256": "046242e5560bb45ff2085dc601322681a5e9743cdf47f37f680e21a935020734"},
+    "reduced": {"packetBytes": 75936, "packetSha256": "25e4950d3661d057facf1a7330dbd3164391d2c5c4e1c754cc1a6779b0a4ae8c", "manifestBytes": 1213, "manifestSha256": "ff13e37d009d75837eaea4a431eb1f366c1061e6e68c1a569c59608c522d8d56"},
+    "reportSha256": "0d7c4a7c76666544bbd1b4ec806bc4636d6cd6e3ab41c1bbf011f7fb4a4e7cf5"
+  }
+}

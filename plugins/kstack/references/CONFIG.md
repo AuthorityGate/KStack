@@ -21,19 +21,58 @@ The initialization conversation must obtain explicit choices for:
    that order. The native addon is built only on the first command that crosses
    the native boundary; discovery, installation, startup, off mode, and a
    rejecting ordinary state prefilter do not build or load it.
-   Also obtain the material-design round limit: 1-20 complete dual-model rounds.
-   Each round is one Codex plus one Opus dispatch. The default is four rounds.
-   Track and report the round number and cumulative provider invocations, not
-   wall-clock timing. The round limit stops further dispatches at
+   Also obtain the material-design cycle limit: 1-42 primary improvement cycles.
+   The ordered design roles select a primary and an independent final reviewer.
+   A cycle uses only the primary until it reaches a clean confidence of at least
+   `secondaryReview.primaryReadinessConfidence` (93 minimum); only then does it
+   add one final-review dispatch. The primary threshold is the greater of that
+   readiness value and the applicable design-gate tier. The independent final
+   reviewer uses the separate
+   `secondaryReview.finalAcceptanceConfidence` threshold (81 by default),
+   regardless of cycle number. A final `approve` or `revise` at or above that
+   threshold carries every failed check, finding, dissent item, and question
+   forward as mandatory bug-fix intake. Only a final `block` or sub-threshold
+   confidence returns the design to the primary.
+   `workflow.designGate.secondaryReview` supplies the closed trigger-policy
+   contract and is authoritative for both thresholds. The duplicate
+   `reviewSequence` values describe ordering compatibility and must match it;
+   configuration validation rejects divergence. Its mode is `triggered`; required final review, different-agent
+   selection, and different-provider-family review for high-risk boundaries
+   cannot be disabled. `auditSamplePermille` is a deterministic 0-1000 sample
+   rate keyed by the work-unit digest. Owner requests, independent final review,
+   and high-risk boundaries are required routes. Roadblocks, material
+   uncertainty, material dissent, and audit samples are advisory routes unless
+   another required trigger is also present. Round number is audit metadata and
+   never a trigger. `materialDesignRiskClass` is permanently `high` for KStack
+   and configuration validation rejects an ordinary downgrade, so staged
+   material design always exercises the different-provider-family boundary.
+   The runner binds each role to the resolved executable (and a Node launcher
+   when present), executable digest, configured arguments, and model. Provider
+   family comes from a bounded version probe of that resolved backend, with the
+   probe digest retained as evidence; it is not inferred from the role label. A shared
+   execution backend fails independence even when the role labels differ.
+   Because high risk is a required trigger, unavailable advisory review also
+   blocks during material design; degraded advisory availability applies only
+   where no required trigger is present. Advisory calls require a contained,
+   realpath-checked, reopened `--trigger-evidence-file`, never a caller-asserted
+   digest. The design gate rebuilds the dispatch decision and verifies the exact
+   durable consumption-receipt bytes before admitting staged completion.
+   When staged
+   mode is configured, legacy dual-review manifests are not gate-admissible.
+   Legacy evidence remains readable only for configurations that omit both
+   `reviewSequence` and `secondaryReview`; supplying exactly one is invalid.
+   The default is up to 42 cycles. Track and report
+   the cycle number and cumulative provider invocations, not
+   wall-clock timing. The cycle limit stops further dispatches at
    `USER_DECISION_REQUIRED`; only the owner may explicitly amend it after seeing
    cumulative rounds and invocations.
    The direct-user clarification gate after the first completed design round is
    mandatory and not configurable. Explain that it must write a locked
    project-local decision record before round 2; disabling persistence or edit
    authority therefore blocks design beyond round 1.
-   `minimumConfidence` is the round 1-10 threshold (90 by default and 90-100
+   `minimumConfidence` is the round 1-10 threshold (93 by default and 90-100
    when configured). `minimumConfidenceRound11Plus` is the round 11+ threshold
-   (80 by default and 80-100 when configured). `minimumConfidenceSkillClass`
+   (81 by default and 81-100 when configured). `minimumConfidenceSkillClass`
    is the threshold for an operator-explicitly tagged narrow, low-blast-radius
    tooling-convenience thread (70 by default and 70-100 when configured), and
    overrides the round tier. The gate does not infer this class from content.
@@ -41,7 +80,9 @@ The initialization conversation must obtain explicit choices for:
    use the round 1-10 tier. Add `--skill-class` only for an explicitly tagged
    skill-class thread.
 7. Per-phase roles: one or two of `active`, `codex`, `opus`, and `fable` as
-   allowed by the schema. Material design is always exactly Codex and Opus;
+   allowed by the schema. Material design is an ordered pair containing exactly
+   Codex and Opus: first is primary and second is independent final. Either
+   order is valid; final is not dispatched before primary readiness.
    implementation uses one role; Interrogation and QC use one independent role
    by default and may use both. Resolve `active` to the current host and prevent
    duplicate reviewer identities at runtime.
@@ -62,7 +103,12 @@ The initialization conversation must obtain explicit choices for:
    Legacy configuration without `jiraAdministration` reads as `deny`; new
    initialization defaults it to `ask`. Ticket creation never implies authority
    to create or change Jira projects, filters, boards, workflows, components,
-   versions, or repository links.
+   versions, or repository links. `jiraAdministration: ask|allow` makes
+   preview-bound project/space onboarding available to the per-project Jira
+   workflow; `deny` disables live administration. `jira.enabled: false` disables
+   current queue/projection activity but does not prevent that repository from
+   invoking `kstack-jira` later to configure, validate, and start its own Jira
+   project/space.
 11. Persistence scope, cross-session behavior, raw-output retention, and secret
    redaction.
 12. Optional explicit memory: external body and index paths, namespace, trust,
@@ -169,9 +215,26 @@ under its explicit repository authority.
 When Jira is considered during initialization, ask whether this repository will
 connect an existing Jira delivery stack, preview a new one, or skip Jira. Treat
 an existing project that needs a new board/backlog as a separate supported
-subcase. Store onboarding evidence in `.kstack/jira-delivery-stack.json`; a
+subcase. Store onboarding evidence at `jira.deliveryRecordPath` when that
+absolute path is configured outside the repository, otherwise at
+`.kstack/jira-delivery-stack.json`. The external directory must remain
+canonical, invoking-user-owned, and not group/world writable. A
 configured project key is not proof that a project, board, filter, backlog, or
 release mapping exists. New previews default to one Jira Software project, one
 Kanban board/backlog, and one saved filter. Additional Dev or Release boards are
-opt-in. `kstack-init` may invoke only offline `preview` or `show`; it never
-approves or applies Jira mutations.
+opt-in. A repository may run offline `kstack-jira-bootstrap.mjs start` with its
+tenant, new project key/name, and repository namespace. That operation enables
+Jira locally, replaces only the unused template project, binds approval-queued
+tracking by default, validates the full configuration, and writes the exact
+creation preview without contacting Jira. It refuses to overwrite an active
+delivery record. While configuration is still being decided, `kstack-init` uses
+only offline `start`, `preview`, or `show`. After the configuration is written and validated,
+the same `kstack-init` session or a later `kstack-jira` session may approve and
+apply an explicitly requested per-repository onboarding only when
+`jiraAdministration` is `ask` or `allow`, the exact preview hash is confirmed
+in an interactive TTY, and the resulting resources pass exact read-back
+verification. The active host agent may drive the PTY and supply that hash after
+the applicable owner approval; a separate owner-run console is not required.
+The hash binds the mutation to the reviewed preview and is not a human-only
+action boundary. This capability is installed for every initialized repository;
+it is not a central KStack-only Jira administration workflow.

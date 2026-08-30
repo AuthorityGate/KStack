@@ -8,21 +8,33 @@ import { fileURLToPath } from 'node:url';
 import { sanitize } from './kstack-safety-matchers.mjs';
 import { loadJiraState } from './kstack-jira.mjs';
 import { appendTrackingEvent, listTrackingEvents, syncTrackingEvents } from './kstack-jira-tracking.mjs';
+import { experienceSourceManifest, readExperienceContract, readExperienceResult } from './kstack-experience.mjs';
 
-const PLAN_SCHEMA = 'kstack-post-deploy-validation-plan-v1';
+const PLAN_SCHEMA_V1 = 'kstack-post-deploy-validation-plan-v1';
+const PLAN_SCHEMA_V2 = 'kstack-post-deploy-validation-plan-v2';
 const RECEIPT_SCHEMA = 'kstack-post-deploy-validation-receipt-v1';
+const RECEIPT_SCHEMA_V2 = 'kstack-post-deploy-validation-receipt-v2';
 const HANDOFF_SCHEMA = 'kstack-post-deploy-handoff-receipt-v1';
+const HANDOFF_SCHEMA_V2 = 'kstack-post-deploy-handoff-receipt-v2';
 const OUTPUT_PREFIX = 'KSTACK_POST_DEPLOY_VALIDATION_V1 ';
+const OUTPUT_PREFIX_V2 = 'KSTACK_POST_DEPLOY_VALIDATION_V2 ';
 const HANDOFF_PREFIX = 'KSTACK_POST_DEPLOY_HANDOFF_V1 ';
+const HANDOFF_PREFIX_V2 = 'KSTACK_POST_DEPLOY_HANDOFF_V2 ';
 const MAX_PLAN_BYTES = 65_536;
 const MAX_REPORT_BYTES = 16 * 1024 * 1024;
 const MAX_SOURCE_FILES = 2_048;
 const MAX_SOURCE_BYTES = 32 * 1024 * 1024;
 const MAX_OUTPUT_BYTES = 65_536;
+const MAX_ARTIFACT_FILES = 8_192;
+const MAX_ARTIFACT_BYTES = 256 * 1024 * 1024;
+const MAX_ARTIFACT_NODES = 16_384;
+const MAX_ARTIFACT_DEPTH = 32;
 const HEX64 = /^[0-9a-f]{64}$/u;
 const GIT_OID = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/u;
 const ID = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,199}$/u;
-const PLAN_KEYS = new Set(['schemaVersion', 'planId', 'environment', 'allowedOrigins', 'playwright', 'handoff']);
+const PLAN_KEYS_V1 = new Set(['schemaVersion', 'planId', 'environment', 'allowedOrigins', 'playwright', 'handoff']);
+const PLAN_KEYS_V2 = new Set([...PLAN_KEYS_V1, 'experience']);
+const EXPERIENCE_KEYS = new Set(['required', 'contractPath']);
 const HANDOFF_KEYS = new Set(['jiraRequired', 'maxCanaryDurationMs', 'maxSuiteDurationMs']);
 const PLAYWRIGHT_KEYS = new Set([
   'configPath', 'testPaths', 'projects', 'canaryBrowser', 'navigationTimeoutMs',
@@ -101,7 +113,9 @@ function assertContainedNoSymlinks(root, absolute, code) {
 }
 
 export function validatePlan(plan) {
-  if (!exactKeys(plan, PLAN_KEYS) || plan.schemaVersion !== PLAN_SCHEMA || !ID.test(plan.planId ?? '')) fail('KSTACK_POST_DEPLOY_PLAN_INVALID');
+  const isV1 = plan?.schemaVersion === PLAN_SCHEMA_V1;
+  const isV2 = plan?.schemaVersion === PLAN_SCHEMA_V2;
+  if ((!isV1 && !isV2) || !exactKeys(plan, isV2 ? PLAN_KEYS_V2 : PLAN_KEYS_V1) || !ID.test(plan.planId ?? '')) fail('KSTACK_POST_DEPLOY_PLAN_INVALID');
   if (!['development', 'staging', 'production'].includes(plan.environment)) fail('KSTACK_POST_DEPLOY_ENVIRONMENT_INVALID');
   if (!Array.isArray(plan.allowedOrigins) || plan.allowedOrigins.length < 1 || plan.allowedOrigins.length > 8) fail('KSTACK_POST_DEPLOY_ORIGINS_INVALID');
   const origins = plan.allowedOrigins.map((value) => parseOrigin(value, plan.environment));
@@ -122,7 +136,8 @@ export function validatePlan(plan) {
   for (const [key, minimum, maximum] of [
     ['maxCanaryDurationMs', 1_000, 180_000], ['maxSuiteDurationMs', 1_000, 1_800_000]
   ]) if (!Number.isSafeInteger(plan.handoff[key]) || plan.handoff[key] < minimum || plan.handoff[key] > maximum) fail(`KSTACK_POST_DEPLOY_${key.toUpperCase()}_INVALID`);
-  return Object.freeze({ ...plan, allowedOrigins: origins, playwright: Object.freeze({ ...pw }), handoff: Object.freeze({ ...plan.handoff }) });
+  if (isV2 && (!exactKeys(plan.experience, EXPERIENCE_KEYS) || plan.experience.required !== true || !safeRelative(plan.experience.contractPath) || plan.handoff.jiraRequired !== true)) fail('KSTACK_POST_DEPLOY_EXPERIENCE_INVALID');
+  return Object.freeze({ ...plan, allowedOrigins: origins, playwright: Object.freeze({ ...pw }), handoff: Object.freeze({ ...plan.handoff }), experience: isV2 ? Object.freeze({ ...plan.experience }) : null });
 }
 
 export function readPlan(projectRoot, planPath) {
@@ -134,7 +149,9 @@ export function readPlan(projectRoot, planPath) {
   let value;
   const bytes = safeRead(absolute, MAX_PLAN_BYTES, 'KSTACK_POST_DEPLOY_PLAN_READ_INVALID');
   try { value = JSON.parse(bytes.toString('utf8')); } catch { fail('KSTACK_POST_DEPLOY_PLAN_JSON_INVALID'); }
-  return { root, absolute, bytes, digest: sha256(bytes), plan: validatePlan(value) };
+  const plan = validatePlan(value);
+  if (plan.schemaVersion === PLAN_SCHEMA_V1 && fs.existsSync(path.join(root, '.kstack', 'experience.json'))) fail('KSTACK_POST_DEPLOY_EXPERIENCE_PLAN_V2_REQUIRED');
+  return { root, absolute, bytes, digest: sha256(bytes), plan };
 }
 
 function walkSources(root, relative, entries, totals) {
@@ -233,7 +250,7 @@ function independentCanary(root, resolved, browserName, baseUrl, pw, runDirector
   return { status: passed ? 'PASS' : 'FAIL', browser: browserName, responseStatus: observation?.responseStatus ?? null, finalOrigin: observation?.finalOrigin ?? null, finalPathSha256: observation?.finalPathSha256 ?? null, titleSha256: observation?.titleSha256 ?? null, consoleErrors: observation?.consoleErrors ?? 0, requestFailures: observation?.requestFailures ?? 0, counts, checks, exitCode: result.status, timedOut: result.error?.code === 'ETIMEDOUT', durationMs: Date.now() - started };
 }
 
-export function derivePostDeployDefects(canary, suite, handoff) {
+export function derivePostDeployDefects(canary, suite, handoff, experience = { status: 'NOT_REQUIRED', failures: [] }) {
   const defects = [];
   const add = (category, summary) => {
     const fingerprint = sha256(Buffer.from(`${category}\0${summary}`, 'utf8')).slice(0, 16);
@@ -249,6 +266,15 @@ export function derivePostDeployDefects(canary, suite, handoff) {
   if (canary.durationMs > handoff.maxCanaryDurationMs) add('performance', `Independent browser canary exceeded its ${handoff.maxCanaryDurationMs} ms budget`);
   if (suite.durationMs > handoff.maxSuiteDurationMs) add('performance-suite', `Post-deploy suite exceeded its ${handoff.maxSuiteDurationMs} ms budget`);
   if (suite.status !== 'PASS' && defects.length === 0) add('acceptance', 'Post-deploy acceptance did not reach a clean passing result');
+  const categories = {
+    'critical-journey': 'ux-journey', accessibility: 'accessibility', responsive: 'responsive',
+    'visual-regression': 'visual-regression', 'visual-review': 'visual-review',
+    'brand-consistency': 'brand-consistency', 'content-clarity': 'content-clarity',
+    'state-coverage': 'state-coverage', performance: 'experience-performance',
+    runtime: 'experience-evidence'
+  };
+  for (const failure of experience.failures ?? []) add(categories[failure.lane] ?? 'product-experience', `Product experience ${failure.lane} failed: ${failure.reason}`);
+  if (experience.status === 'FAIL' && (experience.failures?.length ?? 0) === 0) add('product-experience', 'Product experience evidence did not reach a clean passing result');
   return defects;
 }
 
@@ -280,7 +306,7 @@ function suiteArgs(plan, cliPath, runDirectory) {
   return args;
 }
 
-function runSuite(root, plan, resolved, binding, runDirectory) {
+function runSuite(root, plan, resolved, binding, runDirectory, experienceContext = null) {
   const reportPath = path.join(runDirectory, 'playwright-results.json');
   const environment = { ...process.env,
     CI: '1', KSTACK_POST_DEPLOY_BASE_URL: binding.baseUrl,
@@ -288,6 +314,11 @@ function runSuite(root, plan, resolved, binding, runDirectory) {
     KSTACK_POST_DEPLOY_COMMIT_SHA: binding.commitSha, KSTACK_POST_DEPLOY_ARTIFACT_SHA256: binding.artifactSha256,
     PLAYWRIGHT_JSON_OUTPUT_FILE: reportPath, PLAYWRIGHT_HTML_OPEN: 'never'
   };
+  if (experienceContext) {
+    environment.KSTACK_EXPERIENCE_RESULT_PATH = experienceContext.resultPath;
+    environment.KSTACK_EXPERIENCE_CONTRACT_PATH = experienceContext.contractPath;
+    environment.KSTACK_EXPERIENCE_CONTRACT_SHA256 = experienceContext.contractSha256;
+  }
   for (const name of ['NODE_OPTIONS', 'NODE_PATH', 'PWDEBUG']) delete environment[name];
   const started = Date.now();
   const result = spawnSync(process.execPath, suiteArgs(plan, resolved.cliPath, runDirectory), {
@@ -312,16 +343,23 @@ function runSuite(root, plan, resolved, binding, runDirectory) {
 }
 
 function artifactManifest(directory) {
-  const entries = [];
-  const walk = (current, relative = '') => {
+  const entries = []; const totals = { files: 0, bytes: 0, nodes: 0 };
+  const walk = (current, relative = '', depth = 0) => {
+    totals.nodes += 1;
+    if (totals.nodes > MAX_ARTIFACT_NODES || depth > MAX_ARTIFACT_DEPTH) fail('KSTACK_POST_DEPLOY_ARTIFACT_BUDGET_EXCEEDED');
     for (const name of fs.readdirSync(current).sort(byteSort)) {
       const childRelative = relative ? path.posix.join(relative, name) : name;
       if (childRelative === 'receipt.json') continue;
       const absolute = path.join(current, name);
       const stat = fs.lstatSync(absolute);
       if (stat.isSymbolicLink()) fail('KSTACK_POST_DEPLOY_ARTIFACT_SYMLINK');
-      if (stat.isDirectory()) walk(absolute, childRelative);
-      else if (stat.isFile()) entries.push({ path: childRelative, size: stat.size, sha256: sha256(fs.readFileSync(absolute)) });
+      if (stat.isDirectory()) walk(absolute, childRelative, depth + 1);
+      else if (stat.isFile()) {
+        totals.files += 1; totals.bytes += stat.size;
+        if (totals.files > MAX_ARTIFACT_FILES || totals.bytes > MAX_ARTIFACT_BYTES) fail('KSTACK_POST_DEPLOY_ARTIFACT_BUDGET_EXCEEDED');
+        const bytes = safeRead(absolute, MAX_ARTIFACT_BYTES, 'KSTACK_POST_DEPLOY_ARTIFACT_READ_INVALID');
+        entries.push({ path: childRelative, size: bytes.length, sha256: sha256(bytes) });
+      } else fail('KSTACK_POST_DEPLOY_ARTIFACT_TYPE_INVALID');
     }
   };
   walk(directory);
@@ -362,44 +400,46 @@ export async function recordPostDeployOutcome(options) {
   const occurredAt = options.receipt.completedAt;
   const evidence = [{ repoRelativePath: path.relative(jiraState.repoRoot, options.receiptPath).replace(/\\/gu, '/'), sha256: options.receiptFileSha256, evidenceKind: 'post-deploy-receipt' }];
   const appended = [];
+  const releaseEventKey = sha256(canonicalBytes(options.receipt.release)).slice(0, 16);
   const append = async (values) => {
     const result = await appendTrackingEvent(state, trackingInput(binding, { ...values, occurredAt, evidence }));
     appended.push(result.event.eventId);
   };
   if (sameItem.length === 0) await append({
     threadId: options.threadId, itemId: options.itemId,
-    sourceEventId: `postdeploy:${options.receipt.runId}:parent-created`, kind: 'ITEM_CREATED', localState: 'planned',
+    sourceEventId: `postdeploy:${releaseEventKey}:parent-created`, kind: 'ITEM_CREATED', localState: 'planned',
     summary: `Release validation for ${options.receipt.release.releaseId}`
   });
   if (options.receipt.status === 'HEALTHY') {
+    const validationLabel = options.receipt.experience ? 'Playwright and product-experience' : 'Playwright';
     await append({
       threadId: options.threadId, itemId: options.itemId,
-      sourceEventId: `postdeploy:${options.receipt.runId}:qc`, kind: 'QC_VALIDATED', localState: 'active',
-      summary: `Playwright post-deploy validation passed for ${options.receipt.release.releaseId}`,
+      sourceEventId: `postdeploy:${releaseEventKey}:qc`, kind: 'QC_VALIDATED', localState: 'active',
+      summary: `${validationLabel} post-deploy validation passed for ${options.receipt.release.releaseId}`,
       review: { decision: 'pass', confidence: 100, failed: 0, security: 0, dissent: 0, questions: 0 }
     });
     await append({
       threadId: options.threadId, itemId: options.itemId,
-      sourceEventId: `postdeploy:${options.receipt.runId}:done`, kind: 'ITEM_DONE', localState: 'done',
-      summary: `Automated release validation completed for ${options.receipt.release.releaseId}`
+      sourceEventId: `postdeploy:${releaseEventKey}:done`, kind: 'ITEM_DONE', localState: 'done',
+      summary: `Automated ${validationLabel.toLowerCase()} release validation completed for ${options.receipt.release.releaseId}`
     });
     await append({
       threadId: options.threadId, itemId: options.itemId,
-      sourceEventId: `postdeploy:${options.receipt.runId}:released`, kind: 'ITEM_RELEASED', localState: 'done',
-      summary: `Release ${options.receipt.release.releaseId} deployed and browser-validated; user validation remains`,
+      sourceEventId: `postdeploy:${releaseEventKey}:released`, kind: 'ITEM_RELEASED', localState: 'done',
+      summary: `Release ${options.receipt.release.releaseId} deployed and ${options.receipt.experience ? 'browser/experience-validated' : 'browser-validated'}; user validation remains`,
       release: { name: options.receipt.release.releaseId, releaseDate: occurredAt.slice(0, 10), receiptSha256: options.receipt.receiptSha256 }
     });
   } else {
     await append({
       threadId: options.threadId, itemId: options.itemId,
-      sourceEventId: `postdeploy:${options.receipt.runId}:failed`, kind: 'BUG_FOUND', localState: 'blocked',
+      sourceEventId: `postdeploy:${releaseEventKey}:failed`, kind: 'BUG_FOUND', localState: 'blocked',
       summary: `Post-deploy validation blocked ${options.receipt.release.releaseId}; follow-up work created`
     });
     for (const defect of options.receipt.defects) {
       const defectItemId = `postdeploy-defect-${defect.category}-${defect.fingerprint}`;
       await append({
         threadId: options.threadId, itemId: defectItemId,
-        sourceEventId: `postdeploy:${options.receipt.runId}:defect:${defect.fingerprint}`, kind: 'ITEM_CREATED', localState: 'planned',
+        sourceEventId: `postdeploy:${releaseEventKey}:defect:${defect.fingerprint}`, kind: 'ITEM_CREATED', localState: 'planned',
         summary: `${defect.summary} [parent ${options.itemId}]`
       });
     }
@@ -426,6 +466,12 @@ export async function runPostDeploy(options) {
   const base = parseBaseUrl(binding.baseUrl, loaded.plan.environment);
   if (!loaded.plan.allowedOrigins.includes(base.origin)) fail('KSTACK_POST_DEPLOY_BASE_URL_NOT_ALLOWED');
   const sources = sourceManifest(loaded.root, loaded.plan);
+  let experienceLoaded = null;
+  let experienceSources = null;
+  if (loaded.plan.experience?.required) {
+    experienceLoaded = readExperienceContract(loaded.root, loaded.plan.experience.contractPath);
+    experienceSources = experienceSourceManifest(loaded.root, experienceLoaded.contract);
+  }
   const resolved = resolvePlaywright(loaded.root);
   const evidenceRoot = path.join(loaded.root, '.kstack', 'post-deploy-evidence');
   ensurePrivateDirectory(evidenceRoot, loaded.root);
@@ -434,23 +480,51 @@ export async function runPostDeploy(options) {
   fs.mkdirSync(runDirectory, { mode: 0o700 });
   const startedAt = new Date().toISOString();
   const canary = independentCanary(loaded.root, resolved, loaded.plan.playwright.canaryBrowser, binding.baseUrl, { ...loaded.plan.playwright, allowedOrigins: loaded.plan.allowedOrigins }, runDirectory);
-  const suite = canary.status === 'PASS' ? runSuite(loaded.root, loaded.plan, resolved, binding, runDirectory) : { status: 'NOT_RUN_CANARY_FAILED', exitCode: null, signal: null, timedOut: false, durationMs: 0, counts: { total: 0, passed: 0, failed: 0, flaky: 0, skipped: 0, interrupted: 0 }, reportSha256: null };
-  const defects = derivePostDeployDefects(canary, suite, loaded.plan.handoff);
-  const status = canary.status === 'PASS' && suite.status === 'PASS' && defects.length === 0 ? 'HEALTHY' : 'FAILED';
+  const experienceResultPath = path.join(runDirectory, 'experience-result.json');
+  const experienceContext = experienceLoaded ? {
+    resultPath: experienceResultPath,
+    contractPath: experienceLoaded.absolute,
+    contractSha256: experienceLoaded.digest
+  } : null;
+  const suite = canary.status === 'PASS' ? runSuite(loaded.root, loaded.plan, resolved, binding, runDirectory, experienceContext) : { status: 'NOT_RUN_CANARY_FAILED', exitCode: null, signal: null, timedOut: false, durationMs: 0, counts: { total: 0, passed: 0, failed: 0, flaky: 0, skipped: 0, interrupted: 0 }, reportSha256: null };
+  let experience = { status: 'NOT_REQUIRED', failures: [] };
+  if (experienceLoaded && suite.status !== 'PASS') experience = { status: 'NOT_RUN_SUITE_FAILED', failures: [{ lane: 'runtime', reason: 'suite-not-passing' }], contractSha256: experienceLoaded.digest, sourceManifest: experienceSources, resultSha256: null, screenshotManifestSha256: null };
+  else if (experienceLoaded) {
+    try {
+      const after = readExperienceContract(loaded.root, loaded.plan.experience.contractPath);
+      const afterSources = experienceSourceManifest(loaded.root, after.contract);
+      if (after.digest !== experienceLoaded.digest || afterSources.digest !== experienceSources.digest
+          || afterSources.files !== experienceSources.files || afterSources.bytes !== experienceSources.bytes) fail('KSTACK_EXPERIENCE_SOURCE_DRIFT');
+      const relativeResult = path.relative(loaded.root, experienceResultPath).replace(/\\/gu, '/');
+      const checked = readExperienceResult(loaded.root, relativeResult, experienceLoaded.contract, {
+        contractSha256: experienceLoaded.digest, releaseId: binding.releaseId, deploymentId: binding.deploymentId,
+        commitSha: binding.commitSha, artifactSha256: binding.artifactSha256
+      });
+      experience = { ...checked.result, sourceManifest: experienceSources, resultSha256: checked.digest };
+    } catch (error) {
+      experience = { status: 'FAIL', failures: [{ lane: 'runtime', reason: error.code ?? 'experience-result-invalid' }], contractSha256: experienceLoaded.digest, sourceManifest: experienceSources, resultSha256: null, screenshotManifestSha256: null };
+    }
+  }
+  const defects = derivePostDeployDefects(canary, suite, loaded.plan.handoff, experience);
+  const experiencePassed = !experienceLoaded || experience.status === 'PASS';
+  const status = canary.status === 'PASS' && suite.status === 'PASS' && experiencePassed && defects.length === 0 ? 'HEALTHY' : 'FAILED';
   const artifacts = artifactManifest(runDirectory);
+  const isV2 = Boolean(experienceLoaded);
   const receipt = {
-    schemaVersion: RECEIPT_SCHEMA, runId, status, startedAt, completedAt: new Date().toISOString(),
+    schemaVersion: isV2 ? RECEIPT_SCHEMA_V2 : RECEIPT_SCHEMA, runId, status, startedAt, completedAt: new Date().toISOString(),
     planId: loaded.plan.planId, planSha256: loaded.digest, environment: loaded.plan.environment,
     target: { origin: base.origin, basePathSha256: sha256(Buffer.from(base.pathname, 'utf8')) },
     release: { releaseId: binding.releaseId, deploymentId: binding.deploymentId, commitSha: binding.commitSha, artifactSha256: binding.artifactSha256 },
-    playwright: { version: resolved.version, sourceManifest: sources, canary, suite }, defects, artifacts
+    playwright: { version: resolved.version, sourceManifest: sources, canary, suite },
+    ...(isV2 ? { experience } : {}),
+    defects, artifacts
   };
   const receiptSha256 = sha256(canonicalBytes(receipt));
   const complete = { ...receipt, receiptSha256 };
   const receiptPath = path.join(runDirectory, 'receipt.json');
   const receiptBytes = canonicalBytes(complete);
   fs.writeFileSync(receiptPath, receiptBytes, { mode: 0o600, flag: 'wx' });
-  process.stdout.write(`${OUTPUT_PREFIX}${canonical(complete)}\n`);
+  process.stdout.write(`${isV2 ? OUTPUT_PREFIX_V2 : OUTPUT_PREFIX}${canonical(complete)}\n`);
   let jira = null;
   let trackingError = null;
   if (options.jira || loaded.plan.handoff.jiraRequired) {
@@ -464,19 +538,23 @@ export async function runPostDeploy(options) {
     }
   }
   const ready = status === 'HEALTHY' && (!loaded.plan.handoff.jiraRequired || (jira?.projectionComplete === true && !trackingError));
+  const experienceReviewPending = experience.status === 'FAIL' && experience.failures.length === 1
+    && experience.failures[0].lane === 'visual-review' && experience.failures[0].reason === 'review-not-approved';
   const handoff = {
-    schemaVersion: HANDOFF_SCHEMA,
+    schemaVersion: isV2 ? HANDOFF_SCHEMA_V2 : HANDOFF_SCHEMA,
     runId,
     browserReceiptSha256: complete.receiptSha256,
-    status: ready ? 'READY_FOR_USER_VALIDATION' : status === 'HEALTHY' ? 'JIRA_TRACKING_PENDING' : 'REMEDIATION_REQUIRED',
+    status: ready ? 'READY_FOR_USER_VALIDATION' : status === 'HEALTHY' ? 'JIRA_TRACKING_PENDING'
+      : isV2 ? (experienceReviewPending ? 'EXPERIENCE_REVIEW_REQUIRED' : 'EXPERIENCE_REMEDIATION_REQUIRED') : 'REMEDIATION_REQUIRED',
     jiraRequired: loaded.plan.handoff.jiraRequired,
+    ...(isV2 ? { experienceStatus: experience.status } : {}),
     jira,
     trackingError
   };
   const handoffComplete = { ...handoff, handoffSha256: sha256(canonicalBytes(handoff)) };
   const handoffPath = path.join(runDirectory, 'handoff.json');
   fs.writeFileSync(handoffPath, canonicalBytes(handoffComplete), { mode: 0o600, flag: 'wx' });
-  process.stdout.write(`${HANDOFF_PREFIX}${canonical(handoffComplete)}\n`);
+  process.stdout.write(`${isV2 ? HANDOFF_PREFIX_V2 : HANDOFF_PREFIX}${canonical(handoffComplete)}\n`);
   return { receipt: complete, path: receiptPath, handoff: handoffComplete, handoffPath };
 }
 
@@ -508,7 +586,11 @@ async function main() {
     if (command === 'validate-plan') {
       const loaded = readPlan(values['project-root'] ?? '.', values.plan);
       sourceManifest(loaded.root, loaded.plan);
-      process.stdout.write(`KSTACK_POST_DEPLOY_PLAN_VALID_V1 ${loaded.digest}\n`);
+      if (loaded.plan.experience?.required) {
+        const experience = readExperienceContract(loaded.root, loaded.plan.experience.contractPath);
+        experienceSourceManifest(loaded.root, experience.contract);
+      }
+      process.stdout.write(`KSTACK_POST_DEPLOY_PLAN_VALID_${loaded.plan.experience ? 'V2' : 'V1'} ${loaded.digest}\n`);
       return;
     }
     if (command !== 'run') fail('KSTACK_POST_DEPLOY_USAGE');

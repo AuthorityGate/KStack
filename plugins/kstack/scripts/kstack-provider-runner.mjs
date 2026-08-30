@@ -26,6 +26,7 @@ export function claudeInvocationArgs(modelConfig, options = {}) {
     '--no-session-persistence', '--permission-mode', 'plan', '--tools', '',
     '--disable-slash-commands'
   ];
+  if (options.hardened) args.push('--safe-mode', '--restricted', '--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}');
   if (options.jsonSchema) {
     args.push('--json-schema', JSON.stringify(options.jsonSchema), '--output-format', 'json');
   }
@@ -57,9 +58,10 @@ export function runProcess(command, args, options) {
       stderrFd = fs.openSync(options.stderrFile, 'w', 0o600);
       child = spawn(command, args, {
         cwd: options.cwd,
-        env: process.env,
+        env: options.env ?? process.env,
         stdio: [stdinFd ?? 'ignore', stdoutFd, stderrFd],
-        windowsHide: true
+        windowsHide: true,
+        detached: options.killProcessTree === true && process.platform !== 'win32'
       });
       if (stdinFd !== undefined) fs.closeSync(stdinFd);
       fs.closeSync(stdoutFd);
@@ -75,10 +77,16 @@ export function runProcess(command, args, options) {
       return;
     }
 
+    const terminate = (signal) => {
+      try {
+        if (options.killProcessTree === true && process.platform !== 'win32' && Number.isSafeInteger(child?.pid)) process.kill(-child.pid, signal);
+        else child.kill(signal);
+      } catch {}
+    };
     const timer = setTimeout(() => {
       timedOut = true;
-      child.kill('SIGTERM');
-      setTimeout(() => child.kill('SIGKILL'), 2000).unref();
+      terminate('SIGTERM');
+      setTimeout(() => terminate('SIGKILL'), 2000).unref();
     }, options.timeoutMs);
 
     child.on('error', (error) => {

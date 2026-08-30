@@ -198,6 +198,7 @@ export async function loadJiraState(options = {}) {
     jira: config.jira,
     configPath,
     repoRoot,
+    ...(config.jira.deliveryRecordPath ? { deliveryRecordPath: path.resolve(config.jira.deliveryRecordPath) } : {}),
     queueDir: path.join(repoRoot, '.kstack', 'jira-queue'),
     fetchImpl: options.fetchImpl || globalThis.fetch,
     clock: options.clock || Date,
@@ -258,6 +259,7 @@ export function configFingerprint(state, draft, resolvedEmail) {
     : { type: source.type, path: source.path };
   return sha256(Buffer.from(JSON.stringify({
     siteUrl: state.jira.siteUrl,
+    apiBaseUrl: state.jira.apiBaseUrl ?? null,
     project: draft.project,
     issueType: draft.issueType,
     credentialSource: pointer,
@@ -727,7 +729,9 @@ export async function sweepQueue(state, options = {}) {
 }
 
 function requestUrl(state, endpoint) {
-  return new URL(endpoint, `${state.jira.siteUrl}/`).toString();
+  if (typeof endpoint !== 'string' || !endpoint.startsWith('/') || endpoint.startsWith('//')) fail('Jira request endpoint is invalid', EXIT.CONFIG_INVALID);
+  const base = state.jira.apiBaseUrl || state.jira.siteUrl;
+  return `${base.replace(/\/$/u, '')}${endpoint}`;
 }
 
 async function responseBody(response) {

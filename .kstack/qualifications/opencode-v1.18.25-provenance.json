@@ -1,0 +1,83 @@
+{
+  "schema": "kstack-opencode-provenance-v1",
+  "product": "opencode",
+  "version": "1.18.25",
+  "observedAt": "2026-08-30T01:39:46Z",
+  "officialRepository": "https://github.com/anomalyco/opencode",
+  "release": {
+    "tag": "v1.18.25",
+    "publishedAt": "2026-08-28T05:58:20Z",
+    "targetCommitish": "733562e92a96255fb123aae92f267e4534a635fb",
+    "tagRefObjectType": "commit",
+    "tagRefObjectSha": "cb7d8b2f5e44876ef98b661dc10590c915af3a9f",
+    "tagRefObjectVerified": false,
+    "tagRefObjectVerificationReason": "unsigned",
+    "targetCommitSha": "733562e92a96255fb123aae92f267e4534a635fb",
+    "targetCommitVerified": true,
+    "targetCommitVerificationReason": "valid",
+    "targetCommitVerifiedAt": "2026-08-28T05:38:25Z",
+    "claim": "TARGET_COMMIT_VERIFIED_RELEASE_TAG_OBJECT_UNSIGNED"
+  },
+  "officialApiObservations": {
+    "releaseUrl": "https://api.github.com/repos/anomalyco/opencode/releases/tags/v1.18.25",
+    "releaseResponseSha256": "d5f00a6b6b3e9e8cdfbd95c1e5138280bfde23bf6c175b334416e6f7f563881f",
+    "tagRefUrl": "https://api.github.com/repos/anomalyco/opencode/git/ref/tags/v1.18.25",
+    "tagRefResponseSha256": "5a3d765e0f5d898de9be49c2ab5542bac0aba21d11ca17228e8ad593e10c6f20",
+    "tagCommitUrl": "https://api.github.com/repos/anomalyco/opencode/commits/cb7d8b2f5e44876ef98b661dc10590c915af3a9f",
+    "tagCommitResponseSha256": "f7431153094a56aab518098df221bae5b9ae3e61555489ad67d17b322cb84d7c",
+    "targetCommitUrl": "https://api.github.com/repos/anomalyco/opencode/commits/733562e92a96255fb123aae92f267e4534a635fb",
+    "targetCommitResponseSha256": "35008c09312bd731806f588c8717582a8896bcd32158881ccb0c48e869670c96"
+  },
+  "asset": {
+    "name": "opencode-linux-x64.tar.gz",
+    "url": "https://github.com/anomalyco/opencode/releases/download/v1.18.25/opencode-linux-x64.tar.gz",
+    "githubPublishedSha256": "58a3729a6f3432dd6d2917fcc4a949788891a035818646ad480e12c947f56e78",
+    "observedSha256": "58a3729a6f3432dd6d2917fcc4a949788891a035818646ad480e12c947f56e78",
+    "bytes": 60534407,
+    "archiveMembers": [
+      "opencode"
+    ]
+  },
+  "binary": {
+    "sha256": "d91e0d33676d0839f7cde87924cd4127ea88c9d6784eea9f009a7d08bdc60eeb",
+    "bytes": 184682624,
+    "mode": "0755",
+    "format": "ELF 64-bit LSB executable, x86-64",
+    "interpreter": "/lib64/ld-linux-x86-64.so.2",
+    "buildId": "c30f169b1bef81fa57467cd091ba53aab5235468",
+    "stripped": false,
+    "observedVersion": "1.18.25"
+  },
+  "sourceArchive": {
+    "url": "https://github.com/anomalyco/opencode/archive/refs/tags/v1.18.25.tar.gz",
+    "sha256": "44e9530d7be172005c7d60aef317440eecb85d557d94cce7fa35c5a7b9d9da0b",
+    "bytes": 81410367,
+    "root": "opencode-1.18.25/"
+  },
+  "officialSourceFiles": {
+    "LICENSE": "625f0f619133f89bbbb2abe37369613dfa1885eba1e50d02170deb62bb42cb6b",
+    "packages/opencode/src/cli/cmd/debug/skill.ts": "e8aeac1d4a48092c9ad2cd1ccf6bb0fd5a3adf081909584f543ca2f923a475e2",
+    "packages/opencode/src/skill/discovery.ts": "6bb6706bc9451f4a70582a5cd76396820aab2c7440e3974ad7ffceba200880ed",
+    "packages/opencode/src/skill/index.ts": "91dce57f590e1ad3103e0555b893500e098a95cde2739422b699233889b205e6",
+    "packages/web/src/content/docs/permissions.mdx": "e929098f6f772186eeb4f0eb55e332c477d88e30cb1efc45d0839dfa333b5163",
+    "packages/web/src/content/docs/providers.mdx": "db415bbacfcc5abe0537f6a22e093d4553e45c5257849e2d4d069497e952d0b7",
+    "packages/web/src/content/docs/skills.mdx": "7ff4df3a1a4909fa0e0025a6f086c3dbc63d09fdd578bc13f3f4ae30fcfe4627"
+  },
+  "observedFacts": {
+    "projectSkillRoot": ".opencode/skills/<name>/SKILL.md",
+    "globalSkillRoot": "~/.config/opencode/skills/<name>/SKILL.md",
+    "entryFilename": "SKILL.md",
+    "discoveryCommand": "opencode --pure debug skill",
+    "invocationTool": "skill",
+    "invocationInput": {
+      "name": "<skill-name>"
+    },
+    "customProviderPackage": "@ai-sdk/openai-compatible",
+    "permissionProfile": {
+      "*": "deny",
+      "skill": "allow"
+    },
+    "externalPluginsDisabled": true,
+    "credentialsRequiredForLoopbackQualification": false
+  }
+}

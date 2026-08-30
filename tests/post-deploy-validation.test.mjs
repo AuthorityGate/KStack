@@ -25,13 +25,34 @@ function plan(overrides = {}) {
   return { ...base, ...overrides, playwright: { ...base.playwright, ...(overrides.playwright ?? {}) } };
 }
 
+function experienceContract() {
+  const lanes = ['critical-journey', 'accessibility', 'responsive', 'visual-regression', 'brand-consistency', 'content-clarity', 'state-coverage', 'performance'];
+  return {
+    schemaVersion: 'kstack-product-experience-v1', surface: 'user-facing', adoption: { mode: 'adopt-existing', decisionId: 'fixture-decision', ownerConfirmed: true },
+    product: { name: 'Fixture', promise: 'Make deployed behavior clear.', primaryUsers: ['Operator'], jobs: ['Validate a release'], brandTraits: ['clear', 'calm', 'trusted'], antiTraits: ['noisy'], voicePrinciples: ['Lead with the outcome.'], informationArchitecturePrinciples: ['Keep status and recovery together.'] },
+    system: { tokenFormat: 'project-native', tokensPath: 'ui/tokens.json', componentRoots: ['ui/components'], assetRoots: [], exceptions: [] },
+    journeys: [{ id: 'release', name: 'Validate release', priority: 'critical', testPath: 'tests/post-deploy/release.spec.mjs', requiredStates: ['loading', 'success', 'system-error', 'retry'], successOutcome: 'The operator validates the release.', alternatives: ['Guided validation', 'Checklist validation'], selectedAlternative: 'Guided validation', selectionRationale: 'The guided flow presents evidence before release.', hierarchy: 'Status and evidence lead; recovery follows the failing check.', interactionModel: 'Keyboard and pointer users advance through explicit validation steps.', recoveryBehavior: 'A failed check retains context and offers retry or safe exit.' }],
+    validation: {
+      accessibilityTarget: 'wcag-2.2-aa', requiredLanes: lanes,
+      minimumCasesByLane: Object.fromEntries(lanes.map((lane) => [lane, 1])),
+      viewports: [{ id: 'mobile', width: 390, height: 844, inputModes: ['touch', 'screen-reader'], touch: true, colorScheme: 'light' }, { id: 'desktop', width: 1440, height: 900, inputModes: ['keyboard', 'mouse', 'screen-reader'], touch: false, colorScheme: 'dark' }],
+      locales: ['en-US'], zoomPercents: [100, 200],
+      visualReview: { required: true, syntheticDataOnly: true, minimumConfidence: 93, baselineApprovalId: 'fixture-baselines-2026-08-28', baselineRoots: ['tests/post-deploy'] },
+      performance: { maxLcpMs: 2500, maxInpMs: 200, maxClsMilli: 100, fieldEvidenceRequired: false }
+    }
+  };
+}
+
 function fixture() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-post-deploy-'));
   fs.mkdirSync(path.join(root, '.kstack'));
   fs.mkdirSync(path.join(root, 'tests', 'post-deploy'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'ui', 'components'), { recursive: true });
   fs.mkdirSync(path.join(root, 'node_modules', '@playwright', 'test'), { recursive: true });
   fs.writeFileSync(path.join(root, 'package.json'), '{"type":"module"}\n');
   fs.writeFileSync(path.join(root, 'playwright.config.mjs'), 'export default {};\n');
+  fs.writeFileSync(path.join(root, 'ui', 'tokens.json'), '{}\n');
+  fs.writeFileSync(path.join(root, 'ui', 'components', 'button.css'), '.button{}\n');
   fs.writeFileSync(path.join(root, 'tests', 'post-deploy', 'release.spec.mjs'), '/* consumes KSTACK_POST_DEPLOY_BASE_URL */\n');
   const packageRoot = path.join(root, 'node_modules', '@playwright', 'test');
   fs.writeFileSync(path.join(packageRoot, 'package.json'), '{"name":"@playwright/test","version":"9.9.9-test","type":"module","main":"index.js"}\n');
@@ -53,7 +74,11 @@ export const chromium = browserType;
 export const firefox = browserType;
 export const webkit = browserType;
 `);
-  fs.writeFileSync(path.join(packageRoot, 'cli.js'), `import fs from 'node:fs';
+  fs.writeFileSync(path.join(packageRoot, 'cli.js'), `import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+const sha = (value) => crypto.createHash('sha256').update(value).digest('hex');
+const canonical = (value) => value === null || typeof value === 'boolean' || typeof value === 'string' || Number.isSafeInteger(value) ? JSON.stringify(value) : Array.isArray(value) ? '[' + value.map(canonical).join(',') + ']' : '{' + Object.keys(value).sort((a,b) => Buffer.compare(Buffer.from(a),Buffer.from(b))).map((key) => JSON.stringify(key)+':'+canonical(value[key])).join(',') + '}';
 const canary = Boolean(process.env.KSTACK_CANARY_OBSERVATION_PATH);
 const flaky = process.env.FAKE_SUITE_MODE === 'flaky';
 const skipped = process.env.FAKE_SUITE_MODE === 'skipped';
@@ -64,10 +89,44 @@ if (canary) {
   fs.writeFileSync(process.env.KSTACK_CANARY_OBSERVATION_PATH, JSON.stringify({ responseStatus: 200, finalOrigin: finalUrl.origin, finalPathSha256: '3'.repeat(64), titleSha256: '4'.repeat(64), consoleErrors: 0, requestFailures: 0 }));
   fs.writeFileSync(process.env.KSTACK_CANARY_SCREENSHOT_PATH, 'png');
 }
+if (!canary && process.env.KSTACK_EXPERIENCE_RESULT_PATH) {
+  const lanes = ['critical-journey', 'accessibility', 'responsive', 'visual-regression', 'brand-consistency', 'content-clarity', 'state-coverage', 'performance'];
+  const mode = process.env.FAKE_EXPERIENCE_MODE;
+  const cases = [];
+  const add = (caseId,lane,state,viewportId,zoomPercent,checkType) => cases.push({caseId,lane,journeyId:'release',state,viewportId,locale:'en-US',zoomPercent,checkType,outcome:'PASS',evidencePath:'cases/'+caseId+'.txt',evidenceSha256:sha(caseId)});
+  for (const lane of lanes) add('base-'+lane,lane,'success','mobile',100,lane);
+  for (const check of ['axe','keyboard','focus','aria','contrast','reflow']) add('a11y-'+check,'accessibility','success','desktop',100,check);
+  for (const state of ['loading','system-error','retry']) add('state-'+state,'state-coverage',state,'mobile',100,'state');
+  for (const state of ['loading','system-error','retry']) add('visual-state-'+state,'visual-regression',state,'mobile',100,'state');
+  for (const viewport of ['mobile','desktop']) for (const zoom of [100,200]) for (const lane of ['responsive','visual-regression']) add('matrix-'+lane+'-'+viewport+'-'+zoom,lane,'success',viewport,zoom,lane);
+  const runDir = path.dirname(process.env.KSTACK_EXPERIENCE_RESULT_PATH); fs.mkdirSync(path.join(runDir,'cases'));
+  for (const item of cases) fs.writeFileSync(path.join(runDir,item.evidencePath),item.caseId);
+  const performanceRaw = {schemaVersion:'kstack-performance-measurement-v1',journeyId:'release',evidenceKind:'lab',environment:'chromium fixture',sampleSize:5,windowStart:'2026-08-28T10:00:00.000Z',windowEnd:'2026-08-28T10:05:00.000Z',lcpMs:2000,inpMs:150,clsMilli:50};
+  const performanceRawBytes = canonical(performanceRaw)+'\\n';
+  fs.mkdirSync(path.join(runDir,'performance')); fs.writeFileSync(path.join(runDir,'performance','raw.json'),performanceRawBytes);
+  const manifest = {schemaVersion:'kstack-experience-evidence-manifest-v1',contractSha256:process.env.KSTACK_EXPERIENCE_CONTRACT_SHA256,release:{releaseId:process.env.KSTACK_POST_DEPLOY_RELEASE_ID,deploymentId:process.env.KSTACK_POST_DEPLOY_DEPLOYMENT_ID,commitSha:process.env.KSTACK_POST_DEPLOY_COMMIT_SHA,artifactSha256:process.env.KSTACK_POST_DEPLOY_ARTIFACT_SHA256},cases,manualAccessibilityStatus:'PENDING_OWNER_ASSESSMENT',visualDisclosure:{classification:'synthetic',authorizationReceiptPath:null,authorizationReceiptSha256:null},performanceEvidence:{journeyId:'release',evidenceKind:'lab',environment:'chromium fixture',sampleSize:5,windowStart:'2026-08-28T10:00:00.000Z',windowEnd:'2026-08-28T10:05:00.000Z',evidencePath:'performance/raw.json',evidenceSha256:sha(performanceRawBytes),lcpMs:2000,inpMs:150,clsMilli:50}};
+  const manifestBytes = canonical(manifest)+'\\n'; fs.writeFileSync(path.join(runDir,'experience-evidence.json'),manifestBytes);
+  const projected = (lane) => cases.filter((item)=>item.lane===lane).map((item)=>({...item})).sort((a,b)=>Buffer.compare(Buffer.from(a.caseId),Buffer.from(b.caseId)));
+  const visual = projected('visual-regression');
+  const result = {
+    schemaVersion: 'kstack-experience-runtime-result-v2', contractSha256: process.env.KSTACK_EXPERIENCE_CONTRACT_SHA256, evidenceManifestPath:'experience-evidence.json', evidenceManifestSha256:sha(manifestBytes),
+    release: { releaseId: process.env.KSTACK_POST_DEPLOY_RELEASE_ID, deploymentId: process.env.KSTACK_POST_DEPLOY_DEPLOYMENT_ID, commitSha: process.env.KSTACK_POST_DEPLOY_COMMIT_SHA, artifactSha256: process.env.KSTACK_POST_DEPLOY_ARTIFACT_SHA256 },
+    lanes: lanes.map((lane) => { const laneCases=projected(lane); return { lane, cases: laneCases.length, failed: 0, findings: mode === 'accessibility-finding' && lane === 'accessibility' ? 1 : 0, evidenceSha256: sha(canonical(laneCases)+'\\n') }; }),
+    metrics: { evidenceKind: 'lab', lcpMs: 2000, inpMs: 150, clsMilli: 50 },
+    visualReview: { status: mode === 'review-pending' ? 'PENDING' : 'APPROVED', confidence: 93, failed: 0, security: 0, dissent: 0, questions: 0, screenshotManifestSha256: sha(canonical(visual)+'\\n') }
+  };
+  fs.writeFileSync(process.env.KSTACK_EXPERIENCE_RESULT_PATH, JSON.stringify(result));
+  if (mode === 'source-drift') fs.writeFileSync(path.join(process.cwd(),'ui','tokens.json'),'drift');
+}
 `, { mode: 0o700 });
   const selectedPlan = plan();
   fs.writeFileSync(path.join(root, '.kstack', 'post-deploy-validation.json'), `${JSON.stringify(selectedPlan, null, 2)}\n`);
   return { root, selectedPlan };
+}
+
+function writeV2(root, selected) {
+  fs.writeFileSync(path.join(root, '.kstack', 'post-deploy-validation.json'), `${JSON.stringify(selected, null, 2)}\n`);
+  fs.writeFileSync(path.join(root, '.kstack', 'experience.json'), `${JSON.stringify(experienceContract(), null, 2)}\n`);
 }
 
 function options(root) {
@@ -83,6 +142,14 @@ test('plan schema is closed and production is HTTPS-only', () => {
   assert.throws(() => validatePlan(plan({ allowedOrigins: ['http://app.example.test'] })), /PRODUCTION_REQUIRES_HTTPS/u);
   assert.throws(() => validatePlan(plan({ playwright: { retries: 3 } })), /RETRIES_INVALID/u);
   assert.throws(() => validatePlan(plan({ playwright: { testPaths: ['../escape'] } })), /TEST_PATHS_INVALID/u);
+});
+
+test('legacy v1 cannot bypass a repository experience contract', () => {
+  const { root } = fixture();
+  try {
+    fs.writeFileSync(path.join(root, '.kstack', 'experience.json'), `${JSON.stringify(experienceContract(), null, 2)}\n`);
+    assert.throws(() => readPlan(root, '.kstack/post-deploy-validation.json'), /KSTACK_POST_DEPLOY_EXPERIENCE_PLAN_V2_REQUIRED/u);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
 test('plan and test sources are descriptor-read, bounded, and symlink-rejecting', () => {
@@ -178,5 +245,59 @@ test('flaky success and a canary redirect outside the allowlist both fail closed
     delete process.env.FAKE_FINAL_URL;
     fs.rmSync(first.root, { recursive: true, force: true });
     fs.rmSync(second.root, { recursive: true, force: true });
+  }
+});
+
+test('v2 requires exact product-experience evidence before user handoff', async () => {
+  const { root } = fixture();
+  const selected = plan({ schemaVersion: 'kstack-post-deploy-validation-plan-v2', handoff: { jiraRequired: true, maxCanaryDurationMs: 60_000, maxSuiteDurationMs: 120_000 }, experience: { required: true, contractPath: '.kstack/experience.json' } });
+  writeV2(root, selected);
+  try {
+    const pending = await runPostDeploy(options(root));
+    assert.equal(pending.handoff.status, 'JIRA_TRACKING_PENDING');
+    const passed = await runPostDeploy({
+      ...options(root), jira: { configPath: '.kstack/config.json', threadId: 'release-thread', itemId: 'release-item' },
+      recordTracking: async () => ({ mode: 'automatic', eventCount: 3, draftCount: 1, projectedCount: 3, statusCount: 1, versionCount: 1, projectionComplete: true })
+    });
+    assert.equal(passed.receipt.schemaVersion, 'kstack-post-deploy-validation-receipt-v2');
+    assert.equal(passed.receipt.experience.status, 'PASS');
+    assert.equal(passed.handoff.status, 'READY_FOR_USER_VALIDATION');
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+});
+
+test('v2 creates category-specific experience defects and separates pending review', async () => {
+  const first = fixture(); const second = fixture();
+  for (const root of [first.root, second.root]) {
+    const selected = plan({ schemaVersion: 'kstack-post-deploy-validation-plan-v2', handoff: { jiraRequired: true, maxCanaryDurationMs: 60_000, maxSuiteDurationMs: 120_000 }, experience: { required: true, contractPath: '.kstack/experience.json' } });
+    writeV2(root, selected);
+  }
+  try {
+    process.env.FAKE_EXPERIENCE_MODE = 'accessibility-finding';
+    const failed = await runPostDeploy(options(first.root));
+    assert.equal(failed.handoff.status, 'EXPERIENCE_REMEDIATION_REQUIRED');
+    assert.equal(failed.receipt.defects.some((defect) => defect.category === 'accessibility'), true);
+    process.env.FAKE_EXPERIENCE_MODE = 'review-pending';
+    const pending = await runPostDeploy(options(second.root));
+    assert.equal(pending.handoff.status, 'EXPERIENCE_REVIEW_REQUIRED');
+    assert.equal(pending.receipt.defects.some((defect) => defect.category === 'visual-review'), true);
+  } finally {
+    delete process.env.FAKE_EXPERIENCE_MODE;
+    fs.rmSync(first.root, { recursive: true, force: true });
+    fs.rmSync(second.root, { recursive: true, force: true });
+  }
+});
+
+test('v2 rejects experience source drift during the browser suite', async () => {
+  const { root } = fixture();
+  const selected = plan({ schemaVersion: 'kstack-post-deploy-validation-plan-v2', handoff: { jiraRequired: true, maxCanaryDurationMs: 60_000, maxSuiteDurationMs: 120_000 }, experience: { required: true, contractPath: '.kstack/experience.json' } });
+  writeV2(root, selected);
+  try {
+    process.env.FAKE_EXPERIENCE_MODE = 'source-drift';
+    const failed = await runPostDeploy(options(root));
+    assert.equal(failed.handoff.status, 'EXPERIENCE_REMEDIATION_REQUIRED');
+    assert.deepEqual(failed.receipt.experience.failures, [{ lane: 'runtime', reason: 'KSTACK_EXPERIENCE_SOURCE_DRIFT' }]);
+  } finally {
+    delete process.env.FAKE_EXPERIENCE_MODE;
+    fs.rmSync(root, { recursive: true, force: true });
   }
 });

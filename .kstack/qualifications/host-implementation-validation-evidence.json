@@ -1,0 +1,617 @@
+{
+  "schema": "kstack-host-implementation-validation-v1",
+  "startedAt": "2026-08-30T15:08:22.685Z",
+  "completedAt": "2026-08-30T15:08:28.998Z",
+  "inventory": [
+    {
+      "itemId": "HP-TC01",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
+          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-contract.test.mjs",
+          "sha256": "c93e187ae836374badc330caad4776535ba240c3e660510643a8799a195d96e3"
+        },
+        {
+          "file": "tests/reflexion-architecture-gate.mjs",
+          "sha256": "d84840efa71cd004cae2e5631fde23cadc58fe790be6c2d09035a5021b0a0834"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/host-contract-reference/Cargo.toml",
+          "sha256": "0be030c9306e225ce5588d02efd01ca3fef4ac0f229f0636b9a6026b7ea31d30"
+        },
+        {
+          "file": "plugins/kstack/native/host-contract-reference/Cargo.lock",
+          "sha256": "9588808754aecdcc22f360236a895a95ba9a703f0ad2d6bb6d7beac640459572"
+        },
+        {
+          "file": "plugins/kstack/native/host-contract-reference/src/main.rs",
+          "sha256": "39ef7ee43cf203adf03148e5450fc98aac1f66dd12dcf4dcb0d82a462b0636dc"
+        },
+        {
+          "file": "tests/helpers/host-contract-python-oracle.py",
+          "sha256": "272e1922c18c3155bb9fce50c339f29eb20fd1d9e35106ea2e42d3ea4a3a1e0f"
+        },
+        {
+          "file": "tests/fixtures/host-contract-cross-runtime-vectors-v1.json",
+          "sha256": "1069810add267393401aa02300dd287891062bee867742cac695bd3b1cfbbdb7"
+        }
+      ]
+    },
+    {
+      "itemId": "HP-TC02",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-request-context.mjs",
+          "sha256": "e8d15b85d1669711eceaa37d1df4340189a01bff05c0886810928433476a3bbb"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-request-context.test.mjs",
+          "sha256": "bd3a902315a980b779d5bf51a66e9408e11bbfef046c4cc86d9be37c3ab8de77"
+        }
+      ],
+      "validationSupportFiles": []
+    },
+    {
+      "itemId": "HP-TC03",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-request-replay.mjs",
+          "sha256": "0b4368848075fbca6ac9615bdb931ae7a71aa0ae3cb41d8323a6d8664c08b3f9"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-replay.mjs",
+          "sha256": "80d371831337ba2a9635be8b2c02c8c24f5b98a3b02172a9c118634cc8718fdd"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-replay-store.mjs",
+          "sha256": "d37815a62c12f0954958eb3d7a8111ce93c668d7f49dfbbc57001407a5e6f412"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-replay.test.mjs",
+          "sha256": "af579c317826f407b8a587021a7ac87fa85af7413c8f0fa6c7b7c07b3de30823"
+        }
+      ],
+      "validationSupportFiles": []
+    },
+    {
+      "itemId": "HP-TC04",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-evidence.mjs",
+          "sha256": "859f1f6a6d35fd7c45e738850ca92b466e3dea1e3f18963cce9ba0555eb0d6e1"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-evidence.test.mjs",
+          "sha256": "3c08cdaf971de5c0f9a90514d89b09037a972eb7a1569d809eb29f1663e240da"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/host-contract-reference/Cargo.toml",
+          "sha256": "0be030c9306e225ce5588d02efd01ca3fef4ac0f229f0636b9a6026b7ea31d30"
+        },
+        {
+          "file": "plugins/kstack/native/host-contract-reference/Cargo.lock",
+          "sha256": "9588808754aecdcc22f360236a895a95ba9a703f0ad2d6bb6d7beac640459572"
+        },
+        {
+          "file": "plugins/kstack/native/host-contract-reference/src/main.rs",
+          "sha256": "39ef7ee43cf203adf03148e5450fc98aac1f66dd12dcf4dcb0d82a462b0636dc"
+        }
+      ]
+    },
+    {
+      "itemId": "HP-TC05",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-eligibility.mjs",
+          "sha256": "816b27652a2a1918e1e1d10139910f9fcb73d308292bbcf4b7e8cc7aa1bac08e"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-eligibility.test.mjs",
+          "sha256": "3e90003c7e2f33de455e67e81c91dea5c91527f51d50f78c1d16e00ec992280b"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/host-eligibility-reference/Cargo.toml",
+          "sha256": "901608c7b64de4ec01a4524cf858be02e3f0b772a318f7949ee06fe9186a9a73"
+        },
+        {
+          "file": "plugins/kstack/native/host-eligibility-reference/Cargo.lock",
+          "sha256": "0233558a48923ff9125c46800788cf2ce62b4546db82d9bf33f3d07c2bacbd0d"
+        },
+        {
+          "file": "plugins/kstack/native/host-eligibility-reference/src/main.rs",
+          "sha256": "8646814de49464992e6fad6f594e580647bb079d9a6ee0e3522e6c4ab35c8f01"
+        }
+      ]
+    },
+    {
+      "itemId": "HP-TC06",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-harness.mjs",
+          "sha256": "bad92e7ab82ac18dcd4a0684613945260827a568c97239cb8a5e5417a40e2220"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-harness.test.mjs",
+          "sha256": "58327f5a10485788a78c0c38d2349be79a96fd43ebf63ca14a5387aad3cd8ce4"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/host-harness-reference/Cargo.toml",
+          "sha256": "0fc70ef93babdf28855a96115976d163ebcadd21089492105b5fb843920ed155"
+        },
+        {
+          "file": "plugins/kstack/native/host-harness-reference/Cargo.lock",
+          "sha256": "9a9f3917b49617193fe38c463622ff5940d659842addbfd6a70eefd272445a67"
+        },
+        {
+          "file": "plugins/kstack/native/host-harness-reference/src/main.rs",
+          "sha256": "1f9eb0bbfaf7c50bbd710663006c4d9b27e9fb3b69c483dbf4a4818116bfb8be"
+        }
+      ]
+    },
+    {
+      "itemId": "HP-TC07",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-broker.mjs",
+          "sha256": "21ea7f0856c62cb48fa444f0148d14f3e2b37c1f1a318ecd4c3efa3b8a7ff107"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-broker.test.mjs",
+          "sha256": "ac0a6f3d13f673988e2f8fadd8d7e53061f3ea2e947b13e3759a105df2627ebd"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/host-broker-reference/Cargo.toml",
+          "sha256": "d96f1e41ba46487fbc783dda037a52b0d34bcd4a448e8b221b9b08ae910c7f1b"
+        },
+        {
+          "file": "plugins/kstack/native/host-broker-reference/Cargo.lock",
+          "sha256": "e25b470a3da00f985ca7d046e11b98e42c585e45f8f48193b3f06a4d50f58a53"
+        },
+        {
+          "file": "plugins/kstack/native/host-broker-reference/src/main.rs",
+          "sha256": "52bbd280f45ab1caaf6fe4d02878aa023b4d1b476d1ca33689a26fc06777ab55"
+        }
+      ]
+    },
+    {
+      "itemId": "HP-TC08",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-mutation.mjs",
+          "sha256": "024f00f3ad695e7b223dc73cbea875d0fbe3547099acda4d5f187ed152acbf34"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-mutation.test.mjs",
+          "sha256": "736030818591b0b1e61c402ae406e604337135b93ec34044a93a4faad62ba70a"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/host-mutation-reference/Cargo.toml",
+          "sha256": "df3dcf8c8fc33a76ffb8289c8e23c30b3ed9f465077fdead4cf6bd5c0d37d4a3"
+        },
+        {
+          "file": "plugins/kstack/native/host-mutation-reference/Cargo.lock",
+          "sha256": "99799488d73743c4e68d5f65fc02f1e958caf3903faebaa9dd6669d16e7cdd6c"
+        },
+        {
+          "file": "plugins/kstack/native/host-mutation-reference/src/main.rs",
+          "sha256": "29056da94e714e19d746b11194d2aeba4d7171675d8e54a0f0fdae0eb38ea8ab"
+        }
+      ]
+    },
+    {
+      "itemId": "HP-TC09",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-mcp-boundary.mjs",
+          "sha256": "d91ac2f79e9440ceec052faf49e90fceb25a0bf1b28b6cf7c8cdc5040d9e7bec"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/mcp-boundary.test.mjs",
+          "sha256": "7aa7fb1de2e2d60b0173d5b54b2598c4efbef3772b92f3daa987ea90991da092"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/mcp-boundary-reference/Cargo.toml",
+          "sha256": "1e2d16ded010c0a56b317071e4178980aa434731283405df12be8110c63fdecf"
+        },
+        {
+          "file": "plugins/kstack/native/mcp-boundary-reference/Cargo.lock",
+          "sha256": "06793bd086196be0c0c28c1e44ca192262005a6f47917448f831bd0aeabc546d"
+        },
+        {
+          "file": "plugins/kstack/native/mcp-boundary-reference/src/main.rs",
+          "sha256": "44fe1838a5061a5b72c109ecbb1957f7943bcded437dc5666d3749645f706628"
+        }
+      ]
+    },
+    {
+      "itemId": "HP-TC10",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-receipt.mjs",
+          "sha256": "0ee09650d301f4f0ae34da945c67eac5b01be8d84f7fd2e682e8b47cb57644f9"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-receipt.test.mjs",
+          "sha256": "d6617d3a95b6b3f23f6d8516887c19f1e0ed45af5677bfa2b2592809a9be77ae"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/host-receipt-reference/Cargo.toml",
+          "sha256": "ad88537439948f15134edb7a995388781d31fecd60b082f2a28c900ca61f9042"
+        },
+        {
+          "file": "plugins/kstack/native/host-receipt-reference/Cargo.lock",
+          "sha256": "85689e847aa25ab05aef418777c3b12754c8ec4c8aa7864cd4a4548761e180c2"
+        },
+        {
+          "file": "plugins/kstack/native/host-receipt-reference/src/main.rs",
+          "sha256": "2313acee8378c3b8af776a9ab988c95d411083d30103c0088856870812ed660d"
+        }
+      ]
+    },
+    {
+      "itemId": "HP-TC11",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-activation.mjs",
+          "sha256": "9c8b03f49bcae1a822a8af3e4c99c3e11fe4f4773fd4b7ccd3095b4736565252"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-activation.test.mjs",
+          "sha256": "93114974559149b9f6a697b6c6a2959e1cd16ad62fe433793c11f472464306fb"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/host-activation-reference/Cargo.toml",
+          "sha256": "27f0544cddf47fb26e9c09cde28946b74ae4bd360324060e8946c99e55700b7e"
+        },
+        {
+          "file": "plugins/kstack/native/host-activation-reference/Cargo.lock",
+          "sha256": "23282622cadb90d767a69be265891d177c45e1dfaa6fb87f71f7a6b96a538d91"
+        },
+        {
+          "file": "plugins/kstack/native/host-activation-reference/src/main.rs",
+          "sha256": "3ab3deda20824fd57b5727b2d02462cff29e2956810e95c1014b74cfb5cf9453"
+        }
+      ]
+    },
+    {
+      "itemId": "HP-TC12",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-migration.mjs",
+          "sha256": "f883c3dc52283f641a46747ab94b40dc96b88e46acb585bd2f688361f7c4cf24"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-migration.test.mjs",
+          "sha256": "54959065d29701417ee9d564e142b57efb1ac4ec88de35d848389a42a88fbc9f"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "plugins/kstack/native/host-migration-reference/Cargo.toml",
+          "sha256": "73b1173321097b1e94f1a6dfe87086b6fc4e311de844482f450fab955a6c83c5"
+        },
+        {
+          "file": "plugins/kstack/native/host-migration-reference/Cargo.lock",
+          "sha256": "d6a86b2513a46f051959509f902c69b575a36fb7976d5f34b62aaf41a5fe8f52"
+        },
+        {
+          "file": "plugins/kstack/native/host-migration-reference/src/main.rs",
+          "sha256": "cbf3fe79ef56ca0849833f892fb120c6bfac0e442eec484f6accdafac47ea193"
+        }
+      ]
+    },
+    {
+      "itemId": "HB-TC01",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-package.mjs",
+          "sha256": "45215a491daa550f597843c9f82045d3dbfa00f5271e51e5a34686b9bf2fe3c7"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-host-profile.mjs",
+          "sha256": "b53193595f9223d775a6d3a152296c0a0c9f983ac84457f5f31269552da304a7"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-package.test.mjs",
+          "sha256": "eac455f0ba0265b772eae9623f106789aa6c7506ab46df9602dc718e8719a449"
+        },
+        {
+          "file": "tests/host-profile.test.mjs",
+          "sha256": "c3c2b31e31ec4b976f16002b10899f3df46d40160e296de40bc7f5b25736f408"
+        }
+      ],
+      "validationSupportFiles": []
+    },
+    {
+      "itemId": "HB-TC02",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-host-installer.mjs",
+          "sha256": "3ea2865caf9f6a4077fdd6aac334b333c043494f0b1f0b23f6a89806481302d2"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/host-installer.test.mjs",
+          "sha256": "097c2cbebafa16b8fb0b1ccc6d5fc8237f1ad8a2c733267a9e882642b1b8cc6f"
+        }
+      ],
+      "validationSupportFiles": []
+    },
+    {
+      "itemId": "HB-TC03",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-opencode-candidate.mjs",
+          "sha256": "05f7ffb8c63b4f1e978ee109db3db6e9d9a92d8d46e8b8a47e17e986ff77ae65"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/opencode-candidate.test.mjs",
+          "sha256": "dff658271f4abf240661c1ebd0f2848a60ee9f6ffd3719589752e68dbf53cd41"
+        }
+      ],
+      "validationSupportFiles": []
+    },
+    {
+      "itemId": "HB-TC04",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-mcp-boundary.mjs",
+          "sha256": "d91ac2f79e9440ceec052faf49e90fceb25a0bf1b28b6cf7c8cdc5040d9e7bec"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/mcp-facade.test.mjs",
+          "sha256": "f5b5705ee7ef7301845882fd9baea32ec7a88f596e5b3585505848878f9898b6"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "tests/helpers/mcp-facade-python-oracle.py",
+          "sha256": "338f0810e05dc5030e564845b6c24c0bf59ba50793cc84553f1a6868fbf2ab51"
+        }
+      ]
+    },
+    {
+      "itemId": "HB-TC05",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-opencode-adapter.mjs",
+          "sha256": "5f908ff798b79ef77438f9573aff09f1d941aa3bc1069b54ca60b9a498ccdd8b"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-opencode-conformance.mjs",
+          "sha256": "8fd412b4ee6d2dd62d35f278a42d626d8bf491d9d401374274cb545f3135d0b9"
+        },
+        {
+          "file": ".kstack/qualifications/opencode-v1.18.25-conformance-evidence.json",
+          "sha256": "1022cca98b0fc03cea981992720875b4dd7de0a733191b052e98967167cd4d55"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/opencode-adapter.test.mjs",
+          "sha256": "01cc33b80b0bd0b74b789a7e74c468ace2ad283d6115072706367719d1342d6e"
+        },
+        {
+          "file": "tests/opencode-conformance.test.mjs",
+          "sha256": "aaa2a932482e73f86f19186a1d4bcb837c0d8ef87c5c54719b2d68a635a26e74"
+        },
+        {
+          "file": "tests/opencode-protected-conformance.test.mjs",
+          "sha256": "0c3382e176eb34eb906d9d6c6ca34b97b0dac3800d755f74862ee1d2350e0598"
+        }
+      ],
+      "validationSupportFiles": [
+        {
+          "file": "tests/helpers/opencode-conformance-python-oracle.py",
+          "sha256": "1a6b12ee6b390d4b31391239a9cd45a26bfeae1470101874f3ec673cbec73abd"
+        }
+      ]
+    }
+  ],
+  "validationFiles": [
+    "tests/host-activation.test.mjs",
+    "tests/host-broker.test.mjs",
+    "tests/host-contract.test.mjs",
+    "tests/host-eligibility.test.mjs",
+    "tests/host-evidence.test.mjs",
+    "tests/host-harness.test.mjs",
+    "tests/host-installer.test.mjs",
+    "tests/host-migration.test.mjs",
+    "tests/host-mutation.test.mjs",
+    "tests/host-package.test.mjs",
+    "tests/host-profile.test.mjs",
+    "tests/host-receipt.test.mjs",
+    "tests/host-replay.test.mjs",
+    "tests/host-request-context.test.mjs",
+    "tests/mcp-boundary.test.mjs",
+    "tests/mcp-facade.test.mjs",
+    "tests/opencode-adapter.test.mjs",
+    "tests/opencode-candidate.test.mjs",
+    "tests/opencode-conformance.test.mjs",
+    "tests/opencode-protected-conformance.test.mjs",
+    "tests/reflexion-architecture-gate.mjs"
+  ],
+  "testExecution": {
+    "status": 0,
+    "signal": null,
+    "errorCode": null,
+    "stdoutSha256": "f7f3c9ac817a527a96461e394d029ae50909a280e76b6347d84c42d24254bafa",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "testExecutionDigest": "dfa620c3d842bb387c32001cf501eebfc4e9bd2d15bebe5808be70858f5ff622",
+  "rows": [
+    {
+      "itemId": "HP-TC01",
+      "implementationDigest": "0b501e5082c5c3ccaee9bc18a75d82bf0e3b80c9372cd8f7e6c8ca0d4f1747f8",
+      "validationReceiptDigest": "adfa2ec92815da5d6a4971ab93818eb4e7afa4a1f6a5ce0f7a2d46ab23209020",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC02",
+      "implementationDigest": "47ea632ea4c19d5b1d2b38e25ab54fbacec3583332db67a25ee9266eee8ad35b",
+      "validationReceiptDigest": "e59c3c9380b59d67edf57ccb64a50a07642aa30484c83246c07daccbfdd77116",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC03",
+      "implementationDigest": "3887f13fbafb2fb6dd5fd046ab25fad1dc35faf25984e8667c33351b251cf024",
+      "validationReceiptDigest": "236b9483ace985ff6d6db774ebb86c4283052932e49cca34c2f0a2dbb7f65a42",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC04",
+      "implementationDigest": "bdab12f24a2491dce253083a8165164588a5fd41f08ce1a13bbf7bd03eaff31e",
+      "validationReceiptDigest": "47a9994fa05557983fd6fa8d79183e0142909590ea07cd54435187459ab11875",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC05",
+      "implementationDigest": "f4880554cbe774f05e0324c26254fe9868073d9ffab9a4b3a6f6b5069c116f3b",
+      "validationReceiptDigest": "b8a326bd980b9bc46e3ed505ccaf921955d08b5a8f0fc7fb88f98c787f7d7d4b",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC06",
+      "implementationDigest": "edf753335f97b7eac248a172e078abd23d76dd31b219184bea5250296897b83d",
+      "validationReceiptDigest": "380dc691f03abba54a1923742f566bdcf5b1cee13cefaf08d1d04b928a9d109f",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC07",
+      "implementationDigest": "54cc932d89e921e6b8185f1f08020e4bf1de77f6eb41d4550e4e9cd2c8489fed",
+      "validationReceiptDigest": "23bd5d609c6dc10fbaab54d4e27d8e192cb29d086cab9b038c8ab595904ff76d",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC08",
+      "implementationDigest": "5747f5fad6c3bafc6c431ec5a9a557aeb2e224e51d5b855ccdec6df0eeb4ce66",
+      "validationReceiptDigest": "2c939da55cf72cbcc9b4085db57d43cd8e5b9ffc27b9592245b2806180572156",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC09",
+      "implementationDigest": "c5d475d67eea25d054f8cbef242e665198072d5b6921dd68bbfa4e65fdbe3b4b",
+      "validationReceiptDigest": "c0de6ad6a1d11d108d2287d14081530d65caabb69dabd07a3e67261dc901ce4b",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC10",
+      "implementationDigest": "2d6c2b4aaac766d383f9e92327f141ddfeec99c67b376d8e1cb1bd473f32ed7f",
+      "validationReceiptDigest": "76ae37de6b5835d2eca497f217a069fcbb19bd81b7f46c317fdfdcd4eca82ade",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC11",
+      "implementationDigest": "dc5ed531cb88c4d46d500bb0ce3bd789f92f08f52b319c5eee1c505c0249398b",
+      "validationReceiptDigest": "60d94e869eab7fd709057af515bb445522abfcc4b0d795621ae3e2256fef7218",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HP-TC12",
+      "implementationDigest": "47013f4a66b3300c49a8341d80af32f291833607bb1ba0bdf535fff3d7d15dd5",
+      "validationReceiptDigest": "86c7f24f3a57cdbc64af8f9ebb3819f2966cea6cfb5fb2c9f4b3dcdee7767d4b",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HB-TC01",
+      "implementationDigest": "8b03e9d11f4a0fa5204354cc11b3693e1bfc78c1361c32a84a3512043d4f5a30",
+      "validationReceiptDigest": "81bfef2d06901a17d343b5dc4b6cca566093ec79e6d80d318e30b8630106945a",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HB-TC02",
+      "implementationDigest": "7c5bb05147dfcd0e1f53384fa5f1ebbf30a45f486ce1282bcfe5681f2e9647d2",
+      "validationReceiptDigest": "caeaec8dd2a4f1773562c1f167a3ad6170af46ceee6230e416cebf5ce56af11c",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HB-TC03",
+      "implementationDigest": "4b370d45b6e9f62769b38cee50bcd51001ca6afb02e29a7652eca5936c18a24f",
+      "validationReceiptDigest": "47bcfa6823d795427c4ad61db80bba5be303a9c88a735c99872ae3c1306fb7ab",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HB-TC04",
+      "implementationDigest": "c5d475d67eea25d054f8cbef242e665198072d5b6921dd68bbfa4e65fdbe3b4b",
+      "validationReceiptDigest": "7e1660385e660cf20f604f2fdcf6e001a42c6cb33f60d5cc58690e51686d5260",
+      "implemented": true,
+      "current": true
+    },
+    {
+      "itemId": "HB-TC05",
+      "implementationDigest": "5aeefbc527942eb180fd2de98e707f4ca04e7c24f346c3ef4d406b93def75c68",
+      "validationReceiptDigest": "0f16a751a63e195c9d3e2681627b7f93f6d014dfc0bf56f8ddc703550452b93e",
+      "implemented": true,
+      "current": true
+    }
+  ],
+  "aggregate": "PASS",
+  "evidenceDigest": "21f69cd136fef9d47461b0e0c46f33f365ac48775a3f8ee50eb28cf37619f2e1"
+}

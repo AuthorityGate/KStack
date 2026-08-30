@@ -46,12 +46,27 @@ export const defaultConfig = {
       panels: {}
     },
     designGate: {
-      minimumConfidence: 90,
-      minimumConfidenceRound11Plus: 80,
+      minimumConfidence: 93,
+      minimumConfidenceRound11Plus: 81,
       minimumConfidenceSkillClass: 70,
       citationGrounding: "off",
+      reviewSequence: {
+        mode: "primary-then-independent-final",
+        primaryReadinessConfidence: 93,
+        finalAcceptanceConfidence: 81
+      },
+      secondaryReview: {
+        mode: "triggered",
+        primaryReadinessConfidence: 93,
+        finalAcceptanceConfidence: 81,
+        requireFinalReview: true,
+        requireDifferentAgent: true,
+        requireDifferentProviderFamilyForHighRisk: true,
+        auditSamplePermille: 0,
+        materialDesignRiskClass: "high"
+      },
       reviewBudget: {
-        maxRounds: 4,
+        maxRounds: 42,
         maxElapsedMinutes: 120,
         onExhausted: "user-decision"
       },
@@ -128,6 +143,8 @@ export const defaultConfig = {
   jira: {
     enabled: false,
     siteUrl: null,
+    apiBaseUrl: null,
+    deliveryRecordPath: null,
     projects: [
       { key: "KSTK", issueTypes: ["Task"], defaultFields: {} }
     ],
@@ -211,6 +228,15 @@ const contextReductionKeys = new Set([
   'measurementEnabled', 'eagerInstructionsEnabled', 'slicingEnabled',
   'qualificationEvidenceSha256', 'qualificationRouteId',
   'qualificationProfileId'
+]);
+const designReviewSequenceKeys = new Set([
+  'mode', 'primaryReadinessConfidence', 'finalAcceptanceConfidence'
+]);
+const secondaryReviewKeys = new Set([
+  'mode', 'primaryReadinessConfidence', 'finalAcceptanceConfidence',
+  'requireFinalReview', 'requireDifferentAgent',
+  'requireDifferentProviderFamilyForHighRisk', 'auditSamplePermille',
+  'materialDesignRiskClass'
 ]);
 
 // The frozen security chain qualifies zero runtime routes/profiles. Keep this
@@ -400,12 +426,52 @@ export function validateConfig(config, options = {}) {
   if (config.workflow?.panel !== undefined) validatePanelConfig(config.workflow.panel, errors);
   if (config.workflow?.designGate !== undefined) {
     const gate = config.workflow.designGate;
+    need((gate?.reviewSequence === undefined) === (gate?.secondaryReview === undefined),
+      'workflow.designGate reviewSequence and secondaryReview must be provided together or both omitted');
     need(Number.isInteger(gate?.minimumConfidence) && gate.minimumConfidence >= 90 && gate.minimumConfidence <= 100, 'workflow.designGate.minimumConfidence must be an integer from 90 to 100');
-    need(gate?.minimumConfidenceRound11Plus === undefined || (Number.isInteger(gate.minimumConfidenceRound11Plus) && gate.minimumConfidenceRound11Plus >= 80 && gate.minimumConfidenceRound11Plus <= 100), 'workflow.designGate.minimumConfidenceRound11Plus must be an integer from 80 to 100');
+    need(gate?.minimumConfidenceRound11Plus === undefined || (Number.isInteger(gate.minimumConfidenceRound11Plus) && gate.minimumConfidenceRound11Plus >= 81 && gate.minimumConfidenceRound11Plus <= 100), 'workflow.designGate.minimumConfidenceRound11Plus must be an integer from 81 to 100');
     need(gate?.minimumConfidenceSkillClass === undefined || (Number.isInteger(gate.minimumConfidenceSkillClass) && gate.minimumConfidenceSkillClass >= 70 && gate.minimumConfidenceSkillClass <= 100), 'workflow.designGate.minimumConfidenceSkillClass must be an integer from 70 to 100');
     need(gate?.citationGrounding === undefined || ['off', 'advisory'].includes(gate.citationGrounding), 'workflow.designGate.citationGrounding must be off or advisory');
+    if (gate?.reviewSequence !== undefined) {
+      unknownKeys(gate.reviewSequence, designReviewSequenceKeys, 'workflow.designGate.reviewSequence', errors);
+      need(gate.reviewSequence?.mode === 'primary-then-independent-final', 'workflow.designGate.reviewSequence.mode must be primary-then-independent-final');
+      need(Number.isInteger(gate.reviewSequence?.primaryReadinessConfidence)
+        && gate.reviewSequence.primaryReadinessConfidence >= 93 && gate.reviewSequence.primaryReadinessConfidence <= 100,
+      'workflow.designGate.reviewSequence.primaryReadinessConfidence must be an integer from 93 to 100');
+      need(Number.isInteger(gate.reviewSequence?.finalAcceptanceConfidence)
+        && gate.reviewSequence.finalAcceptanceConfidence >= 81 && gate.reviewSequence.finalAcceptanceConfidence <= 100,
+      'workflow.designGate.reviewSequence.finalAcceptanceConfidence must be an integer from 81 to 100');
+    }
+    if (gate?.secondaryReview !== undefined) {
+      const secondary = gate.secondaryReview;
+      unknownKeys(secondary, secondaryReviewKeys, 'workflow.designGate.secondaryReview', errors);
+      need(secondary?.mode === 'triggered', 'workflow.designGate.secondaryReview.mode must be triggered');
+      need(Number.isInteger(secondary?.primaryReadinessConfidence)
+        && secondary.primaryReadinessConfidence >= 93 && secondary.primaryReadinessConfidence <= 100,
+      'workflow.designGate.secondaryReview.primaryReadinessConfidence must be an integer from 93 to 100');
+      need(Number.isInteger(secondary?.finalAcceptanceConfidence)
+        && secondary.finalAcceptanceConfidence >= 81 && secondary.finalAcceptanceConfidence <= 100,
+      'workflow.designGate.secondaryReview.finalAcceptanceConfidence must be an integer from 81 to 100');
+      need(secondary?.requireFinalReview === true,
+        'workflow.designGate.secondaryReview.requireFinalReview must be true');
+      need(secondary?.requireDifferentAgent === true,
+        'workflow.designGate.secondaryReview.requireDifferentAgent must be true');
+      need(secondary?.requireDifferentProviderFamilyForHighRisk === true,
+        'workflow.designGate.secondaryReview.requireDifferentProviderFamilyForHighRisk must be true');
+      need(Number.isInteger(secondary?.auditSamplePermille)
+        && secondary.auditSamplePermille >= 0 && secondary.auditSamplePermille <= 1000,
+      'workflow.designGate.secondaryReview.auditSamplePermille must be an integer from 0 to 1000');
+      need(secondary?.materialDesignRiskClass === 'high',
+        'workflow.designGate.secondaryReview.materialDesignRiskClass must be high');
+    }
+    if (gate?.reviewSequence !== undefined && gate?.secondaryReview !== undefined) {
+      need(gate.reviewSequence.primaryReadinessConfidence === gate.secondaryReview.primaryReadinessConfidence,
+        'workflow.designGate reviewSequence and secondaryReview primaryReadinessConfidence must match');
+      need(gate.reviewSequence.finalAcceptanceConfidence === gate.secondaryReview.finalAcceptanceConfidence,
+        'workflow.designGate reviewSequence and secondaryReview finalAcceptanceConfidence must match');
+    }
     if (gate?.reviewBudget !== undefined) {
-      need(Number.isInteger(gate.reviewBudget?.maxRounds) && gate.reviewBudget.maxRounds >= 1 && gate.reviewBudget.maxRounds <= 20, 'workflow.designGate.reviewBudget.maxRounds must be an integer from 1 to 20');
+      need(Number.isInteger(gate.reviewBudget?.maxRounds) && gate.reviewBudget.maxRounds >= 1 && gate.reviewBudget.maxRounds <= 42, 'workflow.designGate.reviewBudget.maxRounds must be an integer from 1 to 42');
       need(Number.isInteger(gate.reviewBudget?.maxElapsedMinutes) && gate.reviewBudget.maxElapsedMinutes >= 10 && gate.reviewBudget.maxElapsedMinutes <= 1440, 'workflow.designGate.reviewBudget.maxElapsedMinutes must be an integer from 10 to 1440');
       need(gate.reviewBudget?.onExhausted === 'user-decision', 'workflow.designGate.reviewBudget.onExhausted must be user-decision');
     }
@@ -433,7 +499,7 @@ export function validateConfig(config, options = {}) {
     route('implement', 1, 1);
     route('interrogate', 1, 2);
     route('qc', 1, 2);
-    need(Array.isArray(phases?.design) && phases.design.length === 2 && new Set(phases.design).size === 2 && phases.design.includes('codex') && phases.design.includes('opus'), 'workflow.phaseModels.design must be exactly codex and opus');
+    need(Array.isArray(phases?.design) && phases.design.length === 2 && new Set(phases.design).size === 2 && phases.design.includes('codex') && phases.design.includes('opus'), 'workflow.phaseModels.design must be ordered primary/final roles containing exactly codex and opus');
     const implementRole = Array.isArray(phases?.implement) ? phases.implement[0] : undefined;
     for (const key of ['interrogate', 'qc']) {
       const roles = phases?.[key];
@@ -455,6 +521,9 @@ export function validateConfig(config, options = {}) {
   need(Array.isArray(config.models?.opus?.args) && config.models.opus.args.every((value) => typeof value === 'string'), 'models.opus.args must be a string array');
   need(Number.isInteger(config.models?.codex?.timeoutSeconds) && config.models.codex.timeoutSeconds > 0, 'models.codex.timeoutSeconds must be a positive integer');
   need(Number.isInteger(config.models?.opus?.timeoutSeconds) && config.models.opus.timeoutSeconds > 0, 'models.opus.timeoutSeconds must be a positive integer');
+  const codexBackend = JSON.stringify({ command: config.models?.codex?.command, entrypoint: config.models?.codex?.args?.[0] ?? null });
+  const opusBackend = JSON.stringify({ command: config.models?.opus?.command, entrypoint: config.models?.opus?.args?.[0] ?? null });
+  need(codexBackend !== opusBackend, 'models.codex and models.opus must not resolve to the same declared backend');
   const fableReferenced = Object.values(config.workflow?.phaseModels || {}).some((roles) => Array.isArray(roles) && roles.includes('fable')) || config.workflow?.panel?.enabled === true;
   if (fableReferenced) {
     need(typeof config.models?.fable?.command === 'string' && config.models.fable.command.length > 0, 'models.fable.command is required');
@@ -481,6 +550,11 @@ export function validateConfig(config, options = {}) {
     need(allowed.authority.has(value), `authority.${key} is invalid`);
   }
   validateJiraConfig(config.jira, errors);
+  if (typeof config.jira?.deliveryRecordPath === 'string' && options.configPath) {
+    const repoRoot = path.dirname(path.dirname(path.resolve(options.configPath)));
+    const relative = path.relative(repoRoot, path.resolve(config.jira.deliveryRecordPath));
+    need(relative.startsWith(`..${path.sep}`) || relative === '..', 'jira.deliveryRecordPath must resolve outside the repository');
+  }
   if (config.jira?.tracking?.mode === 'automatic') {
     need(config.authority?.externalTicketCreation === 'allow', 'jira.tracking.mode automatic requires authority.externalTicketCreation allow');
   }
@@ -520,7 +594,7 @@ export function validateConfig(config, options = {}) {
 }
 
 const jiraKeys = new Set([
-  'enabled', 'siteUrl', 'projects', 'credentialSource', 'staticLabels',
+  'enabled', 'siteUrl', 'apiBaseUrl', 'deliveryRecordPath', 'projects', 'credentialSource', 'staticLabels',
   'timeoutMs', 'maxAttempts', 'approvalTtlMs', 'dryRun', 'nodeMinVersion',
   'tracking'
 ]);
@@ -560,6 +634,7 @@ export function validateJiraConfig(jira, errors = []) {
   need(jira && typeof jira === 'object' && !Array.isArray(jira), 'jira must be an object');
   if (!jira || typeof jira !== 'object' || Array.isArray(jira)) return errors;
   unknownKeys(jira, jiraKeys, 'jira', errors);
+  need(jira.deliveryRecordPath === null || (typeof jira.deliveryRecordPath === 'string' && path.isAbsolute(jira.deliveryRecordPath)), 'jira.deliveryRecordPath must be null or an absolute path');
   need(typeof jira.enabled === 'boolean', 'jira.enabled must be boolean');
   need(typeof jira.dryRun === 'boolean', 'jira.dryRun must be boolean');
   need(Number.isInteger(jira.timeoutMs) && jira.timeoutMs >= 1000 && jira.timeoutMs <= 120000, 'jira.timeoutMs must be an integer from 1000 to 120000');
@@ -615,6 +690,17 @@ export function validateJiraConfig(jira, errors = []) {
     }
   }
   if (jira.enabled) need(typeof jira.siteUrl === 'string', 'jira.siteUrl is required when jira.enabled is true');
+
+  if (jira.apiBaseUrl !== undefined && jira.apiBaseUrl !== null) {
+    let parsed;
+    try { parsed = new URL(jira.apiBaseUrl); } catch {}
+    need(typeof jira.apiBaseUrl === 'string' && parsed?.protocol === 'https:', 'jira.apiBaseUrl must be an HTTPS URL or null');
+    if (parsed) {
+      need(!parsed.username && !parsed.password, 'jira.apiBaseUrl must not contain userinfo');
+      need(parsed.hostname.toLowerCase() === 'api.atlassian.com', 'jira.apiBaseUrl hostname must be api.atlassian.com');
+      need(/^\/ex\/jira\/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(parsed.pathname) && !parsed.search && !parsed.hash, 'jira.apiBaseUrl must be an exact scoped Jira Cloud API base URL');
+    }
+  }
 
   need(Array.isArray(jira.projects) && jira.projects.length > 0, 'jira.projects must be a non-empty array');
   if (Array.isArray(jira.projects)) {

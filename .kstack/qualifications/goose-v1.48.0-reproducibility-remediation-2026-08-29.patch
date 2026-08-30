@@ -1,0 +1,99 @@
+diff --git a/Cargo.lock b/Cargo.lock
+index 7812bdc..1781164 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -3434,8 +3434,6 @@ dependencies = [
+ [[package]]
+ name = "deno_core"
+ version = "0.381.1"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "77660b04f5368bcd69a42e0fdd6343e325eb781ec7d79bbf49ff2548ae4f17b6"
+ dependencies = [
+  "anyhow",
+  "az",
+@@ -8981,8 +8979,6 @@ dependencies = [
+ [[package]]
+ name = "pctx_type_check_runtime"
+ version = "0.1.3"
+-source = "registry+https://github.com/rust-lang/crates.io-index"
+-checksum = "cda6e59419494a65a7915ae4780708de2e72c70af21d68b7dfd64e1540c838cc"
+ dependencies = [
+  "deno_ast",
+  "deno_core",
+diff --git a/Cargo.toml b/Cargo.toml
+index a563ee9..37bb189 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -116,6 +116,8 @@ icu_locale = { version = "=2.1.1", default-features = false }
+ 
+ [patch.crates-io]
+ ansi_colours = { path = "vendor/kstack-ansi-colours-compat" }
++deno_core = { path = "vendor/deno_core" }
++pctx_type_check_runtime = { path = "vendor/pctx_type_check_runtime" }
+ agent-client-protocol = { git = "https://github.com/agentclientprotocol/rust-sdk", rev = "c97a5203d3392f7f231514d84eea014f9f43e6fb" }
+ agent-client-protocol-http = { git = "https://github.com/agentclientprotocol/rust-sdk", rev = "c97a5203d3392f7f231514d84eea014f9f43e6fb" }
+ v8 = { path = "vendor/v8" }
+diff --git a/vendor/deno_core/modules/module_map_data.rs b/vendor/deno_core/modules/module_map_data.rs
+index 32e8553..2f1aa53 100644
+--- a/vendor/deno_core/modules/module_map_data.rs
++++ b/vendor/deno_core/modules/module_map_data.rs
+@@ -16,6 +16,28 @@ use crate::runtime::SnapshotLoadDataStore;
+ use crate::runtime::SnapshotStoreDataStore;
+ use serde::Deserialize;
+ use serde::Serialize;
++
++fn compare_requested_module_types(
++  left: &RequestedModuleType,
++  right: &RequestedModuleType,
++) -> std::cmp::Ordering {
++  fn rank(value: &RequestedModuleType) -> u8 {
++    match value {
++      RequestedModuleType::None => 0,
++      RequestedModuleType::Json => 1,
++      RequestedModuleType::Text => 2,
++      RequestedModuleType::Bytes => 3,
++      RequestedModuleType::Other(_) => 4,
++    }
++  }
++
++  rank(left).cmp(&rank(right)).then_with(|| match (left, right) {
++    (RequestedModuleType::Other(left), RequestedModuleType::Other(right)) => {
++      left.as_ref().cmp(right.as_ref())
++    }
++    _ => std::cmp::Ordering::Equal,
++  })
++}
+ use std::cell::RefCell;
+ use std::collections::HashMap;
+ use std::rc::Rc;
+@@ -377,6 +399,14 @@ impl ModuleMapData {
+     self.by_name.drain(|_, module_type, name, module| {
+       ser.by_name.push((name, module_type.clone(), module));
+     });
++    ser.by_name.sort_by(
++      |(left_name, left_type, _), (right_name, right_type, _)| {
++        left_name
++          .as_str()
++          .cmp(right_name.as_str())
++          .then_with(|| compare_requested_module_types(left_type, right_type))
++      },
++    );
+ 
+     ser
+   }
+diff --git a/vendor/pctx_type_check_runtime/src/typescript.min.js b/vendor/pctx_type_check_runtime/src/typescript.min.js
+index e944570..1bb6d09 100644
+--- a/vendor/pctx_type_check_runtime/src/typescript.min.js
++++ b/vendor/pctx_type_check_runtime/src/typescript.min.js
+@@ -3182,7 +3182,10 @@ ${lanes.join("\n")}
+       init_ts2();
+       nullTimer = { enter: noop, exit: noop };
+       enabled = false;
+-      timeorigin = timestamp();
++      // Snapshot creation must not embed the builder's wall-clock time. When
++      // performance measurement is enabled, enable() replaces this value with
++      // the active runtime's performance.timeOrigin.
++      timeorigin = 0;
+       marks = /* @__PURE__ */ new Map();
+       counts = /* @__PURE__ */ new Map();
+       durations = /* @__PURE__ */ new Map();

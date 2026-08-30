@@ -15,6 +15,10 @@ Turn an initial request into a decision-ready objective before design begins.
    phase entry. Role selection does not change the shared authority matrix.
 3. Inspect available repository and environment evidence before asking the user
    anything discoverable from source, documentation, CI, or configuration.
+   Read `../../references/DESIGN_ALTITUDE.md`. This phase is the 50,000-foot
+   interrogation input: establish why, who, outcomes, constraints, success,
+   non-goals, and failure boundaries. Do not select architecture, create a
+   file-level plan, write deployment steps, or decompose implementation here.
 4. Ask questions in small, coherent groups. Follow the configured depth:
    - `focused`: outcome, user, success evidence, non-goal.
    - `deep`: focused plus current behavior, constraints, dependencies, failure
@@ -23,6 +27,10 @@ Turn an initial request into a decision-ready objective before design begins.
      operational ownership, observability, compatibility, and decision expiry.
 5. Challenge solution-shaped requests by separating the desired outcome from
    the proposed mechanism. Preserve the user's mechanism as an option.
+   For a user-facing objective, read
+   `../../references/PRODUCT_EXPERIENCE.md` and establish the primary user/job,
+   product promise, experience success evidence, affected journeys/states, and
+   existing brand/design-system boundary. Do not choose a visual style here.
 6. Identify contradictions explicitly. Do not resolve product tradeoffs by
    guessing; ask the user.
 7. Produce an objective brief containing:
@@ -44,4 +52,5 @@ Turn an initial request into a decision-ready objective before design begins.
    and apply the configured required/non-required failure rule.
 
 Do not design or implement beyond identifying candidate directions needed to
-clarify the objective.
+clarify the objective. A design-session host must receive the same objective
+brief whether it is Codex or Claude CLI.

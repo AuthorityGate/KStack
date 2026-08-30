@@ -11,7 +11,7 @@ import {
   SafetyBroker, SafetyProtocolError, SAFETY_LIMITS, validateCanonicalRequest
 } from '../plugins/kstack/scripts/kstack-safety-broker.mjs';
 import { createProductionSafetyExecutor, defaultGitPushCredentialPath, SAFETY_EXECUTOR_ERROR_CODES } from '../plugins/kstack/scripts/kstack-safety-executor.mjs';
-import { detectHookHost, evaluateSafetyHook, serializeHookResponse } from '../plugins/kstack/scripts/kstack-safety-hook.mjs';
+import { detectHookHost, evaluateSafetyHook, HOOK_INPUT_LIMIT, serializeHookResponse } from '../plugins/kstack/scripts/kstack-safety-hook.mjs';
 import { findOutboundSecret, matcherSetV1, MATCHER_VERSION, sanitize } from '../plugins/kstack/scripts/kstack-safety-matchers.mjs';
 import { activateSafetyHooks, rollbackSafetyHooks, setSafetyHooksEnabled } from '../plugins/kstack/scripts/kstack-safety-admin.mjs';
 import { readActivation } from '../plugins/kstack/scripts/kstack-safety-hook.mjs';
@@ -58,6 +58,25 @@ function activeRoot(authority = TEST_AUTHORITY) {
   const policyDigest = writePolicy(root, authority);
   fs.writeFileSync(path.join(root, '.kstack', 'safety-hooks.json'), JSON.stringify({ schemaVersion: 1, enabled: true, activation: { user: true, project: true }, policyDigest, policyGeneration: 1 }), { mode: 0o600 });
   return root;
+}
+
+function hookEnvelopeWithSize(cwd, size) {
+  const envelope = {
+    session_id: 'session-1', prompt_id: 'prompt-1', cwd, permission_mode: 'default',
+    hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'printf safe', padding: '' }, tool_use_id: 'tool-1'
+  };
+  const baseSize = Buffer.byteLength(JSON.stringify(envelope), 'utf8');
+  assert.ok(baseSize <= size);
+  envelope.tool_input.padding = 'x'.repeat(size - baseSize);
+  const serialized = JSON.stringify(envelope);
+  assert.equal(Buffer.byteLength(serialized, 'utf8'), size);
+  return serialized;
+}
+
+function runSafetyHook(input) {
+  return spawnSync(process.execPath, ['plugins/kstack/scripts/kstack-safety-hook.mjs', '--scope', 'user'], {
+    cwd: path.resolve('.'), input, encoding: 'utf8', shell: false
+  });
 }
 
 async function readyBroker(value = request(), options = {}) {
@@ -322,6 +341,31 @@ test('executor receipts and error codes cannot escape secrets or the 4 KiB respo
   voteBoth(bridge, value, ready);
   assert.deepEqual(await bridge.execute({ handleId: ready.handleId, hostToolUseId: 'tool-1', sessionId: value.sessionId, approvalPreviewDigest: ready.previewDigest, current: currentFor(value) }), { state: 'EXECUTE_FAILED', code: 'KSG-BROKER-UNAVAILABLE-001' });
   assert.equal(unavailable.credentialOpenCount, 0);
+});
+
+test('hook CLI evaluates an envelope just under its finite input limit', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-safety-unenrolled-'));
+  const result = runSafetyHook(hookEnvelopeWithSize(root, HOOK_INPUT_LIMIT - 1));
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), {});
+});
+
+test('hook CLI denies an oversized envelope with the exact actionable limit', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-safety-unenrolled-'));
+  const result = runSafetyHook(hookEnvelopeWithSize(root, HOOK_INPUT_LIMIT + 1));
+  assert.equal(result.status, 0, result.stderr);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.hookSpecificOutput.permissionDecision, 'deny');
+  assert.equal(output.hookSpecificOutput.permissionDecisionReason, `KStack safety hook envelope exceeds the ${HOOK_INPUT_LIMIT}-byte limit.`);
+  assert.notEqual(output.hookSpecificOutput.permissionDecisionReason, 'KStack safety hook failed before evaluation.');
+});
+
+test('hook CLI retains the generic catch-all for malformed input', () => {
+  const result = runSafetyHook('{');
+  assert.equal(result.status, 0, result.stderr);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.hookSpecificOutput.permissionDecision, 'deny');
+  assert.equal(output.hookSpecificOutput.permissionDecisionReason, 'KStack safety hook failed before evaluation.');
 });
 
 test('production executor performs an approved authenticated git push in an isolated worker', async (context) => {
@@ -704,7 +748,7 @@ test('worker throw sites and broker propagation share one exhaustive executor er
   assert.ok(askpassOnly.every((code) => !admitted.has(code)));
 });
 
-test('host hook enforces Claude mediation, Codex deny-only asymmetry, disclosure boundary, and detect-only control changes', async () => {
+test('host hook exposes Jira ask authority on each host, preserves hard deny, disclosure boundary, and detect-only control changes', async () => {
   const manifest = JSON.parse(fs.readFileSync('plugins/kstack/hooks/hooks.json', 'utf8'));
   const handlers = manifest.hooks.PreToolUse[0].hooks;
   assert.equal(manifest.hooks.PreToolUse[0].matcher, '*');
@@ -725,11 +769,17 @@ test('host hook enforces Claude mediation, Codex deny-only asymmetry, disclosure
   assert.equal((await evaluateSafetyHook({ ...base, prompt_id: 'p', tool_input: { command: 'git rebase main' } })).hookSpecificOutput.permissionDecision, 'deny');
   assert.equal((await evaluateSafetyHook({ ...base, prompt_id: 'p', tool_input: { command: 'git status' } })).hookSpecificOutput, undefined);
   const jiraAdmin = await evaluateSafetyHook({ ...base, prompt_id: 'p', tool_input: { command: 'node plugins/kstack/scripts/kstack-jira-bootstrap.mjs apply' } });
-  assert.equal(jiraAdmin.hookSpecificOutput.permissionDecision, 'deny');
-  assert.match(jiraAdmin.hookSpecificOutput.permissionDecisionReason, /prepare\/execute/u);
+  assert.equal(jiraAdmin.hookSpecificOutput.permissionDecision, 'ask');
+  assert.match(jiraAdmin.hookSpecificOutput.permissionDecisionReason, /exact delivery-plan hash/u);
   const codexJiraAdmin = await evaluateSafetyHook({ ...base, model: 'gpt', turn_id: 'turn', tool_input: { command: 'node plugins/kstack/scripts/kstack-jira-bootstrap.mjs apply' } });
-  assert.equal(codexJiraAdmin.hookSpecificOutput.permissionDecision, 'deny');
-  assert.match(codexJiraAdmin.hookSpecificOutput.permissionDecisionReason, /owner runs the approved host-side command/u);
+  assert.equal(codexJiraAdmin.hookSpecificOutput, undefined);
+  assert.match(codexJiraAdmin.systemMessage, /does not claim forced approval/u);
+
+  const denyRoot = activeRoot({ ...TEST_AUTHORITY, jiraAdministration: 'deny' });
+  const claudeJiraDenied = await evaluateSafetyHook({ ...base, cwd: denyRoot, prompt_id: 'p', tool_input: { command: 'node plugins/kstack/scripts/kstack-jira-bootstrap.mjs apply' } });
+  assert.equal(claudeJiraDenied.hookSpecificOutput.permissionDecision, 'deny');
+  const codexJiraDenied = await evaluateSafetyHook({ ...base, cwd: denyRoot, model: 'gpt', turn_id: 'turn', tool_input: { command: 'node plugins/kstack/scripts/kstack-jira-bootstrap.mjs apply' } });
+  assert.equal(codexJiraDenied.hookSpecificOutput.permissionDecision, 'deny');
 
   const codexCommit = await evaluateSafetyHook({ ...base, model: 'gpt', turn_id: 'turn', tool_input: { command: 'git commit -m safe' } });
   assert.equal(codexCommit.hookSpecificOutput, undefined);

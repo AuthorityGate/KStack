@@ -1,0 +1,42 @@
+{
+  "schema": "kstack-secondary-review-shadow-comparison-v1",
+  "classification": "synthetic",
+  "observedAt": "2026-08-30T18:59:23.767Z",
+  "samples": [
+    {
+      "workUnitId": "staged-review-shadow",
+      "legacySecondaryDurationsMs": [
+        37,
+        38,
+        42,
+        37,
+        36,
+        37,
+        37
+      ],
+      "adaptiveSecondaryDurationsMs": [
+        39
+      ],
+      "legacyFindingCount": 4,
+      "adaptiveFindingCount": 4,
+      "legacyDecisionChangeCount": 1,
+      "adaptiveDecisionChangeCount": 1
+    }
+  ],
+  "limitations": [
+    "The six avoided ordinary legacy invocations are synthetic fixtures stipulated to approve with zero findings.",
+    "Equal finding and decision-change totals are not evidence of equivalent defect yield or production performance."
+  ],
+  "totals": {
+    "legacySecondaryInvocations": 7,
+    "adaptiveSecondaryInvocations": 1,
+    "avoidedSecondaryInvocations": 6,
+    "legacySecondaryDurationMs": 264,
+    "adaptiveSecondaryDurationMs": 39,
+    "legacyFindingCount": 4,
+    "adaptiveFindingCount": 4,
+    "legacyDecisionChangeCount": 1,
+    "adaptiveDecisionChangeCount": 1
+  },
+  "comparisonDigest": "cda1335520191fb08895bcbf908cc8e9c87db0e24cd4976862e1a3938af33c85"
+}

@@ -20,7 +20,14 @@ loaded only when the user invokes it.
 | Implement an approved design | `$kstack-implement` | `/kstack-implement` |
 | Interrogate an implementation-plan change | `$kstack-interrogate` | `/kstack-interrogate` |
 | Run post-implementation quality control | `$kstack-qc` | `/kstack-qc` |
+| Govern product UX and brand quality | `$kstack-experience` | `/kstack-experience` |
 | Use explicit local/private memory | `$kstack-memory` | `/kstack-memory` |
+| Inventory and migrate protected credentials | `$kstack-secrets` | `/kstack-secrets` |
+
+`$kstack-secrets` starts with a metadata-only inventory and never asks for a
+credential value in chat. Real enrollment uses a protected local no-echo prompt
+only after the exact backend and target adapter pass synthetic qualification.
+Enrollment retains the source; retirement and deletion are separate approvals.
 
 The repository also provides `npm run lens-trial` for the default-off,
 named-objective broader planning-lens evaluation. It emits opaque prompt
@@ -30,11 +37,14 @@ test. It never enables a production lane
 or calls a provider on its own. See
 `plugins/kstack/references/PLANNING_LENS_TRIAL.md`.
 
-The full review runs: objective interrogation → repository and environment
-review → design round 1 → mandatory source-derived owner questionnaire and
-locked answers → later independent consultation as needed → configured
-90–100%/zero-finding gate → optional implementation handoff →
-implementation-change interrogation → mandatory QC.
+The full review runs: 50,000-foot objective interrogation → repository and
+environment review → 10,000-foot primary-agent design improvement to a clean
+≥93 result → independent final review by the other agent → mandatory
+source-derived owner questionnaire and locked answers → configured
+confidence/zero-finding gate → complete Jira delivery-block backlog →
+one-block-at-a-time refinement and implementation → implementation-change
+interrogation → mandatory QC → separately authorized deployment and
+post-deployment observation.
 
 Initialization lets the user route each phase to the active host, Codex, Opus,
 or an independent pair where allowed. The defaults keep low-cost conversational
@@ -108,14 +118,18 @@ intended backup, re-register the modern Codex plugin if applicable, and rerun
 This installation-health result is distinct from application validation. After
 an application deployment, `$kstack-post-deploy` or `/kstack-post-deploy` runs
 a KStack-owned browser canary and the repository's complete Playwright suite
-against the exact release/deployment/commit/artifact binding. Both must pass;
+against the exact release/deployment/commit/artifact binding. User-facing v2
+plans also require a digest-bound product-experience contract and fresh
+evidence for critical journeys, accessibility, responsive behavior, visual
+regression, brand consistency, content clarity, state coverage, performance,
+and a clean state-by-state Codex visual review. Every required lane must pass;
 provider success, a skipped check, a flaky retry, exceeded performance budget,
 or missing browser capability cannot produce a user handoff. When Jira tracking
 is required, a clean run records validation, completion, and release against
 the linked item before returning `READY_FOR_USER_VALIDATION`. An unhealthy run
 blocks handoff and creates bounded Jira follow-up work for functional,
 performance, flaky/inconsistent, timeout, coverage, console, request, or canary
-health defects. Private screenshots, traces, sanitized output, and canonical
+health defects, plus category-specific experience work. Private screenshots, traces, sanitized output, and canonical
 browser/handoff receipts are retained below the ignored
 `.kstack/post-deploy-evidence/` directory. The function is the final automated
 validation boundary, not a substitute for the user's deeper validation, and it
@@ -188,12 +202,38 @@ marketplace validators pass, but activation must still be confirmed through
 `/skills` in a fresh interactive Codex/App session. Do not treat successful
 `codex plugin list` output alone as proof that a skill loaded.
 
-## Dual-model decisions
+## Staged two-model decisions
 
-For material design decisions, KStack can launch independent read-only reviews
-through both `codex exec` and `claude -p --model opus`. The current host
-synthesizes the two reports and preserves disagreements. Immediately after the
-first completed round, the separate `kstack-design-clarify` procedure extracts
+KStack enforces the same phase altitude on Codex and Claude CLI. Objective
+interrogation establishes 50,000-foot requirements. The design loop produces a
+`KSTACK-DESIGN-10K-V1` architecture: major blocks, boundaries, dependencies,
+contracts, risks, and verification/recovery intent. It is explicitly not
+implementation-ready and cannot contain code, command recipes, file-by-file
+edits, migrations, provider payloads, or deployment steps. A shared
+deterministic preflight runs before either provider, so an invalid design spends
+zero model invocations rather than relying on one host to follow prose better.
+
+For material design decisions, KStack uses ordered primary and final roles.
+The primary works alone until it approves the exact design at confidence ≥93
+with no current findings or questions. A configured tier above 93 raises that
+pre-dispatch threshold; lower legacy tiers cannot reduce it. Only then does
+KStack launch the other agent for an independent read-only final review. The
+final uses its separate `finalAcceptanceConfidence` threshold of 81. Codex or
+Claude Opus may serve in either role. A final `block` or sub-81 score returns to
+the primary for repair and a fresh readiness result; an `approve` or `revise`
+at 81+ moves forward with every remaining item as mandatory bug-fix intake.
+KStack does not spend both agents on every cycle. The
+current host then synthesizes the reports and preserves disagreements.
+Secondary dispatch is trigger-driven, not round-driven. Owner requests,
+roadblocks, material uncertainty, final review, high-risk boundaries, dissent,
+and deterministic audit samples are the closed trigger set. A digest-bound
+decision records the route, exact evidence/configuration binding, reviewer
+independence, and availability result before dispatch; high-risk review also
+requires a different provider family.
+Provider review processes are sessionless and tool-disabled, receive only a
+minimal allowlisted environment, use private per-invocation work directories,
+and are bounded by single-flight locking and process timeouts.
+Immediately after the first completed staged review, the separate `kstack-design-clarify` procedure extracts
 every disagreement, hedge, unverified assumption, and objective-scope
 divergence from the actual round-one artifacts and asks the owner direct,
 specific questions. Round 2 cannot begin until the owner confirms a locked
@@ -205,12 +245,48 @@ approval. If either CLI is unavailable or times out, KStack reports that fact;
 it never presents a single-model result as consensus.
 
 Reviewer completion is not design approval. Each material design is bound to a
-SHA-256 digest and must receive approval from every required reviewer at the
-configured confidence threshold (minimum 90, configurable up to 100). Combined
-confidence is the minimum score. Missing or failed deterministic checks, current
-security findings, material dissent, unresolved questions, malformed output,
-timeouts, or stale evidence keep the design loop blocked. The passing state is
-only `READY_FOR_USER_APPROVAL`; models never grant implementation authority.
+SHA-256 digest. Staged primary readiness requires a clean approval at 93 or
+higher. The independent final reviewer has a separate 81 threshold in every
+cycle: `approve` or `revise` at or above 81 completes review, while every final
+failed check, finding, dissent item, and question becomes mandatory bug-fix
+intake. Only `block`, a score below 81, malformed output, timeout, stale
+evidence, or a failed deterministic gate returns the design loop to review.
+Combined confidence remains the minimum score. The passing state is only
+`READY_FOR_USER_APPROVAL`; models never grant implementation authority.
+
+The runtime-maturity Host/Domain independent-review batch uses the same split:
+its embedded Codex primary must already be clean at 93+, while an Opus final
+result at 81+ is admitted. A clean approval creates no intake; `REVISE` at 81+
+is recorded as `bugfix-only`, and each failed criterion, security finding,
+material dissent item, or unresolved question is preserved as digest-bound
+mandatory implementation intake. A score below 81 is rejected. Review
+admission therefore advances the workflow without falsely qualifying or
+closing work whose required fixes remain outstanding.
+
+After owner approval, every architecture block is materialized as a distinct
+Jira item in a digest-bound `kstack-delivery-backlog-v1` manifest. When Jira is
+required, every block needs a confirmed Jira key before implementation. KStack
+then activates, refines, implements, validates, and closes or blocks exactly one
+dependency-ready block at a time. Design approval, backlog completion,
+implementation completion, and deployment remain separate transitions.
+
+Each initialized repository may provision its own Jira project/space, delivery
+board, and initial backlog from its own KStack session; this is not reserved for
+the KStack repository or a central administration console. A repository that
+initially skipped Jira can invoke `kstack-jira` later. The offline
+`kstack-jira-bootstrap.mjs start` command validates and writes that repository's
+own Jira enrollment and exact creation preview in one operation, replacing only
+an unused template key and never an active delivery record. No central checkout,
+second console, or manual config edit is required.
+Work-item creation uses `externalTicketCreation`; project/space administration
+uses the separate `jiraAdministration` authority. New-space application stays
+preview-hash-bound, interactive, and read-back verified. The active host agent
+may run that PTY flow and enter the bound hash after the configured owner
+approval; the owner does not need a second console. This is a supported workflow
+rather than a categorical skill prohibition. A request to create the space is
+not complete at `new-previewed`: the project-local session continues through
+guarded approval and application until Jira read-back returns `verified`, or it
+reports the concrete permission, credential, tenant, or reconciliation blocker.
 
 ## Cooperative Interrogation and QC
 
@@ -218,7 +294,7 @@ only `READY_FOR_USER_APPROVAL`; models never grant implementation authority.
 checkpoint whenever an issue or new request would change the approved plan. It
 requires at least 93 reviewer-reported confidence and no findings or unresolved
 questions for a non-material plan update. Anything material or uncertain goes
-back through the complete dual-model design loop.
+back through the complete staged design loop.
 
 `kstack-qc` reviews the finished diff and observed verification evidence against
 the approved objective, design, and final plan. Completion requires at least 95
@@ -237,9 +313,10 @@ test summaries, risks, and rollback. Unchanged chat history, unrelated design
 lanes, raw prior outputs, and whole-repository dumps are excluded. Evidence is
 reused only while its design, plan, and Git-state digests remain unchanged, and
 all redesign/remediation loops are bounded.
-Material design defaults to at most four complete rounds or 120 elapsed minutes.
-Each round is one independent Codex plus one Opus invocation; KStack reports
-cumulative spend in rounds, invocations, and time, then returns control to the
+Material design defaults to at most four primary improvement cycles or 120 elapsed minutes.
+Pre-threshold cycles use only the primary; a readiness-passing cycle adds one
+independent final invocation. KStack reports cumulative spend in cycles,
+invocations, and time, then returns control to the
 user instead of silently extending an exhausted budget.
 
 ## Virtual engineering panels

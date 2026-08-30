@@ -2,13 +2,16 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import {
   acquireDeliveryLock, approveDeliveryStack, applyDeliveryStack, buildDeliveryPlan,
   previewDeliveryStack, readDeliveryRecord, reconcileDeliveryStack,
-  releaseDeliveryLock, validateExistingDeliveryStack, writeDeliveryRecord
+  releaseDeliveryLock, requireJiraAdministrationAuthority,
+  startProjectSpace, validateExistingDeliveryStack, writeDeliveryRecord
 } from '../plugins/kstack/scripts/kstack-jira-bootstrap.mjs';
 import { EXIT, JiraQueueError } from '../plugins/kstack/scripts/kstack-jira.mjs';
+import { defaultConfig, validateConfig } from '../plugins/kstack/scripts/kstack-config.mjs';
 
 process.env.KSTACK_BOOTSTRAP_EMAIL = 'bootstrap@example.com';
 process.env.KSTACK_BOOTSTRAP_TOKEN = 'fixture-bootstrap-token-never-persisted';
@@ -18,16 +21,162 @@ function makeState(fetchImpl = async () => Response.json({}, { status: 500 }), o
   const jira = {
     enabled: true,
     siteUrl: 'https://fixture.atlassian.net',
-    projects: [{ key: 'KSTK', issueTypes: ['Task'], defaultFields: {} }],
+    projects: [{ key: 'SHOP', issueTypes: ['Task'], defaultFields: {} }],
     credentialSource: { type: 'env', emailEnvVar: 'KSTACK_BOOTSTRAP_EMAIL', tokenEnvVar: 'KSTACK_BOOTSTRAP_TOKEN' },
     staticLabels: [], timeoutMs: 1000, maxAttempts: 3,
     approvalTtlMs: 86400000, dryRun: false, nodeMinVersion: '20.0.0',
     ...overrides.jira
   };
   return {
-    repoRoot, jira, config: { schemaVersion: 1, jira }, configDigest: overrides.configDigest || 'a'.repeat(64),
+    repoRoot, jira, config: { schemaVersion: 1, jira, authority: { jiraAdministration: 'allow' } }, configDigest: overrides.configDigest || 'a'.repeat(64),
     fetchImpl, clock: overrides.clock || Date
   };
+}
+
+test('project/space administration is available per project but requires explicit authority', () => {
+  const state = makeState();
+  state.config.authority = { jiraAdministration: 'ask' };
+  assert.equal(requireJiraAdministrationAuthority(state, 'apply'), 'ask');
+  state.config.authority.jiraAdministration = 'allow';
+  assert.equal(requireJiraAdministrationAuthority(state, 'apply'), 'allow');
+  state.config.authority.jiraAdministration = 'deny';
+  assert.throws(() => requireJiraAdministrationAuthority(state, 'apply'), (cause) => cause.exitCode === EXIT.CONFIG_DRIFT);
+  delete state.config.authority.jiraAdministration;
+  assert.throws(() => requireJiraAdministrationAuthority(state, 'approve'), (cause) => cause.exitCode === EXIT.CONFIG_DRIFT);
+});
+
+test('each repository owns an independent project-space preview and cannot bootstrap an unenrolled key', async () => {
+  const shop = makeState();
+  const books = makeState(undefined, {
+    jira: { projects: [{ key: 'BOOKS', issueTypes: ['Task'], defaultFields: {} }] }
+  });
+  const shopRecord = await previewDeliveryStack(shop, previewArgs());
+  const booksRecord = await previewDeliveryStack(books, previewArgs({
+    projectKey: 'BOOKS', projectName: 'Books', repository: 'Example/books'
+  }));
+
+  assert.notEqual(shop.repoRoot, books.repoRoot);
+  assert.notEqual(path.dirname(recordPathForTest(shop)), path.dirname(recordPathForTest(books)));
+  assert.equal(shopRecord.plan.project.key, 'SHOP');
+  assert.equal(booksRecord.plan.project.key, 'BOOKS');
+  assert.equal((await readDeliveryRecord(shop)).planSha256, shopRecord.planSha256);
+  assert.equal((await readDeliveryRecord(books)).planSha256, booksRecord.planSha256);
+  assert.throws(
+    () => buildDeliveryPlan(shop, previewArgs({ projectKey: 'OTHER' })),
+    (cause) => cause.exitCode === EXIT.CONFIG_INVALID && /enrolled in this repository/u.test(cause.message)
+  );
+});
+
+function makeDisabledProjectState() {
+  const repoRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-jira-project-start-'));
+  const configDirectory = path.join(repoRoot, '.kstack');
+  const configPath = path.join(configDirectory, 'config.json');
+  fs.mkdirSync(configDirectory, { recursive: true, mode: 0o700 });
+  const config = structuredClone(defaultConfig);
+  config.project.name = 'Books';
+  fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
+  return {
+    repoRoot, configPath, config, jira: config.jira,
+    fetchImpl: async () => { throw new Error('start must remain offline'); }, clock: Date
+  };
+}
+
+test('project-local start enables Jira, enrolls its own key, binds tracking, and creates an offline preview', async () => {
+  const state = makeDisabledProjectState();
+  const record = await startProjectSpace(state, {
+    siteUrl: 'https://fixture.atlassian.net', projectKey: 'BOOKS', projectName: 'Books',
+    repository: 'Example/books', roadmapMode: 'empty'
+  });
+  const written = JSON.parse(fs.readFileSync(state.configPath, 'utf8'));
+  assert.deepEqual(validateConfig(written, { configPath: state.configPath }), []);
+  assert.equal(written.jira.enabled, true);
+  assert.equal(written.jira.siteUrl, 'https://fixture.atlassian.net');
+  assert.deepEqual(written.jira.projects, [{ key: 'BOOKS', issueTypes: ['Task'], defaultFields: {} }]);
+  assert.deepEqual(written.jira.tracking, {
+    mode: 'approval-queued', required: true, repositoryNamespace: 'Example/books', projectKey: 'BOOKS',
+    automaticVersionAssignment: false, releaseVersions: []
+  });
+  assert.equal(written.authority.jiraAdministration, 'ask');
+  assert.equal(record.state, 'new-previewed');
+  assert.equal(record.plan.project.key, 'BOOKS');
+  assert.equal(record.plan.repository.slug, 'Example/books');
+  assert.equal((await readDeliveryRecord({ ...state, config: written, jira: written.jira })).planSha256, record.planSha256);
+});
+
+test('project-local starts are isolated and never reuse another repository delivery record', async () => {
+  const alpha = makeDisabledProjectState();
+  const beta = makeDisabledProjectState();
+  await startProjectSpace(alpha, {
+    siteUrl: 'https://fixture.atlassian.net', projectKey: 'ALPHA', projectName: 'Alpha',
+    repository: 'Example/alpha', roadmapMode: 'empty'
+  });
+  await startProjectSpace(beta, {
+    siteUrl: 'https://fixture.atlassian.net', projectKey: 'BETA', projectName: 'Beta',
+    repository: 'Example/beta', trackingMode: 'off', jiraAdministration: 'allow', roadmapMode: 'empty'
+  });
+  assert.notEqual(recordPathForTest(alpha), recordPathForTest(beta));
+  assert.equal(JSON.parse(fs.readFileSync(alpha.configPath, 'utf8')).jira.projects[0].key, 'ALPHA');
+  const betaConfig = JSON.parse(fs.readFileSync(beta.configPath, 'utf8'));
+  assert.equal(betaConfig.jira.projects[0].key, 'BETA');
+  assert.equal(betaConfig.jira.tracking.mode, 'off');
+  assert.equal(betaConfig.authority.jiraAdministration, 'allow');
+});
+
+test('each installed project runtime can start its own Jira project-space without the source checkout', () => {
+  const sourceScripts = path.resolve('plugins/kstack/scripts');
+  const projects = [
+    { key: 'ALPHA', name: 'Alpha', slug: 'Example/alpha' },
+    { key: 'BETA', name: 'Beta', slug: 'Example/beta' }
+  ];
+
+  for (const project of projects) {
+    const state = makeDisabledProjectState();
+    const installedRuntime = path.join(state.repoRoot, '.agents', 'skills', '.kstack-runtime');
+    const installedScripts = path.join(installedRuntime, 'scripts');
+    fs.mkdirSync(installedRuntime, { recursive: true, mode: 0o700 });
+    fs.cpSync(sourceScripts, installedScripts, { recursive: true });
+    const script = path.join(installedScripts, 'kstack-jira-bootstrap.mjs');
+    const result = spawnSync(process.execPath, [
+      script, 'start', '--site-url', 'https://fixture.atlassian.net',
+      '--project-key', project.key, '--project-name', project.name,
+      '--repository', project.slug, '--roadmap-mode', 'empty'
+    ], { cwd: state.repoRoot, encoding: 'utf8', env: { ...process.env } });
+    assert.equal(result.status, 0, result.stderr);
+    const output = JSON.parse(result.stdout);
+    const written = JSON.parse(fs.readFileSync(state.configPath, 'utf8'));
+    assert.equal(output.state, 'new-previewed');
+    assert.equal(output.plan.project.key, project.key);
+    assert.equal(output.plan.repository.slug, project.slug);
+    assert.equal(written.jira.tracking.projectKey, project.key);
+    assert.equal(written.jira.tracking.repositoryNamespace, project.slug);
+    assert.equal(path.dirname(path.dirname(script)), installedRuntime);
+  }
+});
+
+test('project-local start refuses to replace an active delivery record or persist an invalid site', async () => {
+  const state = makeDisabledProjectState();
+  const original = fs.readFileSync(state.configPath);
+  await assert.rejects(startProjectSpace(state, {
+    siteUrl: 'https://attacker.example.test', projectKey: 'BOOKS', projectName: 'Books',
+    repository: 'Example/books', roadmapMode: 'empty'
+  }), (error) => error.exitCode === EXIT.CONFIG_INVALID);
+  assert.deepEqual(fs.readFileSync(state.configPath), original);
+
+  await startProjectSpace(state, {
+    siteUrl: 'https://fixture.atlassian.net', projectKey: 'BOOKS', projectName: 'Books',
+    repository: 'Example/books', roadmapMode: 'empty'
+  });
+  const afterFirstStart = fs.readFileSync(state.configPath);
+  const refreshed = { ...state, config: JSON.parse(afterFirstStart), jira: JSON.parse(afterFirstStart).jira };
+  await assert.rejects(startProjectSpace(refreshed, {
+    siteUrl: 'https://fixture.atlassian.net', projectKey: 'OTHER', projectName: 'Other',
+    repository: 'Example/other', roadmapMode: 'empty'
+  }), (error) => error.exitCode === EXIT.STATE_ERROR && /already has a Jira delivery-stack record/u.test(error.message));
+  assert.deepEqual(fs.readFileSync(state.configPath), afterFirstStart);
+});
+
+function recordPathForTest(state) {
+  return state.deliveryRecordPath || path.join(state.repoRoot, '.kstack', 'jira-delivery-stack.json');
 }
 
 function previewArgs(changes = {}) {
@@ -91,6 +240,17 @@ test('new preview defaults to one Free-compatible Kanban board without Jira auto
   assert.deepEqual(record.plan.repository.branches, ['main', 'Dev']);
   assert.deepEqual(record.operations.map((operation) => operation.kind), ['project-create', 'filter-create', 'board-create', ...Array(5).fill('roadmap-issue-create')]);
   assert.equal((await readDeliveryRecord(state)).planSha256, record.planSha256);
+});
+
+test('preview supports a trusted delivery record outside the repository', async () => {
+  const state = makeState();
+  const stateRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-jira-state-'));
+  fs.chmodSync(stateRoot, 0o700);
+  state.deliveryRecordPath = path.join(stateRoot, 'vitalwhy', 'jira-delivery-stack.json');
+  const record = await previewDeliveryStack(state, previewArgs());
+  assert.equal(record.state, 'new-previewed');
+  assert.equal((await readDeliveryRecord(state)).planSha256, record.planSha256);
+  assert.equal(fs.statSync(path.dirname(state.deliveryRecordPath)).mode & 0o777, 0o700);
 });
 
 test('default roadmap is preview-bound, created once, and verified by exact read-back', async () => {

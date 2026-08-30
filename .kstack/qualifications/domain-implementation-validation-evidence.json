@@ -1,0 +1,573 @@
+{
+  "schema": "kstack-domain-implementation-validation-v1",
+  "startedAt": "2026-08-30T20:16:08.262Z",
+  "completedAt": "2026-08-30T20:17:03.175Z",
+  "inventory": [
+    {
+      "itemId": "domain-d0-catalog-runtime",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-catalog.mjs",
+          "sha256": "c77163cb3299acc191b27614fcce6fcc4b5970a3b7743be9b027cb77d0552795"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-catalog.test.mjs",
+          "sha256": "e44c17b375a4be4c4f3b95847de209575f42e3930639c64ce06c91b0dcc92b1d"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d1-identity",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
+          "sha256": "1c374a8caed62bd3db86d51d9ef447709a31a20e7f8f2577cf7bd18ce50aafae"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-identity.test.mjs",
+          "sha256": "f5fd9bbb534b1bc26cdd98c225d9fce3909141be19b8ac9a953652a51d0b1400"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d2f1-inventory",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
+          "sha256": "2a58bb66380d2f8bd9c1dd09aef0d12818bf60c10bb4dcb172a04b672abd7200"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-selection.test.mjs",
+          "sha256": "864d0bf9db1c94930a68153a453ed8345eb9bcbc10cb1ccf84189d1ee5acbf3c"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d2f2-policy",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
+          "sha256": "2a58bb66380d2f8bd9c1dd09aef0d12818bf60c10bb4dcb172a04b672abd7200"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-selection.test.mjs",
+          "sha256": "864d0bf9db1c94930a68153a453ed8345eb9bcbc10cb1ccf84189d1ee5acbf3c"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d2f3-selection",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
+          "sha256": "2a58bb66380d2f8bd9c1dd09aef0d12818bf60c10bb4dcb172a04b672abd7200"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-selection.test.mjs",
+          "sha256": "864d0bf9db1c94930a68153a453ed8345eb9bcbc10cb1ccf84189d1ee5acbf3c"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d3-separation",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-separation.mjs",
+          "sha256": "a4883bb84722f90043e867a4840cee6f989b30095a5c5c5b441018a5f0e59990"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-separation.test.mjs",
+          "sha256": "00de18b7ff99aa353231cc7b9aa1af4fd187d28f4d1fce85a6b7dc34c36cdc59"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d4d10-evidence",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-result.mjs",
+          "sha256": "332138bf9a3278c62d1c0ad969ca73639e702d8884ba0a155c8cfed05d6399aa"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-result-broker.mjs",
+          "sha256": "4ff7ca24d9febdb4098268108a12d98fa8a97d360a80ecb827eb8f5542dd60e5"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-result.test.mjs",
+          "sha256": "58d86ef3a7c93500f127e388b93750afd6c09e42762dd41f3cf0677094930d92"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d5f1-schemas",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-schema.mjs",
+          "sha256": "a29b254f617eaf71ec0c2685f984810844f245c8f16e0e060c2d7795b5d9c8cd"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-schema.test.mjs",
+          "sha256": "6e94c792901722d6e7f6715075f9faf07216e29998c169498bfdb60662ec76ea"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d5f2-activation",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-activation.mjs",
+          "sha256": "2ed086bdd1bf3d261068a65db1300177bbbc2e9a5163cdb388e8fdd9625a8e00"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-schema.test.mjs",
+          "sha256": "6e94c792901722d6e7f6715075f9faf07216e29998c169498bfdb60662ec76ea"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d6-budgets",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-budget.mjs",
+          "sha256": "a1d15b62ef54b7d950cf3846b68f81f271e949275ff0f144009e28ed203308f6"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-schema.test.mjs",
+          "sha256": "6e94c792901722d6e7f6715075f9faf07216e29998c169498bfdb60662ec76ea"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d7-evaluation",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-evaluation.mjs",
+          "sha256": "a93d876c6c9ea33a1acd1e16056c5371c60e9fe8e72d5c177064665d2bbff31e"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-evaluation.test.mjs",
+          "sha256": "0448467f59e206ebc491d3c59fd861722a8ca6a654fe2fa0fdb559293a68b089"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-d8-time",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-time.mjs",
+          "sha256": "99c96c0e24d4ebbcbfa979a5bb2c41c6b53ad15abe0d821ff870e31a390ee2cb"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-time.test.mjs",
+          "sha256": "e450ecad360d1230c47f1ff6bc3d142f317f6726da4b77d6fe669ba0edab4fe1"
+        }
+      ]
+    },
+    {
+      "itemId": "pack-release-operations",
+      "maturity": "CANDIDATE_ONLY",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-pack-candidates.mjs",
+          "sha256": "5d0cfb0d206a45887ff677f46b16e166a9eda5f558c58b29f21d4ceb8e68a238"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-evaluation.mjs",
+          "sha256": "a93d876c6c9ea33a1acd1e16056c5371c60e9fe8e72d5c177064665d2bbff31e"
+        },
+        {
+          "file": "plugins/kstack/packs/release-operations/1.0.0/bundle.index.json",
+          "sha256": "8bde1e82b70f9552d2e208a78a16785d7a7ef80dc899556ce4b13a632e745e1a"
+        },
+        {
+          "file": "plugins/kstack/packs/release-operations/1.0.0/content.json",
+          "sha256": "792817b92dc8ab8e431f15e4fd995633dccb940473f6b7d8532b121ea4342750"
+        },
+        {
+          "file": "plugins/kstack/packs/release-operations/1.0.0/evidence.schema.json",
+          "sha256": "e9f102e5013ea62f1077f5079543bbe0b04919eeeb88b5d54ed7ab3b2ec88e1e"
+        },
+        {
+          "file": "plugins/kstack/packs/release-operations/1.0.0/fixtures/unknown-status.json",
+          "sha256": "460fa7b03da2ed9828fc00831ff0c4eee42445bf1833342d9eeac24301aa9ca8"
+        },
+        {
+          "file": "plugins/kstack/packs/release-operations/1.0.0/manifest.json",
+          "sha256": "75660176ecde881ecf683f0dec58c99179346bd857459dbf1a7ba8e569359e48"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-pack-candidates.test.mjs",
+          "sha256": "52f5bcdf6d865edeb998596eebfec7e2b36dddde036e42e1730f4e09aac794bd"
+        }
+      ]
+    },
+    {
+      "itemId": "pack-product-experience",
+      "maturity": "CANDIDATE_ONLY",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-pack-candidates.mjs",
+          "sha256": "5d0cfb0d206a45887ff677f46b16e166a9eda5f558c58b29f21d4ceb8e68a238"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-evaluation.mjs",
+          "sha256": "a93d876c6c9ea33a1acd1e16056c5371c60e9fe8e72d5c177064665d2bbff31e"
+        },
+        {
+          "file": "plugins/kstack/packs/product-experience/1.0.0/bundle.index.json",
+          "sha256": "8287507e60fee3919d4982bffdc7114fa1344057e21663e86b76f98e2ed246b1"
+        },
+        {
+          "file": "plugins/kstack/packs/product-experience/1.0.0/content.json",
+          "sha256": "c140c84b807d2fdc75276071a9750dda8cbaf59f2b6124abc70cdd2a8b79fd6d"
+        },
+        {
+          "file": "plugins/kstack/packs/product-experience/1.0.0/evidence.schema.json",
+          "sha256": "9b377a1f1971c686208b56528136366a3791fad1f80f33eda2b840435c47534b"
+        },
+        {
+          "file": "plugins/kstack/packs/product-experience/1.0.0/fixtures/complete-state-inventory.json",
+          "sha256": "ab14f2cd6634dc9a733427abdacfee316a83b9b16d319d2ea43afdf71f247a4a"
+        },
+        {
+          "file": "plugins/kstack/packs/product-experience/1.0.0/manifest.json",
+          "sha256": "a4289cc4d2b53673c718b51d31e04f644f3afdaf536d9a354d47e0154067f9a6"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-pack-candidates.test.mjs",
+          "sha256": "52f5bcdf6d865edeb998596eebfec7e2b36dddde036e42e1730f4e09aac794bd"
+        }
+      ]
+    },
+    {
+      "itemId": "pack-assurance",
+      "maturity": "CANDIDATE_ONLY",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-pack-candidates.mjs",
+          "sha256": "5d0cfb0d206a45887ff677f46b16e166a9eda5f558c58b29f21d4ceb8e68a238"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-evaluation.mjs",
+          "sha256": "a93d876c6c9ea33a1acd1e16056c5371c60e9fe8e72d5c177064665d2bbff31e"
+        },
+        {
+          "file": "plugins/kstack/packs/assurance/1.0.0/bundle.index.json",
+          "sha256": "9e553de674b5c695ea253a924f956c3679820d701c7411fbd418d15cb75178c4"
+        },
+        {
+          "file": "plugins/kstack/packs/assurance/1.0.0/content.json",
+          "sha256": "ead427d8b579dd0bf43bc9cab6854c5e73b5835368d32c7021ff4f963a00d7a9"
+        },
+        {
+          "file": "plugins/kstack/packs/assurance/1.0.0/evidence.schema.json",
+          "sha256": "5469a0f2c6afd9edf64d31fdaddf0f3a5d6e68a264ea34869d15e11f48064daa"
+        },
+        {
+          "file": "plugins/kstack/packs/assurance/1.0.0/fixtures/untrusted-declaration.json",
+          "sha256": "67acbfb74b038e8a5ab0328ff6717ad54f8c46cbd06f5e8aab7e99056c62e209"
+        },
+        {
+          "file": "plugins/kstack/packs/assurance/1.0.0/manifest.json",
+          "sha256": "26d0aa88adc340b3bdfc6b1d2d620b40cf6fdfadee70fc17fd06a918986a283f"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-pack-candidates.test.mjs",
+          "sha256": "52f5bcdf6d865edeb998596eebfec7e2b36dddde036e42e1730f4e09aac794bd"
+        }
+      ]
+    },
+    {
+      "itemId": "pack-research-knowledge",
+      "maturity": "CANDIDATE_ONLY",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-pack-candidates.mjs",
+          "sha256": "5d0cfb0d206a45887ff677f46b16e166a9eda5f558c58b29f21d4ceb8e68a238"
+        },
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-evaluation.mjs",
+          "sha256": "a93d876c6c9ea33a1acd1e16056c5371c60e9fe8e72d5c177064665d2bbff31e"
+        },
+        {
+          "file": "plugins/kstack/packs/research-knowledge/1.0.0/bundle.index.json",
+          "sha256": "d9519997a145e85f6a7f563ae968238b28be02c49e7cf202df2b109bf284b41b"
+        },
+        {
+          "file": "plugins/kstack/packs/research-knowledge/1.0.0/content.json",
+          "sha256": "f75aa760b59e7fb49c2e5b6c8a494a8e4cd3458972d661dc04fc0c1875788de3"
+        },
+        {
+          "file": "plugins/kstack/packs/research-knowledge/1.0.0/evidence.schema.json",
+          "sha256": "fe2707b8d673f40c789313dbf4cf7ee664052580874a4d5840b401a8a816761e"
+        },
+        {
+          "file": "plugins/kstack/packs/research-knowledge/1.0.0/fixtures/claim-boundary.json",
+          "sha256": "98cc907c0ae83bcc0d3e13f8c92477657dbc61786c87a7b1b6b9f3271ef2b97f"
+        },
+        {
+          "file": "plugins/kstack/packs/research-knowledge/1.0.0/manifest.json",
+          "sha256": "bfc19fb16e2b3d99f38fc96f181bd828a338679014afdc29fce3d9439ae8d5ad"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-pack-candidates.test.mjs",
+          "sha256": "52f5bcdf6d865edeb998596eebfec7e2b36dddde036e42e1730f4e09aac794bd"
+        }
+      ]
+    },
+    {
+      "itemId": "domain-acquisition-trial",
+      "maturity": "OFFLINE_TRIAL_IMPLEMENTED",
+      "implementationFiles": [
+        {
+          "file": "plugins/kstack/scripts/kstack-domain-acquisition.mjs",
+          "sha256": "e974b8acd0837ef83b89ded73ec690efd2c17fd873475e2911fdfb5d4b7ccdfc"
+        }
+      ],
+      "validationFiles": [
+        {
+          "file": "tests/domain-acquisition.test.mjs",
+          "sha256": "106a5cbce787826b831782225696edf5e0b96f6de9f6a47179c3830b1202eef2"
+        }
+      ]
+    }
+  ],
+  "validationFiles": [
+    "tests/domain-acquisition.test.mjs",
+    "tests/domain-catalog.test.mjs",
+    "tests/domain-evaluation.test.mjs",
+    "tests/domain-identity.test.mjs",
+    "tests/domain-pack-candidates.test.mjs",
+    "tests/domain-result.test.mjs",
+    "tests/domain-schema.test.mjs",
+    "tests/domain-selection.test.mjs",
+    "tests/domain-separation.test.mjs",
+    "tests/domain-time.test.mjs"
+  ],
+  "testExecution": {
+    "status": 0,
+    "signal": null,
+    "errorCode": "EPERM",
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "testExecutionDigest": "b2a7d34a95a471c47c809c29cb9b53a685f4905dd6dd01f78d853f3056622b7c",
+  "rows": [
+    {
+      "itemId": "domain-d0-catalog-runtime",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "9c39dc3713d572de799c18a7e63b6bfccdfe7799c0a7617db8ee2aeec0de2882",
+      "validationReceiptDigest": "e3229baa861f60716cc4eff39dd2a29b3fb0be70d9e6bccc827e47bf3eb7d7b8",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d1-identity",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "7140d69694738a4658f0e6ec5e51b60e6ed87a0a1830e2a01bb5c77cfd4a618e",
+      "validationReceiptDigest": "eb4a7b0bc36f878c1ee047ae5a348c27b45ca9d7a55d5303580f746f106ab2a0",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d2f1-inventory",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "99f61a468e4855be9404df6a55e7622e22cddc84ca162b7d45e22fd2cf2fa928",
+      "validationReceiptDigest": "f8d950f188c2faffeb42ee3e8dc715a2e1af8f9972014d5c12781a66a6e0378d",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d2f2-policy",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "99f61a468e4855be9404df6a55e7622e22cddc84ca162b7d45e22fd2cf2fa928",
+      "validationReceiptDigest": "57f2a4616745b1e6ee473de551f913fddbce6be87328100867241a418ac8b73c",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d2f3-selection",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "99f61a468e4855be9404df6a55e7622e22cddc84ca162b7d45e22fd2cf2fa928",
+      "validationReceiptDigest": "1b4325abaeb287e104adcf3c4b50dae3ecd32b188df1c03664035f42cfe5d5fa",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d3-separation",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "1f221d49482e15a97008c09ba82cf1aa726cba713b518fcc56777802124c2c4d",
+      "validationReceiptDigest": "61dfe77cdbdfb4ee216561bd20f0f329bda509ac3342c9d5f71975cd0b09487e",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d4d10-evidence",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "328e99d8afba314994865202c2a17e9221ca5b9c730789f1190980a006a8118b",
+      "validationReceiptDigest": "6c88dbf091ef0d12dbb064ccc5103a4bdb8151ca8e23f74a09e5e44b237be33d",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d5f1-schemas",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "78ca8e49dab30c2e56356b62bd40b43206b2ab2652b34ef655e232188a1bf46f",
+      "validationReceiptDigest": "32db727fa1fdcbe7ea17e608bd8e00e858cd4e0171e84e0bdec492245e6c4d2c",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d5f2-activation",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "12a3c94aad44e243297d0d7361902fd5c9da00e8e13993de5fc285dbb52cb75d",
+      "validationReceiptDigest": "f79b71c229838fe4f28ab16e6ca63d20e956dfe91bb5da6a8d03e417bdbe95c9",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d6-budgets",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "a7ac1b239ea24d24a883cded42541a9c82c0fbe8692460d6f912bc41c2dbacd9",
+      "validationReceiptDigest": "f1df852d0fbb5c7e31abf335163d2bfb99cd260771b2024f7c87ed7cd23f1b15",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d7-evaluation",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "1ac8465b752c5e25709e8eeb993833f267b46599d9d34cbe74d6d12cc21a0ab9",
+      "validationReceiptDigest": "4c8d9daf73d3c6532ddc01f20d4fded465a21c291b04fc3137fb4c932e47ebc7",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-d8-time",
+      "maturity": "CORE_IMPLEMENTED",
+      "implementationDigest": "073ff5f12832fd19838c983d7d6895da3bd3b9506c880e97ab167bc7fe7af5a8",
+      "validationReceiptDigest": "147fbc19ff35d3fa8e6bc5d052212fbd4f545f3570722b0ded12fcceb37f27ab",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "pack-release-operations",
+      "maturity": "CANDIDATE_ONLY",
+      "implementationDigest": "716e1b498d0efaefcfdac64fe6e174bb287c779e02171dbe0f103cd460cd59c6",
+      "validationReceiptDigest": "5b83edf918cdc287957a951775bab5e4d08140ae9a57ba213bca7c562bc6f1ee",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "pack-product-experience",
+      "maturity": "CANDIDATE_ONLY",
+      "implementationDigest": "e8e7785c5d0b878a72ce9153a12faea5cc1ec3fdd41607cd2f9f065727ba2a7b",
+      "validationReceiptDigest": "b5da23f684a59f9294f532b6ed6f49fd3604eea977664ff69c40e94a73e17fb4",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "pack-assurance",
+      "maturity": "CANDIDATE_ONLY",
+      "implementationDigest": "fc7b682baaafcdcd8bf2d57f93137195b8eb45b2106dbf8df78751cfd06cac2e",
+      "validationReceiptDigest": "8756ae4a33325529e4be3a509fa91864bd7ea30d0ef7992e74a73d70fbfb41cd",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "pack-research-knowledge",
+      "maturity": "CANDIDATE_ONLY",
+      "implementationDigest": "069eae5978b4d25851dc7147826aa6f4292e94b5a6df199f40e91c41259d5ed5",
+      "validationReceiptDigest": "93b45b85c9a47db6902a4e3aa961034509ea65e31a7c15a109a601cce4572937",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    },
+    {
+      "itemId": "domain-acquisition-trial",
+      "maturity": "OFFLINE_TRIAL_IMPLEMENTED",
+      "implementationDigest": "30235799aecab11e164525a025d89b4a2fbefcbec677a615740e30e4d1519bc2",
+      "validationReceiptDigest": "e9185016a3b757ede5d3f4c8bcef72bb11040961d5cf8651bfbfe65db8748d24",
+      "implemented": true,
+      "current": false,
+      "qualified": false,
+      "activated": false
+    }
+  ],
+  "aggregate": "FAIL",
+  "evidenceDigest": "8cb7c8783c1af7dba06dfd7eeabb6e18aa7d9d12da0efa6605616f69574d9cae"
+}

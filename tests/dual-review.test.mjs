@@ -85,7 +85,7 @@ test('advisory provider ownership performs one-shot per-provider legacy recovery
   config.workflow.designGate.citationGrounding = 'advisory';
   for (const provider of ['codex', 'opus']) {
     config.models[provider].command = process.execPath;
-    config.models[provider].args = [path.join(root, 'tests', 'fixtures', 'fake-grounding-recovery.mjs'), `--recovery-mode=${recoveryMode}`];
+    config.models[provider].args = [path.join(root, 'tests', 'fixtures', `fake-grounding-recovery-${provider}.mjs`), `--recovery-mode=${recoveryMode}`];
     config.models[provider].timeoutSeconds = 5;
   }
   fs.writeFileSync(path.join(project, '.kstack', 'config.json'), JSON.stringify(config), { mode: 0o600 });

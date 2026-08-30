@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "kind": "kstack-kcrp-offline-byte-replay-config-v1",
+  "schemaVersions": {
+    "canonicalJson": "kstack-kcrp-json-v1",
+    "artifact": "kstack-utf8-lf-v1",
+    "itemMap": "kstack-kcrp-item-map-v1",
+    "sourceRecord": "kstack-kcrp-source-record-v1",
+    "dispatchManifest": "kstack-kcrp-dispatch-manifest-offline-subset-v1",
+    "byteBenchmark": "kstack-kcrp-byte-benchmark-offline-subset-v1"
+  },
+  "limits": {
+    "artifacts": 256, "items": 4096, "spansPerItem": 64, "totalSpans": 16384,
+    "dependenciesPerItem": 256, "requestedItems": 256, "includedItems": 4096,
+    "sourceRecords": 32768, "sourceRecordBytes": 1048576, "sourceArtifactBytes": 4194304,
+    "itemMapBytes": 4194304, "manifestBytes": 4194304, "packetBytes": 1048576,
+    "reviewInputBytes": 1200000, "benchmarkPairs": 256
+  },
+  "identityFraming": {
+    "reviewer": {
+      "domain": "KSTACK.KCRP.LOCAL-CODEX-READONLY-REVIEWER/1",
+      "fields": ["provider=local-codex", "mode=read-only", "date=2026-08-29"],
+      "expectedSha256": "296b0615b6029ec4ed585f6e30a7268c3122ed5fcc32dfe3264b928fff0e9506"
+    },
+    "governance": {
+      "domain": "KSTACK.KCRP.OFFLINE-BYTE-GOVERNANCE/1",
+      "modules": [
+        {"role": "core", "path": "plugins/kstack/scripts/kstack-kcrp-core.mjs", "sha256": "d0e7c7272989edcf6df84a3a65b030c9be6da4532612dc2ba9b702cb09e5c155"},
+        {"role": "dispatch-manifest", "path": "plugins/kstack/scripts/kstack-kcrp-dispatch-manifest.mjs", "sha256": "87e15cdda08552c643e10222da4fc5a8a6641385e4712c5f07f095528f5b099b"},
+        {"role": "byte-benchmark", "path": "plugins/kstack/scripts/kstack-kcrp-byte-benchmark.mjs", "sha256": "521c3b3caa1b52dce912b187519a7ed3c35bc8d601dbe7aabf5b4feb3dfb21f2"}
+      ],
+      "expectedSha256": "b93b7b2ed932cc5dfee6a1e728ac502cb3639dfa37929cb9773cdfbcb805d45b"
+    }
+  },
+  "threadId": "host-breadth-hb-tc06-2026-08-29",
+  "phase": "qc",
+  "objectiveItemId": "HOST_HB06_PROGRESS",
+  "requestedItemIds": ["HOST_HB06_PROGRESS"],
+  "sourceDefaults": {
+    "artifactRole": "verification", "sourceRole": "context", "inclusion": "full",
+    "risk": "ordinary", "status": "open", "reductionEligibility": "reducible", "mechanismGroupId": null
+  },
+  "sources": [
+    {
+      "itemId": "HOST_HB06_DESIGN", "artifactId": "ART_HOST_HB06_01", "sourceId": "KCRP_HOST_000001_S000001", "label": "HOST_HB06_DESIGN",
+      "relativePath": ".kstack/decisions/host-breadth-hb-tc06-2026-08-27-design-candidate.md",
+      "byteLength": 12168, "sha256": "98667edb88dcb5d24ad735335699977f48ea39cf1ec6cf56ba339675106b3427",
+      "span": {"byteStart": 0, "byteLength": 12168, "sha256": "98667edb88dcb5d24ad735335699977f48ea39cf1ec6cf56ba339675106b3427"},
+      "dependsOn": []
+    },
+    {
+      "itemId": "HOST_HB06_IMPLEMENTATION", "artifactId": "ART_HOST_HB06_02", "sourceId": "KCRP_HOST_000002_S000001", "label": "HOST_HB06_IMPLEMENTATION",
+      "relativePath": "plugins/kstack/scripts/kstack-second-host-proof.mjs",
+      "byteLength": 22270, "sha256": "02f9230219431797759c00be050926c29cc06648eb6137803140d1c91205d73b",
+      "span": {"byteStart": 0, "byteLength": 22270, "sha256": "02f9230219431797759c00be050926c29cc06648eb6137803140d1c91205d73b"},
+      "dependsOn": ["HOST_HB06_DESIGN"]
+    },
+    {
+      "itemId": "HOST_HB06_TEST", "artifactId": "ART_HOST_HB06_03", "sourceId": "KCRP_HOST_000003_S000001", "label": "HOST_HB06_TEST",
+      "relativePath": "tests/second-host-proof.test.mjs",
+      "byteLength": 11862, "sha256": "8a0d4902870ad39900164b9329213c3c81fa504c8e4c8c8201c1f699974429ad",
+      "span": {"byteStart": 0, "byteLength": 11862, "sha256": "8a0d4902870ad39900164b9329213c3c81fa504c8e4c8c8201c1f699974429ad"},
+      "dependsOn": ["HOST_HB06_DESIGN", "HOST_HB06_IMPLEMENTATION"]
+    },
+    {
+      "itemId": "HOST_HB06_PROGRESS", "artifactId": "ART_HOST_HB06_04", "sourceId": "KCRP_HOST_000004_S000001", "label": "HOST_HB06_PROGRESS",
+      "relativePath": ".kstack/reviews/host-breadth-2026-08-29-hb-tc06/implementation-progress.md",
+      "byteLength": 4876, "sha256": "d9c3722a7dbba64124a51861aa5fb4b07688155a7f7cd68bb91b7576fc916ee4",
+      "span": {"byteStart": 0, "byteLength": 4876, "sha256": "d9c3722a7dbba64124a51861aa5fb4b07688155a7f7cd68bb91b7576fc916ee4"},
+      "dependsOn": ["HOST_HB06_DESIGN", "HOST_HB06_IMPLEMENTATION", "HOST_HB06_TEST"]
+    },
+    {
+      "itemId": "HOST_LINUX_UNRELATED", "artifactId": "ART_HOST_HB06_05", "sourceId": "KCRP_HOST_000005_S000001", "label": "HOST_LINUX_UNRELATED",
+      "relativePath": "plugins/kstack/scripts/kstack-linux-qualification.mjs",
+      "byteLength": 14597, "sha256": "9b105ec26d491f56dd4273fd0e6642fa021e869003e490ba39d6883a96ba6415",
+      "span": {"byteStart": 0, "byteLength": 14597, "sha256": "9b105ec26d491f56dd4273fd0e6642fa021e869003e490ba39d6883a96ba6415"},
+      "dependsOn": []
+    }
+  ],
+  "dispatch": {
+    "full": {"invocationId": "host-hb06-full-20260829", "round": 1, "purpose": "closure", "route": "full-required", "reductionFailure": null},
+    "reduced": {"invocationId": "host-hb06-reduced-20260829", "round": 1, "purpose": "remediation", "route": "reduced", "reductionFailure": null}
+  },
+  "benchmark": {"benchmarkId": "HOST-HB06-20260829", "pairId": "HOST-HB06-PAIR"},
+  "expected": {
+    "itemMapSha256": "93651c38552e6e697971b2c9653b1957b1ac4a831d3e6cda30baccf8985344e1",
+    "includedItemIds": ["HOST_HB06_DESIGN", "HOST_HB06_IMPLEMENTATION", "HOST_HB06_PROGRESS", "HOST_HB06_TEST"],
+    "omittedItemIds": ["HOST_LINUX_UNRELATED"],
+    "full": {"packetBytes": 66544, "packetSha256": "a53f21ac567464c4ec576da131260bf7d1e3c57b591e3222708002583ce3b131", "manifestBytes": 1488, "manifestSha256": "ef714074514bc5dfc7f8c8f28466d88f3b49aabcc5fe149853088e1a971a2016"},
+    "reduced": {"packetBytes": 51791, "packetSha256": "24e71fd0b156352b811ff3f547db3823b59d379645749f0b84cb069dc50f40fd", "manifestBytes": 1363, "manifestSha256": "231ad3e10ca59646aef255ab202c8ef2192d9ae91c2265f637ffae4955841bb7"},
+    "reportSha256": "9646626a2df18eaae18152ee42d0e7555e0e12c10f529af1f355ea234d79d15f"
+  }
+}
