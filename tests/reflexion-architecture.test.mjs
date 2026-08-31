@@ -69,10 +69,11 @@ test('command startup source pins fail-closed gate order and one main call site'
   const source = fs.readFileSync(command, 'utf8');
   const entry = source.indexOf("KSTACK_REFLEXION_ENTRY_MISMATCH");
   const environment = source.indexOf("KSTACK_REFLEXION_ENVIRONMENT_DENIED");
-  const platform = source.indexOf("KSTACK_REFLEXION_PLATFORM_UNSUPPORTED");
+  const bootstrap = source.indexOf("KSTACK_REFLEXION_BOOTSTRAP_INVALID");
   const sentinel = source.indexOf('SENTINEL_BASENAME');
   const contract = source.indexOf('function admitRuntimeContract');
-  assert.ok(entry >= 0 && environment > entry && platform > environment);
+  assert.ok(entry >= 0 && environment > entry && bootstrap > environment);
+  assert.doesNotMatch(source, /KSTACK_REFLEXION_PLATFORM_UNSUPPORTED/u);
   assert.ok(sentinel >= 0 && contract >= 0);
   assert.equal((source.match(/effects\.main\(/gu) ?? []).length, 1);
   assert.match(source, /Object\.keys\(effects\)\.join\(','\) !== 'main,writeStderr,setExitCode'/u);

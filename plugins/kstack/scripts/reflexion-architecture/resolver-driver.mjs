@@ -1,5 +1,5 @@
 import { importedEntryState } from './entry-probe.mjs';
-import { runUnicode16Oracle } from './unicode-oracle.mjs';
+import { runUnicodeOracle } from './unicode-oracle.mjs';
 
 const MAX_INPUT_BYTES = 8_388_608;
 const MAX_REQUESTS = 65_536;
@@ -56,7 +56,7 @@ function runConformanceProbe(conformance) {
     observeError('invalid-url', 'ERR_INVALID_URL', () => import.meta.resolve('file://%', parent)),
     observeError('other-resolution', 'ERR_INVALID_MODULE_SPECIFIER', () => import.meta.resolve('#', parent))
   ];
-  const unicode = runUnicode16Oracle();
+  const unicode = runUnicodeOracle();
   if (import.meta.main !== true || importedEntryState !== false) fail(70);
   return Object.freeze({
     kind: 'resolver-conformance-v1', directEntryMain: true, importedEntryMain: false,

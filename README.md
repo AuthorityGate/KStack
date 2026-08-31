@@ -62,6 +62,21 @@ separate configured actions.
 
 ## Install for local development
 
+Install in the environment where Codex actually runs. Native Windows and WSL
+have separate home directories, Node runtimes, plugin caches, and hooks, so
+they are separate installation targets. Installing in one does not install in
+the other.
+
+That separation applies to the KStack runtime, not automatically to external
+service credentials. This repository keeps one authoritative Jira connection
+in WSL. Native Windows must not enroll another Jira credential; Jira requests
+use the fixed `plugins\kstack\workers\kstack-jira-wsl.ps1` executor handoff.
+The handoff accepts only tracking `append`, `list`, and `sync`, binds the exact
+Windows checkout to its WSL path and distribution, and never exports the Jira
+credential.
+
+### Linux or WSL
+
 ```bash
 ./setup --host all --scope user
 ```
@@ -72,13 +87,35 @@ Install into one repository instead:
 ./setup --host all --scope project --target /path/to/repository
 ```
 
+### Native Windows Codex
+
+Run from Windows PowerShell, not a WSL shell:
+
+```powershell
+.\setup.ps1 -Host codex -Scope user
+```
+
+Install direct project skills into one native Windows checkout instead:
+
+```powershell
+.\setup.ps1 -Host codex -Scope project -Target C:\path\to\repository
+```
+
+The native installer requires 64-bit Node 24.19.x on `PATH`. It uses copied
+files rather than symlinks, qualifies the Windows Node/ICU/Unicode runtime,
+registers the modern Codex plugin when plugin commands are available, and
+falls back to direct `%USERPROFILE%\.codex\skills` copies otherwise. After it
+passes, restart Codex and open `/skills` to confirm discovery. Invoke
+`$kstack:kstack-init` for the modern plugin or `$kstack-init` for a direct
+copy. `/kstack-init` is Claude Code syntax and is not a Codex command.
+
 For a user-level Codex install, the setup script registers the repository's
 marketplace and installs `kstack@kstack`. If the local Codex version predates
 plugin commands, setup falls back to its legacy user skill directory. A
 repository-scoped Codex install uses `.agents/skills`. Claude Code uses the same
 skill sources and exposes them as slash commands.
 
-When setup runs from a WSL-mounted Windows drive (`/mnt/<drive>/...`), it emits
+When Linux/WSL setup runs from a WSL-mounted Windows drive (`/mnt/<drive>/...`), it emits
 an early Codex diagnostic and registers a versioned Linux-native staged copy
 under `~/.codex/skills`, because Codex cannot reliably refresh a local plugin
 marketplace directly from DrvFS/9p. Project-scoped setup installs skills only;

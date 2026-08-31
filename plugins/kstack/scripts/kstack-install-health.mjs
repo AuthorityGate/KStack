@@ -124,9 +124,10 @@ function verifyEntry(root, entry, code, enforceExecutable = true) {
   try { stat = fs.lstatSync(target); } catch { fail(code); }
   // WSL's DrvFS/v9fs projection commonly reports an execute mask on every
   // file regardless of the Git mode. Byte/type checks and actual Node probes
-  // remain binding there; native installed copies must match the exact mask.
-  let modeProjected = false;
-  try { modeProjected = fs.statfsSync(target).type === 0x01021997; } catch {}
+  // remain binding there. Native Windows does not expose the manifest's POSIX
+  // executable bit, so its byte/type checks and launched probes are binding.
+  let modeProjected = process.platform === 'win32';
+  if (!modeProjected) try { modeProjected = fs.statfsSync(target).type === 0x01021997; } catch {}
   if (!stat.isFile() || stat.isSymbolicLink() || stat.size !== entry.size || (enforceExecutable && !modeProjected && Boolean(stat.mode & 0o111) !== entry.executable) || sha256(fs.readFileSync(target)) !== entry.sha256) fail(code);
 }
 
@@ -142,8 +143,8 @@ function verifyInstalledEntry(sourceRoot, root, entry) {
     return;
   }
   const stat = fs.lstatSync(target);
-  let modeProjected = false;
-  try { modeProjected = fs.statfsSync(target).type === 0x01021997; } catch {}
+  let modeProjected = process.platform === 'win32';
+  if (!modeProjected) try { modeProjected = fs.statfsSync(target).type === 0x01021997; } catch {}
   if (!stat.isFile() || stat.isSymbolicLink() || (!modeProjected && Boolean(stat.mode & 0o111) !== entry.executable)) fail('KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT');
   const source = readBoundedJson(path.join(sourceRoot, entry.path), MAX_CONTRACT_BYTES, 'KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT').value;
   const installed = readBoundedJson(target, MAX_CONTRACT_BYTES, 'KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT').value;
@@ -294,7 +295,11 @@ function validateSurface(surface, contract, sourceRoot) {
 
 function codexJsonObservation(expectedRoot) {
   const calls = [['--version'], ['plugin', 'marketplace', 'list', '--json'], ['plugin', 'list', '--json']];
-  const results = calls.map((args) => spawnSync('codex', args, { encoding: 'utf8', timeout: CODEX_MS, maxBuffer: MAX_CHILD_BYTES, shell: false, env: { PATH: process.env.PATH, HOME: process.env.HOME, LANG: 'C.UTF-8' }, killSignal: 'SIGKILL' }));
+  const results = calls.map((args) => {
+    const executable = process.platform === 'win32' ? process.env.ComSpec || 'cmd.exe' : 'codex';
+    const commandArgs = process.platform === 'win32' ? ['/d', '/s', '/c', ['codex', ...args].join(' ')] : args;
+    return spawnSync(executable, commandArgs, { encoding: 'utf8', timeout: CODEX_MS, maxBuffer: MAX_CHILD_BYTES, shell: false, env: { PATH: process.env.PATH, HOME: process.env.HOME, USERPROFILE: process.env.USERPROFILE, ComSpec: process.env.ComSpec, LANG: 'C.UTF-8' }, killSignal: 'SIGKILL' });
+  });
   if (results.some((result) => result.error || result.status !== 0 || result.stderr !== '')) return { status: 'UNAVAILABLE', code: 'KSTACK_POST_DEPLOY_CODEX_JSON_UNAVAILABLE' };
   try {
     const marketplaces = JSON.parse(results[1].stdout).marketplaces;

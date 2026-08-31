@@ -65,6 +65,13 @@ Configure KStack without changing the host agent, global memory, or permissions.
    remain visible on that item as delivery history. Version creation/release is
    always separate Jira administration. `automatic` requires ticket-creation
    authority `allow`; otherwise use `approval-queued`.
+   Treat the configured credential source as the repository's single Jira
+   authority. For the KStack repository, preserve the existing WSL source and
+   do not enroll a native-Windows Jira credential. Native Windows installation
+   is a separate host installation target, not a second Jira identity or
+   credential target. A Windows Jira invocation must use the repository-bound
+   `kstack-jira-wsl.ps1` executor handoff without copying or revealing the
+   credential.
    When a web application is deployed, ask whether post-deploy Playwright
    validation is required for development, staging, and production. Default
    production to required. If enabled, read
@@ -122,6 +129,8 @@ Configure KStack without changing the host agent, global memory, or permissions.
    normal file-editing tool.
 9. Validate the written file. Fix schema errors only; do not change a confirmed
    preference to make validation pass.
+   After validation succeeds, enroll or refresh bounded project safety with
+   `node ../../scripts/kstack-safety-admin.mjs install --project-root .`.
    When memory is enabled, run `kstack-memory.mjs status`. Report `empty` as an
    incomplete rollout and offer to ingest one accepted Markdown/JSON artifact;
    initialization must not describe memory as operational while both artifact

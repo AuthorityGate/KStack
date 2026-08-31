@@ -54,15 +54,20 @@ function existingRegistration(file) {
   return value;
 }
 
+function fsyncDirectory(directory) {
+  if (process.platform === 'win32') return;
+  const descriptor = fs.openSync(directory, 'r');
+  try { fs.fsyncSync(descriptor); } finally { fs.closeSync(descriptor); }
+}
+
 function durableWrite(file, value) {
   fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
   const temporary = `${file}.tmp-${process.pid}-${crypto.randomBytes(6).toString('hex')}`;
   fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
-  const descriptor = fs.openSync(temporary, 'r');
+  const descriptor = fs.openSync(temporary, process.platform === 'win32' ? 'r+' : 'r');
   try { fs.fsyncSync(descriptor); } finally { fs.closeSync(descriptor); }
   fs.renameSync(temporary, file);
-  const directory = fs.openSync(path.dirname(file), 'r');
-  try { fs.fsyncSync(directory); } finally { fs.closeSync(directory); }
+  fsyncDirectory(path.dirname(file));
 }
 
 function policySnapshot(projectRoot, existing) {
@@ -145,8 +150,7 @@ export function rollbackSafetyHooks(projectRoot) {
   const backup = path.join(rollbackDirectory, `safety-hooks-${Date.now()}-${crypto.randomBytes(6).toString('hex')}.json`);
   const audit = writeAuditIntent(projectRoot, 'rollback', existing, null, { backup: path.relative(path.dirname(file), backup) });
   fs.renameSync(file, backup);
-  const directory = fs.openSync(path.dirname(file), 'r');
-  try { fs.fsyncSync(directory); } finally { fs.closeSync(directory); }
+  fsyncDirectory(path.dirname(file));
   return Object.freeze({ file, active: false, backup, audit });
 }
 

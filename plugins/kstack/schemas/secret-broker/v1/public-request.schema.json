@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://authoritygate.local/kstack/schemas/secret-broker/v1/public-request.schema.json",
+  "title": "KStack Secret Broker public request v1",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "operation", "handleId"],
+      "properties": {
+        "schemaVersion": { "const": "kstack-secret-describe-request-v1" },
+        "operation": { "const": "describe" },
+        "handleId": { "type": "string", "pattern": "^ksh1_[A-Za-z0-9_-]{43}$" }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "operation", "pageSize"],
+      "properties": {
+        "schemaVersion": { "const": "kstack-secret-list-request-v1" },
+        "operation": { "const": "list" },
+        "purposeId": { "$ref": "#/$defs/registryId" },
+        "adapterId": { "$ref": "#/$defs/registryId" },
+        "environmentClass": { "enum": ["development", "test", "staging", "production", "recovery"] },
+        "pageSize": { "type": "integer", "minimum": 1, "maximum": 50 },
+        "cursor": { "type": "string", "pattern": "^ksc1_[A-Za-z0-9_-]{22,342}$" }
+      }
+    }
+  ],
+  "$defs": {
+    "registryId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,62}[a-z0-9]$", "maxLength": 64 }
+  }
+}

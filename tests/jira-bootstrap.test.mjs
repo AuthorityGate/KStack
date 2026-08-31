@@ -226,6 +226,35 @@ function successfulJiraMock(calls) {
   };
 }
 
+function customRoadmapArgs(items) {
+  return previewArgs({ roadmapMode: 'custom', roadmapItems: items });
+}
+
+function roadmapSourceItem(localId = 'one', changes = {}) {
+  return {
+    localId, issueType: 'Task', summary: `Roadmap ${localId}`,
+    description: `Deliver roadmap item ${localId}.`, labels: ['roadmap'], ...changes
+  };
+}
+
+function roadmapIssueFixture(item, key = 'SHOP-90', changes = {}) {
+  return {
+    id: key.replace(/^SHOP-/u, '49'), key,
+    fields: {
+      summary: item.summary,
+      issuetype: { name: item.issueType },
+      description: {
+        version: 1, type: 'doc',
+        content: item.description.split(/\n{2,}/u).map((text) => ({
+          type: 'paragraph', content: text ? [{ type: 'text', text }] : []
+        }))
+      },
+      labels: item.labels,
+      ...changes
+    }
+  };
+}
+
 test('new preview defaults to one Free-compatible Kanban board without Jira automation', async () => {
   const state = makeState();
   const args = previewArgs();
@@ -274,6 +303,159 @@ test('custom roadmap rejects duplicate IDs, unknown fields, and an unbound empty
   assert.throws(() => buildDeliveryPlan(state, previewArgs({ roadmapMode: 'custom', roadmapItems: [] })), (error) => error.exitCode === EXIT.CONFIG_INVALID);
   assert.throws(() => buildDeliveryPlan(state, previewArgs({ roadmapMode: 'custom', roadmapItems: [item, item] })), (error) => error.exitCode === EXIT.CONFIG_INVALID);
   assert.throws(() => buildDeliveryPlan(state, previewArgs({ roadmapMode: 'custom', roadmapItems: [{ ...item, unexpected: true }] })), (error) => error.exitCode === EXIT.CONFIG_INVALID);
+  assert.throws(() => buildDeliveryPlan(state, previewArgs({ roadmapMode: 'custom', roadmapItems: Array.from({ length: 65 }, (_, index) => ({ ...item, localId: `item-${index}` })) })), (error) => error.exitCode === EXIT.CONFIG_INVALID);
+  assert.throws(() => buildDeliveryPlan(state, previewArgs({ roadmapMode: 'custom', roadmapItems: [{ ...item, localId: '../escape' }] })), (error) => error.exitCode === EXIT.CONFIG_INVALID);
+  assert.throws(() => buildDeliveryPlan(state, previewArgs({ roadmapMode: 'custom', roadmapItems: [{ ...item, labels: Array.from({ length: 17 }, (_, index) => `label-${index}`) }] })), (error) => error.exitCode === EXIT.CONFIG_INVALID);
+});
+
+test('roadmap content changes the approval digest without changing its stable identity marker', async () => {
+  const original = roadmapSourceItem();
+  const changed = { ...original, description: 'Deliver a materially changed roadmap item.' };
+  const first = await previewDeliveryStack(makeState(), customRoadmapArgs([original]));
+  const second = await previewDeliveryStack(makeState(), customRoadmapArgs([changed]));
+  assert.equal(first.plan.roadmap.items[0].marker, second.plan.roadmap.items[0].marker);
+  assert.notEqual(first.plan.roadmap.items[0].contentSha256, second.plan.roadmap.items[0].contentSha256);
+  assert.notEqual(first.planSha256, second.planSha256);
+});
+
+test('roadmap issue-type preflight fails before the first issue POST', async () => {
+  const calls = [];
+  const state = makeState(successfulJiraMock(calls));
+  await approved(state, customRoadmapArgs([roadmapSourceItem('story', { issueType: 'Story' })]));
+  await assert.rejects(applyDeliveryStack(state), (error) => error.exitCode === EXIT.PREFLIGHT_FAILED && /Story/u.test(error.message));
+  assert.equal(calls.filter((call) => call.key === 'POST /rest/api/3/issue').length, 0);
+  assert.equal((await readDeliveryRecord(state)).state, 'failed');
+});
+
+test('an exact roadmap issue is adopted without a duplicate POST', async () => {
+  const calls = [];
+  let discovered = [];
+  const base = successfulJiraMock(calls);
+  const state = makeState(async (url, options = {}) => {
+    const parsed = new URL(url);
+    if ((options.method || 'GET') === 'POST' && parsed.pathname === '/rest/api/3/search/jql') {
+      calls.push({ key: 'POST /rest/api/3/search/jql', authorization: options.headers?.Authorization, body: options.body?.toString('utf8') || null });
+      return Response.json({ issues: discovered, isLast: true });
+    }
+    return base(url, options);
+  });
+  const record = await approved(state, customRoadmapArgs([roadmapSourceItem()]));
+  discovered = [roadmapIssueFixture(record.plan.roadmap.items[0])];
+  const result = await applyDeliveryStack(state);
+  assert.equal(result.state, 'verified');
+  assert.equal(result.effects.at(-1).outcome, 'adopted');
+  assert.equal(calls.filter((call) => call.key === 'POST /rest/api/3/issue').length, 0);
+});
+
+test('duplicate or content-drifted roadmap matches fail closed before issue creation', async () => {
+  for (const fixture of ['duplicate', 'drift']) {
+    const calls = [];
+    let discovered = [];
+    const base = successfulJiraMock(calls);
+    const state = makeState(async (url, options = {}) => {
+      const parsed = new URL(url);
+      if ((options.method || 'GET') === 'POST' && parsed.pathname === '/rest/api/3/search/jql') {
+        calls.push({ key: 'POST /rest/api/3/search/jql', authorization: options.headers?.Authorization, body: options.body?.toString('utf8') || null });
+        return Response.json({ issues: discovered, isLast: true });
+      }
+      return base(url, options);
+    });
+    const record = await approved(state, customRoadmapArgs([roadmapSourceItem()]));
+    const item = record.plan.roadmap.items[0];
+    discovered = fixture === 'duplicate'
+      ? [roadmapIssueFixture(item, 'SHOP-90'), roadmapIssueFixture(item, 'SHOP-91')]
+      : [roadmapIssueFixture(item, 'SHOP-90', { summary: 'Drifted summary' })];
+    await assert.rejects(applyDeliveryStack(state), (error) => error.exitCode === EXIT.AMBIGUOUS_HISTORY);
+    assert.equal(calls.filter((call) => call.key === 'POST /rest/api/3/issue').length, 0, fixture);
+    assert.equal((await readDeliveryRecord(state)).state, 'ambiguous');
+  }
+});
+
+test('a successful roadmap POST with inconclusive read-back is ambiguous and never retryable by apply', async () => {
+  const calls = [];
+  const base = successfulJiraMock(calls);
+  const state = makeState(async (url, options = {}) => {
+    const parsed = new URL(url);
+    const key = `${options.method || 'GET'} ${parsed.pathname}`;
+    if (key === 'POST /rest/api/3/issue') {
+      calls.push({ key, authorization: options.headers?.Authorization, body: options.body?.toString('utf8') || null });
+      return Response.json({ id: '49990', key: 'SHOP-90' }, { status: 201 });
+    }
+    if (key === 'GET /rest/api/3/issue/SHOP-90') {
+      calls.push({ key, authorization: options.headers?.Authorization, body: null });
+      return Response.json({}, { status: 404 });
+    }
+    return base(url, options);
+  });
+  await approved(state, customRoadmapArgs([roadmapSourceItem()]));
+  await assert.rejects(applyDeliveryStack(state), (error) => error.exitCode === EXIT.AMBIGUOUS_HISTORY);
+  assert.equal(calls.filter((call) => call.key === 'POST /rest/api/3/issue').length, 1);
+  assert.equal((await readDeliveryRecord(state)).state, 'ambiguous');
+  await assert.rejects(applyDeliveryStack(state), /new-approved/u);
+  assert.equal(calls.filter((call) => call.key === 'POST /rest/api/3/issue').length, 1);
+});
+
+test('an ambiguous later roadmap POST preserves prior completion and reconciliation performs reads only', async () => {
+  const calls = [];
+  let issuePosts = 0;
+  const base = successfulJiraMock(calls);
+  const state = makeState(async (url, options = {}) => {
+    const parsed = new URL(url);
+    const key = `${options.method || 'GET'} ${parsed.pathname}`;
+    if (key === 'POST /rest/api/3/issue' && ++issuePosts === 2) {
+      calls.push({ key, authorization: options.headers?.Authorization, body: options.body?.toString('utf8') || null });
+      return Response.json({}, { status: 503 });
+    }
+    return base(url, options);
+  });
+  await approved(state, customRoadmapArgs([roadmapSourceItem('one'), roadmapSourceItem('two')]));
+  await assert.rejects(applyDeliveryStack(state), (error) => error.exitCode === EXIT.AMBIGUOUS_HISTORY);
+  const ambiguous = await readDeliveryRecord(state);
+  assert.equal(ambiguous.state, 'ambiguous');
+  assert.deepEqual(ambiguous.operations.slice(3).map((entry) => entry.state), ['complete', 'pending']);
+  assert.equal(ambiguous.effects.at(-1).operation, 'roadmap-one');
+  assert.equal(calls.filter((call) => call.key === 'POST /rest/api/3/issue').length, 2);
+
+  const reconciliationCalls = [];
+  const first = roadmapIssueFixture(ambiguous.plan.roadmap.items[0], 'SHOP-1');
+  state.fetchImpl = async (url, options = {}) => {
+    const parsed = new URL(url);
+    const key = `${options.method || 'GET'} ${parsed.pathname}`;
+    reconciliationCalls.push(key);
+    if (key === 'GET /rest/api/3/project/SHOP') return Response.json({ id: '10001', key: 'SHOP', name: 'Shop', projectTypeKey: 'software' });
+    if (key === 'GET /rest/api/3/filter/search') return Response.json({ values: [{ id: '20001', name: 'Shop Delivery Filter', jql: 'project = SHOP ORDER BY Rank ASC' }] });
+    if (key === 'GET /rest/agile/1.0/board') return Response.json({ values: [{ id: '30001', name: 'Shop Delivery', type: 'kanban' }] });
+    if (key === 'GET /rest/agile/1.0/board/30001/configuration') return Response.json({ filter: { id: '20001' } });
+    if (key === 'POST /rest/api/3/search/jql') return Response.json({ issues: [first], isLast: true });
+    return Response.json({}, { status: 404 });
+  };
+  const reconciled = await reconcileDeliveryStack(state);
+  assert.equal(reconciled.state, 'new-previewed');
+  assert.deepEqual(reconciled.operations.slice(3).map((entry) => entry.state), ['complete', 'pending']);
+  assert.equal(reconciliationCalls.some((entry) => entry.startsWith('POST ') && entry !== 'POST /rest/api/3/search/jql'), false);
+});
+
+test('roadmap rejection diagnostics and the durable record exclude credential canaries', async () => {
+  const calls = [];
+  const base = successfulJiraMock(calls);
+  const canary = 'fixture-roadmap-secret-never-persisted';
+  const state = makeState(async (url, options = {}) => {
+    const parsed = new URL(url);
+    const key = `${options.method || 'GET'} ${parsed.pathname}`;
+    if (key === 'POST /rest/api/3/issue') {
+      calls.push({ key, authorization: options.headers?.Authorization, body: options.body?.toString('utf8') || null });
+      return Response.json({ errors: { description: `token=${canary} is invalid` } }, { status: 400 });
+    }
+    return base(url, options);
+  });
+  await approved(state, customRoadmapArgs([roadmapSourceItem()]));
+  await assert.rejects(applyDeliveryStack(state), (error) => {
+    assert.equal(error.exitCode, EXIT.PREFLIGHT_FAILED);
+    assert.match(error.message, /token=\[REDACTED\]/u);
+    assert.doesNotMatch(error.message, new RegExp(canary, 'u'));
+    return true;
+  });
+  assert.doesNotMatch(JSON.stringify(await readDeliveryRecord(state)), new RegExp(canary, 'u'));
 });
 
 test('Scrum preview selects the matching Jira project template', () => {

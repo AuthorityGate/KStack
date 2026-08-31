@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "kstack-jira-wsl-executor-v1",
+  "distribution": "Ubuntu",
+  "windowsRepositoryPath": "E:\\Source\\Projects\\KStack",
+  "wslRepositoryPath": "/mnt/e/Source/Projects/KStack",
+  "nodePath": "/usr/bin/node",
+  "repositoryNamespace": "AuthorityGate/KStack"
+}

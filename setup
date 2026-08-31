@@ -297,6 +297,7 @@ install_runtime() {
   cp -R "$ROOT/plugins/kstack/hooks" "$runtime_root/hooks"
   cp -R "$ROOT/plugins/kstack/packs" "$runtime_root/packs"
   cp -R "$ROOT/plugins/kstack/personas" "$runtime_root/personas"
+  cp -R "$ROOT/plugins/kstack/schemas" "$runtime_root/schemas"
   cp -R "$ROOT/plugins/kstack/native" "$runtime_root/native"
   cp -R "$ROOT/plugins/kstack/workers" "$runtime_root/workers"
   cp -R "$ROOT/plugins/kstack/vendor" "$runtime_root/vendor"
@@ -304,7 +305,8 @@ install_runtime() {
   cp "$ROOT/plugins/kstack/package.json" "$ROOT/plugins/kstack/package-lock.json" "$ROOT/plugins/kstack/.npmrc" "$runtime_root/"
   cp "$ROOT/plugins/kstack/install-health-contract-v1.json" \
     "$ROOT/plugins/kstack/install-health-audit-manifest-v1.json" \
-    "$ROOT/plugins/kstack/install-health-authority-registry-v1.json" "$runtime_root/"
+    "$ROOT/plugins/kstack/install-health-authority-registry-v1.json" \
+    "$ROOT/plugins/kstack/secret-broker-accepted-design-v1.json" "$runtime_root/"
   mkdir -p "$runtime_root/.codex-plugin"
   cp "$ROOT/plugins/kstack/.codex-plugin/plugin.json" "$runtime_root/.codex-plugin/plugin.json"
   mkdir -p "$runtime_root/.claude-plugin"
@@ -380,6 +382,7 @@ try {
     "install-health-contract-v1.json",
     "install-health-audit-manifest-v1.json",
     "install-health-authority-registry-v1.json",
+    "secret-broker-accepted-design-v1.json",
     "scripts/kstack-reflexion.mjs",
     "scripts/kstack-config.mjs",
     "scripts/kstack-memory.mjs",
@@ -391,6 +394,7 @@ try {
     "hooks/hooks.json",
     "skills",
     "references",
+    "schemas",
     "scripts/reflexion",
     "scripts/reflexion-architecture"
   ]) compare(relative);

@@ -72,6 +72,10 @@ function admittedRuntimeSnapshot() {
   return { node: '24.12.0', v8: '13.6.233.17-node.37', icu: '77.1', unicode: '16.0', icuSmall: false, v8I18n: 1, execArgv: [], environmentPresent: [] };
 }
 
+function admittedWindowsRuntimeSnapshot() {
+  return { node: '24.19.0', v8: '13.6.233.17-node.51', icu: '78.3', unicode: '17.0', icuSmall: false, v8I18n: 1, arch: 'x64', execArgv: [], environmentPresent: [] };
+}
+
 test('normalization is symmetric, Unicode-pinned, and phrase containment is token-boundary aware', () => {
   assert.equal(normalizeMatchValue(' ＦＡＩＬ—Closed '), 'fail closed');
   assert.equal(normalizeMatchValue('I'), 'i');
@@ -144,15 +148,17 @@ test('command startup classifier and mismatch effect fail closed without dispatc
   assert.deepEqual(calls, [['stderr', 'KSTACK_REFLEXION_ENTRY_MISMATCH\n'], ['exit', 1]]);
 });
 
-test('native Windows verification fails before root or sentinel observation', () => {
-  let observed = 0;
+test('qualified native Windows verification reaches canonical root validation', () => {
+  const installed = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-windows-runtime-'));
+  let rootsObserved = 0;
   const operations = makeUnavailableSentinelTestOperations({
     platform: () => 'win32',
-    runtimeSnapshot: () => { observed += 1; return {}; },
-    lstatBigint: () => { observed += 1; throw new Error('must not observe'); }
+    runtimeSnapshot: admittedWindowsRuntimeSnapshot,
+    realpathNative: (target) => { rootsObserved += 1; return fs.realpathSync.native(target); },
+    lstatBigint: (target) => { rootsObserved += 1; return fs.lstatSync(target, { bigint: true }); }
   });
-  assert.throws(() => verifyUnavailableRuntime('/unused', operations), (error) => error instanceof UnavailableSentinelError && error.phase === 'verify-runtime' && error.operation === 'platform' && error.reason === 'unsupported');
-  assert.equal(observed, 0);
+  assert.equal(verifyUnavailableRuntime(installed, operations), fs.realpathSync.native(installed));
+  assert.equal(rootsObserved, 2);
 });
 
 test('provisioning failure seam returns a bounded actionable diagnostic', () => {

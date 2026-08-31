@@ -16,6 +16,19 @@ import { validateGooseIsolatedEvidence } from '../.kstack/qualifications/validat
 
 const H = (character) => character.repeat(64);
 const nodeSha = crypto.createHash('sha256').update(fs.readFileSync(process.execPath)).digest('hex');
+const canonical = (value) => Array.isArray(value) ? value.map(canonical)
+  : value && typeof value === 'object'
+    ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]))
+    : value;
+const resealIsolatedEvidenceForNegativeTests = (value) => {
+  const rebound = structuredClone(value);
+  rebound.bindings.installManifestDigest = crypto.createHash('sha256')
+    .update(fs.readFileSync(new URL('../plugins/kstack/install-health-audit-manifest-v1.json', import.meta.url))).digest('hex');
+  const body = { ...rebound };
+  delete body.evidenceDigest;
+  rebound.evidenceDigest = crypto.createHash('sha256').update(JSON.stringify(canonical(body))).digest('hex');
+  return rebound;
+};
 
 function operation(action = 'VERSION', overrides = {}) {
   return {
@@ -150,11 +163,12 @@ test('the generic host contract contains no OpenCode or Goose source branch', ()
   assert.doesNotMatch(source, /\b(?:opencode|goose)\b/iu);
 });
 
-test('durable isolated evidence is closed-schema, internally bound, and tamper evident', () => {
+test('prior isolated evidence is stale after WP00 and remains tamper evident under test-only rebinding', () => {
   const evidence = JSON.parse(fs.readFileSync(new URL('../.kstack/qualifications/goose-v1.48.0-isolated-cell-evidence.json', import.meta.url), 'utf8'));
-  assert.equal(validateGooseIsolatedEvidence(evidence).aggregate, 'PASS');
-  const changed = structuredClone(evidence);
+  assert.throws(() => validateGooseIsolatedEvidence(evidence), /currentness binding drift/u);
+  const rebound = resealIsolatedEvidenceForNegativeTests(evidence);
+  const changed = structuredClone(rebound);
   changed.observations[3].observation.providerRequestCount = 3;
   assert.throws(() => validateGooseIsolatedEvidence(changed), (error) => error?.code === 'KSTACK_GOOSE_ISOLATED_OBSERVATION_INVALID');
-  assert.throws(() => validateGooseIsolatedEvidence({ ...evidence, rawResponse: 'not permitted' }), (error) => error?.code === 'KSTACK_GOOSE_ISOLATED_EVIDENCE_INVALID');
+  assert.throws(() => validateGooseIsolatedEvidence({ ...rebound, rawResponse: 'not permitted' }), (error) => error?.code === 'KSTACK_GOOSE_ISOLATED_EVIDENCE_INVALID');
 });

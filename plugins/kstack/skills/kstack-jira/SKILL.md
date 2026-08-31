@@ -5,6 +5,24 @@ description: Enable or connect project-local Jira, create and track work items, 
 
 # KStack Jira Work Tracking and Project/Space Onboarding
 
+## Connection routing
+
+Before connector discovery or credential diagnosis, inspect the current
+repository's `.kstack/config.json`. An enabled enrolled Jira configuration is
+the connection authority. Use the repository Jira scripts with that exact
+configuration; a missing optional Atlassian/Jira MCP connector is not evidence
+that Jira is unavailable.
+
+For this KStack repository, Jira execution and credential custody are WSL-only.
+Native Windows must not create, discover, enroll, copy, or use a second Jira
+credential, including a DPAPI Jira cell or environment fallback. A native
+Windows Jira request may use only the repository-bound
+`workers/kstack-jira-wsl.ps1` handoff to the WSL executor. It accepts only
+tracking `append`, `list`, and `sync`, validates the exact distribution and
+Windows/WSL repository binding, and never returns credential material. A
+binding or executor failure leaves Jira unchanged. Do not substitute MCP
+authorization or ask the owner to reconnect.
+
 When the owner asks this repository to start a new Jira project/space, the
 requested outcome is a verified live project/space with its delivery surface
 and selected initial backlog—not merely an offline preview. Use the preview as

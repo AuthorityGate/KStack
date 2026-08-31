@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://authoritygate.local/kstack/schemas/secret-broker/v1/compatibility.schema.json",
+  "title": "KStack Secret Broker compatibility row v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "componentId",
+    "currentVersion",
+    "readableVersions",
+    "writableVersion",
+    "migrationEdges",
+    "rollbackReadableVersions",
+    "hostProfileRefs"
+  ],
+  "properties": {
+    "componentId": { "$ref": "#/$defs/registryId" },
+    "currentVersion": { "$ref": "#/$defs/exactVersion" },
+    "readableVersions": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/exactVersion" } },
+    "writableVersion": { "$ref": "#/$defs/exactVersion" },
+    "migrationEdges": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/migrationEdge" } },
+    "rollbackReadableVersions": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/exactVersion" } },
+    "hostProfileRefs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/opaqueRef" } }
+  },
+  "$defs": {
+    "registryId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,62}[a-z0-9]$", "maxLength": 64 },
+    "exactVersion": { "type": "string", "pattern": "^[a-z][a-z0-9.-]{0,126}[a-z0-9]$", "maxLength": 128 },
+    "opaqueRef": { "type": "string", "pattern": "^ksr1_[A-Za-z0-9_-]{22}$" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "migrationEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fromVersion", "toVersion", "migratorDigest"],
+      "properties": {
+        "fromVersion": { "$ref": "#/$defs/exactVersion" },
+        "toVersion": { "$ref": "#/$defs/exactVersion" },
+        "migratorDigest": { "$ref": "#/$defs/digest" }
+      }
+    }
+  }
+}

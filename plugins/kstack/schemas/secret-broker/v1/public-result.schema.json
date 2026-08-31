@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://authoritygate.local/kstack/schemas/secret-broker/v1/public-result.schema.json",
+  "title": "KStack Secret Broker public result v1",
+  "oneOf": [
+    { "$ref": "#/$defs/describeAvailable" },
+    { "$ref": "#/$defs/describeUnavailable" },
+    { "$ref": "#/$defs/listAvailable" },
+    { "$ref": "#/$defs/listUnavailable" }
+  ],
+  "$defs": {
+    "registryId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,62}[a-z0-9]$", "maxLength": 64 },
+    "handleId": { "type": "string", "pattern": "^ksh1_[A-Za-z0-9_-]{43}$" },
+    "opaqueRef": { "type": "string", "pattern": "^ksr1_[A-Za-z0-9_-]{22}$" },
+    "safeLabel": { "type": "string", "minLength": 1, "maxLength": 64 },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "handleId", "purposeId", "credentialKind", "environmentClass", "backendFamilyId", "adapterId", "targetRef", "lifecycleClass", "generation", "expiryClass", "evidenceLevel"],
+      "properties": {
+        "schemaVersion": { "const": "kstack-secret-safe-handle-metadata-v1" },
+        "handleId": { "$ref": "#/$defs/handleId" },
+        "purposeId": { "$ref": "#/$defs/registryId" },
+        "purposeLabel": { "$ref": "#/$defs/safeLabel" },
+        "credentialKind": { "enum": ["password", "api-token", "client-credential", "certificate-handle", "private-key-handle", "dynamic-credential", "opaque"] },
+        "environmentClass": { "enum": ["development", "test", "staging", "production", "recovery"] },
+        "backendFamilyId": { "$ref": "#/$defs/registryId" },
+        "backendLabel": { "$ref": "#/$defs/safeLabel" },
+        "adapterId": { "$ref": "#/$defs/registryId" },
+        "targetRef": { "$ref": "#/$defs/opaqueRef" },
+        "targetLabel": { "$ref": "#/$defs/safeLabel" },
+        "tenantLabel": { "$ref": "#/$defs/safeLabel" },
+        "lifecycleClass": { "enum": ["usable", "attention", "unavailable"] },
+        "generation": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+        "expiryClass": { "enum": ["not-applicable", "unknown", "valid", "expiring-soon", "expired"] },
+        "evidenceLevel": { "enum": ["discovered", "configured", "synthetic-qualified", "pilot-validated", "production-approved"] }
+      }
+    },
+    "describeAvailable": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "outcome", "item"],
+      "properties": { "schemaVersion": { "const": "kstack-secret-describe-result-v1" }, "outcome": { "const": "available" }, "item": { "$ref": "#/$defs/metadata" } }
+    },
+    "describeUnavailable": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "outcome", "reason"],
+      "properties": { "schemaVersion": { "const": "kstack-secret-describe-result-v1" }, "outcome": { "const": "unavailable" }, "reason": { "const": "HANDLE_UNAVAILABLE" } }
+    },
+    "listAvailable": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "outcome", "items"],
+      "properties": { "schemaVersion": { "const": "kstack-secret-list-result-v1" }, "outcome": { "const": "available" }, "items": { "type": "array", "maxItems": 50, "items": { "$ref": "#/$defs/metadata" } }, "nextCursor": { "type": "string", "pattern": "^ksc1_[A-Za-z0-9_-]{22,342}$" } }
+    },
+    "listUnavailable": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemaVersion", "outcome", "reason"],
+      "properties": { "schemaVersion": { "const": "kstack-secret-list-result-v1" }, "outcome": { "const": "unavailable" }, "reason": { "enum": ["BROKER_UNAVAILABLE", "CURSOR_UNAVAILABLE"] } }
+    }
+  }
+}

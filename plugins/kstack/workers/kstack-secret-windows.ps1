@@ -591,21 +591,22 @@ function Invoke-SyntheticJiraAdapter([string]$Root, [string]$HandlesRoot) {
 }
 
 try {
+  Fail-Closed 'KSTACK_SECRET_WINDOWS_IMPLEMENTATION_UNAVAILABLE'
   if ($Mode -eq 'Probe') { Invoke-Probe; exit 0 }
   $root = Get-StateRoot
   $handlesRoot = Ensure-StateRoot $root
   switch ($Mode) {
     'SyntheticLifecycle' { Invoke-SyntheticLifecycle $root $handlesRoot }
-    'SyntheticJiraAdapter' { Invoke-SyntheticJiraAdapter $root $handlesRoot }
-    'EnrollInteractive' { Invoke-Enroll $handlesRoot }
-    'RotateInteractive' { Invoke-Rotate $handlesRoot }
+    'SyntheticJiraAdapter' { Fail-Closed 'KSTACK_SECRET_WINDOWS_JIRA_CELL_RETIRED' }
+    'EnrollInteractive' { Fail-Closed 'KSTACK_SECRET_WINDOWS_JIRA_CELL_RETIRED' }
+    'RotateInteractive' { Fail-Closed 'KSTACK_SECRET_WINDOWS_JIRA_CELL_RETIRED' }
     'Revoke' { Invoke-Revoke $handlesRoot }
     'Inventory' { Invoke-Inventory $handlesRoot }
-    'JiraAuthCheck' { Invoke-JiraAuthCheck $handlesRoot }
+    'JiraAuthCheck' { Fail-Closed 'KSTACK_SECRET_WINDOWS_JIRA_CELL_RETIRED' }
     default { Fail-Closed 'KSTACK_SECRET_WINDOWS_MODE_INVALID' }
   }
 } catch {
-  if ($Mode -in @('SyntheticLifecycle', 'SyntheticJiraAdapter') -and $TestDiagnostics) {
+  if ($Mode -in @('SyntheticLifecycle', 'SyntheticJiraAdapter') -and $TestDiagnostics -and $_.Exception.Message -ne 'KSTACK_SECRET_WINDOWS_IMPLEMENTATION_UNAVAILABLE') {
     [Console]::Error.WriteLine("$($_.Exception.GetType().FullName):$($_.Exception.Message):line-$($_.InvocationInfo.ScriptLineNumber)")
   }
   $code = $_.Exception.Message

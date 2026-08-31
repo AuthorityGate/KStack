@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { normalizeRuntimeFields, selectRuntimeProfile } from './runtime-profile.mjs';
 
 const PARENT_BASENAME = '.codex-plugin';
 const SENTINEL_BASENAME = 'reflexion-runtime-unavailable-v1';
@@ -22,7 +23,7 @@ const REAL_OPERATIONS = Object.freeze({
   fsync: (fd) => fs.fsyncSync(fd),
   close: (fd) => fs.closeSync(fd),
   unlink: (target) => fs.unlinkSync(target),
-  getuid: () => process.getuid(),
+  getuid: () => typeof process.getuid === 'function' ? process.getuid() : 0,
   platform: () => process.platform,
   runtimeSnapshot: () => ({
     node: process.versions.node,
@@ -101,13 +102,17 @@ function sameIdentity(left, right) {
 }
 
 function isOwnedDirectory(stat, operations, exactMode = true) {
-  return stat?.isDirectory?.() === true && stat?.isSymbolicLink?.() !== true
+  const structural = stat?.isDirectory?.() === true && stat?.isSymbolicLink?.() !== true && stat.dev !== 0n && stat.ino !== 0n;
+  if (operations.platform() === 'win32') return structural;
+  return structural
     && stat.uid === BigInt(operations.getuid())
     && (!exactMode || (stat.mode & 0o7777n) === 0o700n);
 }
 
 function isOwnedRegular(stat, operations, { exactMode = null, empty = false } = {}) {
-  return stat?.isFile?.() === true && stat?.isSymbolicLink?.() !== true
+  const structural = stat?.isFile?.() === true && stat?.isSymbolicLink?.() !== true && stat.dev !== 0n && stat.ino !== 0n;
+  if (operations.platform() === 'win32') return structural && (!empty || stat.size === 0n);
+  return structural
     && stat.uid === BigInt(operations.getuid())
     && (exactMode === null || (stat.mode & 0o7777n) === BigInt(exactMode))
     && (!empty || stat.size === 0n);
@@ -115,15 +120,17 @@ function isOwnedRegular(stat, operations, { exactMode = null, empty = false } = 
 
 function assertSupportedRuntime(operations, phase = 'verify-runtime') {
   const platform = call(phase, 'platform', () => operations.platform());
-  if (platform === 'win32') fail(phase, 'platform', 'unsupported');
   const snapshot = call(phase, 'runtime-tuple', () => operations.runtimeSnapshot());
-  if (!snapshot || !/^24\.12(?:\.|$)/u.test(snapshot.node ?? '') || !/^13\.6(?:\.|$)/u.test(snapshot.v8 ?? '')
-      || !/^77\.1(?:\.|$)/u.test(snapshot.icu ?? '') || snapshot.unicode !== '16.0'
-      || snapshot.icuSmall !== false || snapshot.v8I18n !== 1) {
+  const fields = normalizeRuntimeFields(snapshot, platform, snapshot?.arch ?? (platform === process.platform ? process.arch : undefined));
+  if (!selectRuntimeProfile(fields)) {
     fail(phase, 'runtime-tuple', 'mismatch');
   }
   if (!Array.isArray(snapshot.execArgv) || snapshot.execArgv.length !== 0) fail(phase, 'exec-argv', 'mismatch');
   if (!Array.isArray(snapshot.environmentPresent) || snapshot.environmentPresent.length !== 0) fail(phase, 'environment', 'mismatch');
+}
+
+function syncDirectory(fd, operations, phase) {
+  if (operations.platform() !== 'win32') call(phase, 'parent-directory-fsync', () => operations.fsync(fd));
 }
 
 function validateRoot(installedRoot, operations, moduleUrl = null) {
@@ -148,9 +155,9 @@ function closeDescriptor(fd, operations, phase, primary = null) {
 
 function observeParent(parent, operations, phase, operation = 'parent-pre-lstat') {
   const pathnameStat = call(phase, operation, () => operations.lstatBigint(parent));
-  if (!isOwnedDirectory(pathnameStat, operations)) {
+    if (!isOwnedDirectory(pathnameStat, operations)) {
     if (pathnameStat?.isDirectory?.() !== true || pathnameStat?.isSymbolicLink?.() === true) fail(phase, operation, 'type');
-    if (pathnameStat.uid !== BigInt(operations.getuid())) fail(phase, operation, 'owner');
+      if (operations.platform() !== 'win32' && pathnameStat.uid !== BigInt(operations.getuid())) fail(phase, operation, 'owner');
     fail(phase, operation, 'mode');
   }
   const fd = call(phase, 'parent-open', () => operations.open(parent, fs.constants.O_RDONLY | DIRECTORY | NOFOLLOW));
@@ -159,7 +166,7 @@ function observeParent(parent, operations, phase, operation = 'parent-pre-lstat'
     descriptorStat = call(phase, 'parent-initial-fstat', () => operations.fstatBigint(fd));
     if (!isOwnedDirectory(descriptorStat, operations)) {
       if (descriptorStat?.isDirectory?.() !== true) fail(phase, 'parent-initial-fstat', 'type');
-      if (descriptorStat.uid !== BigInt(operations.getuid())) fail(phase, 'parent-initial-fstat', 'owner');
+      if (operations.platform() !== 'win32' && descriptorStat.uid !== BigInt(operations.getuid())) fail(phase, 'parent-initial-fstat', 'owner');
       fail(phase, 'parent-initial-fstat', 'mode');
     }
     if (!sameIdentity(pathnameStat, descriptorStat)) fail(phase, 'parent-initial-fstat', 'identity');
@@ -194,18 +201,18 @@ export function provisionUnavailableParent(installedRoot, operations = REAL_OPER
     observed = call('provision-parent', 'parent-pre-lstat', () => operations.lstatBigint(parent));
   }
   if (observed?.isDirectory?.() !== true || observed?.isSymbolicLink?.() === true) fail('provision-parent', 'parent-pre-lstat', 'type');
-  if (observed.uid !== BigInt(operations.getuid())) fail('provision-parent', 'parent-pre-lstat', 'owner');
+  if (operations.platform() !== 'win32' && observed.uid !== BigInt(operations.getuid())) fail('provision-parent', 'parent-pre-lstat', 'owner');
   const fd = call('provision-parent', 'parent-open', () => operations.open(parent, fs.constants.O_RDONLY | DIRECTORY | NOFOLLOW));
   let primary;
   try {
     const initial = call('provision-parent', 'parent-initial-fstat', () => operations.fstatBigint(fd));
     if (!isOwnedDirectory(initial, operations, false)) fail('provision-parent', 'parent-initial-fstat', initial?.isDirectory?.() ? 'owner' : 'type');
     if (!sameIdentity(observed, initial)) fail('provision-parent', 'parent-initial-fstat', 'identity');
-    call('provision-parent', 'parent-fchmod', () => operations.fchmod(fd, 0o700));
+    if (operations.platform() !== 'win32') call('provision-parent', 'parent-fchmod', () => operations.fchmod(fd, 0o700));
     const changed = call('provision-parent', 'parent-post-fchmod-fstat', () => operations.fstatBigint(fd));
     if (!sameIdentity(initial, changed)) fail('provision-parent', 'parent-post-fchmod-fstat', 'identity');
     if (!isOwnedDirectory(changed, operations)) fail('provision-parent', 'parent-post-fchmod-fstat', (changed.mode & 0o7777n) !== 0o700n ? 'mode' : 'owner');
-    call('provision-parent', 'parent-directory-fsync', () => operations.fsync(fd));
+    syncDirectory(fd, operations, 'provision-parent');
     const final = call('provision-parent', 'parent-post-lstat', () => operations.lstatBigint(parent));
     if (!sameIdentity(changed, final)) fail('provision-parent', 'parent-post-lstat', 'identity');
     if (!isOwnedDirectory(final, operations)) fail('provision-parent', 'parent-post-lstat', 'mode');
@@ -248,7 +255,7 @@ function establishAtRoot(rootReal, operations) {
     if (create) call(phase, 'sentinel-fchmod', () => operations.fchmod(fileFd, 0o600));
     const fileStat = call(phase, 'sentinel-fstat', () => operations.fstatBigint(fileFd));
     if (!isOwnedRegular(fileStat, operations, { exactMode: create ? 0o600 : null, empty: create })) {
-      const reason = fileStat?.isFile?.() !== true ? 'type' : fileStat.uid !== BigInt(operations.getuid()) ? 'owner' : fileStat.size !== 0n ? 'size' : 'mode';
+      const reason = fileStat?.isFile?.() !== true ? 'type' : operations.platform() !== 'win32' && fileStat.uid !== BigInt(operations.getuid()) ? 'owner' : fileStat.size !== 0n ? 'size' : 'mode';
       fail(phase, 'sentinel-fstat', reason);
     }
     if (!create && !sameIdentity(observed, fileStat)) fail(phase, 'sentinel-fstat', 'identity');
@@ -256,7 +263,7 @@ function establishAtRoot(rootReal, operations) {
     call(phase, 'sentinel-file-fsync', () => operations.fsync(fileFd));
     try { operations.close(fileFd); fileFd = undefined; } catch (error) { fail(phase, 'sentinel-close', errnoReason(error)); }
     precommitParent(parentState, operations, phase);
-    call(phase, 'parent-directory-fsync', () => operations.fsync(parentState.fd));
+    syncDirectory(parentState.fd, operations, phase);
     const final = call(phase, 'sentinel-post-lstat', () => operations.lstatBigint(sentinel));
     if (final?.isFile?.() !== true) fail(phase, 'sentinel-post-lstat', 'type');
     if (!sameIdentity(fileIdentity, final)) fail(phase, 'sentinel-post-lstat', 'identity');
@@ -290,7 +297,7 @@ export function invalidateRuntimeContract(installedRoot, operations = REAL_OPERA
     }
     if (observed !== undefined) call('invalidate-artifact', 'artifact-unlink', () => operations.unlink(artifact));
     precommitParent(parentState, operations, 'invalidate-artifact');
-    call('invalidate-artifact', 'parent-directory-fsync', () => operations.fsync(parentState.fd));
+    syncDirectory(parentState.fd, operations, 'invalidate-artifact');
     try {
       operations.lstatBigint(artifact);
       fail('invalidate-artifact', 'artifact-post-lstat', 'not-absent');
@@ -319,7 +326,7 @@ export function removeUnavailableSentinel(installedRoot, operations = REAL_OPERA
     if (!isOwnedRegular(observed, operations)) fail('remove-sentinel', 'sentinel-pre-lstat', 'obstructed');
     precommitParent(parentState, operations, 'remove-sentinel');
     call('remove-sentinel', 'sentinel-remove-unlink', () => operations.unlink(sentinel));
-    call('remove-sentinel', 'parent-directory-fsync', () => operations.fsync(parentState.fd));
+    syncDirectory(parentState.fd, operations, 'remove-sentinel');
     try {
       operations.lstatBigint(sentinel);
       fail('remove-sentinel', 'sentinel-absence-lstat', 'not-absent');

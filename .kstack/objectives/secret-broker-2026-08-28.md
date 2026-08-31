@@ -6,7 +6,10 @@
 **Review route:** Codex-only item improvement; confidence `>=93`; zero failed
 checks, security findings, material dissent, and unresolved questions on the
 same frozen item candidate  
-**Implementation authority:** not granted
+**Implementation authority:** project-local implementation, packaging, and
+synthetic validation are authorized by the later owner priority record. A
+real-credential pilot remains gated; provider administration, production
+deployment, source deletion, and publication remain separately controlled.
 
 ## Outcome
 
@@ -23,6 +26,68 @@ or ask a generic tool to return the protected value. A bounded executor resolves
 the handle only after policy, approval, target, adapter, generation, and
 freshness checks and performs one registered operation. The result is a fixed,
 content-free receipt or typed safe failure.
+
+## Terminology and value boundary
+
+- **Secret value** means source credential bytes and any encoding,
+  transformation, replayable derivative, credential-equivalent proof, private
+  key material, or low-entropy digest that would reveal, verify guesses about,
+  or substitute for those bytes. A provider-issued identifier is safe metadata
+  only when its adapter contract proves it is non-secret and non-replayable.
+- **Safe metadata** is a value admitted by a closed, versioned schema after
+  field, size, character, scope, and sensitivity validation. A label, provider
+  field, target field, or error string is not safe merely because it is not the
+  literal credential.
+- **Opaque handle** is an unguessable, non-secret broker reference containing
+  no provider locator, credential bytes, reversible encoding, or
+  secret-derived material. Possession alone grants no authority and does not
+  permit cross-scope enumeration.
+- **Model-facing process** includes the coding agent, conversation/UI,
+  model-call construction, ordinary tool invocation and results, hooks,
+  plugins, terminal streams, diagnostics, telemetry, and any child or file
+  surface that can flow back into those paths.
+- **Protected worker** is the separately launched, identity-checked broker
+  component permitted to resolve one admitted handle for one prepared attempt.
+  It is not a generic shell, decrypt, read, export, template, or proxy service.
+- **Registered target adapter** is a version-pinned implementation with a
+  closed request and response contract for one operation family and admitted
+  target identity. Provider bodies, target echoes, and arbitrary output are not
+  returned through the contract.
+
+The **no-model-value invariant** permits plaintext or credential-equivalent
+material to exist only transiently inside a qualified custody provider,
+protected worker, and the minimum registered target boundary required for the
+approved operation. It may cross only the adapter's qualified private channel,
+must not cross into the model-facing process, and must be discarded or
+zeroized where the runtime can prove that behavior before a content-free result
+is emitted. Avoiding the literal source bytes is insufficient if an encoding,
+derivative, provider response, error, timing detail, or target output can reveal
+or replay the secret.
+
+## Threat and trust boundary
+
+- Treat prompts, repository content, model-authored requests, plugin/tool
+  input, target responses, provider error bodies, and ambient process state as
+  untrusted. Schema validation and authorization happen before backend contact.
+- The qualification cell's trusted computing base is explicit and bounded to
+  the qualified OS/runtime isolation, custody provider and authenticated
+  connection, exact broker executable/configuration, registered adapter, and
+  authorized target component that necessarily receives or uses the value.
+  Trust in one component does not qualify another.
+- Developer OS-local cells make no same-user, administrator, kernel, debugger,
+  memory-inspection, or malicious-authorized-target resistance claim. A
+  production claim requires separately executed evidence for its stronger
+  service identity, process, network, paging/dump, crash, and operator
+  boundaries.
+- A malicious prompt, repository, model session, unrelated process, wrong
+  principal, wrong repository/environment, stale handle generation, substituted
+  backend/adapter/target, output echo, or ambiguous provider outcome must not
+  create a value channel. Missing evidence or an unqualified boundary makes the
+  operation unavailable without fallback.
+- Secret entry is an explicit user-to-provider or no-echo broker crossing
+  outside model-visible chat. A value already pasted into chat is treated as
+  exposed; downstream blocking and rotation guidance do not retroactively
+  claim containment.
 
 ## User-visible behavior
 
@@ -158,16 +223,27 @@ content-free receipt or typed safe failure.
 ## Authority boundaries
 
 - Read-only contender research and project-local design artifacts are allowed.
-- No provider account, login, install, vault/server creation, secret entry,
-  import, migration, rotation, revocation, deletion, environment change,
-  deployment, Jira mutation, Git commit/push, or production trial is authorized
-  by this objective.
+- The owner priority record
+  `.kstack/decisions/secret-broker-2026-08-28-owner-implementation-priority.md`
+  supersedes the original implementation prohibition only for project-local
+  implementation, packaging, metadata-only planning, synthetic validation, and
+  the explicitly gated reversible pilot described there.
+- No provider account creation, OpenBao installation/administration,
+  production deployment, source deletion, Git commit/push, or broader
+  production trial is authorized by this objective or that priority record.
+- Required project tracking through the repository's already enrolled Jira
+  route is governed by the separate KStack Jira authority and may contain only
+  content-free events and evidence digests. It does not authorize provider
+  secret entry, import, migration, rotation, revocation, deletion, or account
+  mutation.
 - Review packets contain only repository code/design evidence and synthetic
   examples. They never contain real credential values, private tenant details,
   personal file paths, or user-specific configuration.
 - Provider selection does not authorize procurement or dependency adoption.
-- Implementation begins only after the complete design package reaches the
-  stated gate and receives explicit owner approval.
+- The 2026-08-31 WSL Jira amendment retires only a competing native-Windows
+  Jira credential route. It leaves generic Windows custody as a separately
+  qualified Secret Broker platform cell and makes the enrolled WSL credential
+  source the sole Jira authority for this repository.
 
 ## Isolated design items
 

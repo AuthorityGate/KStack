@@ -513,11 +513,11 @@ async function jsonResponse(state, credentials, endpoint, options = {}) {
   return { response, body };
 }
 
-function requireSuccess(result, description, { allow404 = false } = {}) {
+function requireSuccess(result, description, { allow404 = false, effectMayExist = false } = {}) {
   if (allow404 && result.response.status === 404) return null;
   if (result.response.status >= 200 && result.response.status < 300 && result.body) return result.body;
   const status = result.response.status;
-  const ambiguous = status >= 500 || status === 408 || status === 429 || (status >= 300 && status < 400);
+  const ambiguous = effectMayExist || status >= 500 || status === 408 || status === 429 || (status >= 300 && status < 400);
   const reported = [
     ...(Array.isArray(result.body?.errorMessages) ? result.body.errorMessages : []),
     ...(result.body?.errors && typeof result.body.errors === 'object' && !Array.isArray(result.body.errors)
@@ -725,8 +725,12 @@ function verifyRoadmapIssue(issue, item, projectKey) {
   return { key: String(issue.key), localId: item.localId, issueType: item.issueType, summary: item.summary, marker: item.marker, contentSha256: item.contentSha256 };
 }
 
-async function readRoadmapIssue(state, credentials, key) {
-  return requireSuccess(await jsonResponse(state, credentials, `/rest/api/3/issue/${encodeURIComponent(key)}?fields=summary,issuetype,description,labels`), 'roadmap issue read-back');
+async function readRoadmapIssue(state, credentials, key, effectMayExist = false) {
+  return requireSuccess(
+    await jsonResponse(state, credentials, `/rest/api/3/issue/${encodeURIComponent(key)}?fields=summary,issuetype,description,labels`),
+    'roadmap issue read-back',
+    { effectMayExist }
+  );
 }
 
 async function ensureRoadmapIssue(state, credentials, plan, item, discovered) {
@@ -753,7 +757,7 @@ async function ensureRoadmapIssue(state, credentials, plan, item, discovered) {
     body: Buffer.from(JSON.stringify(payload), 'utf8')
   }), `roadmap item ${item.localId} creation`);
   if (!created.key || !created.id) fail(`roadmap item ${item.localId} creation returned an incomplete success`, EXIT.AMBIGUOUS_HISTORY);
-  return { adopted: false, resource: verifyRoadmapIssue(await readRoadmapIssue(state, credentials, String(created.key)), item, plan.project.key) };
+  return { adopted: false, resource: verifyRoadmapIssue(await readRoadmapIssue(state, credentials, String(created.key), true), item, plan.project.key) };
 }
 
 function effect(operation, resource, clock, adopted = false) {

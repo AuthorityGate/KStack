@@ -10,15 +10,28 @@ const canonical = (value) => Array.isArray(value) ? value.map(canonical)
   : value && typeof value === 'object'
     ? Object.fromEntries(Object.keys(value).sort().map((key) => [key, canonical(value[key])]))
     : value;
+const recordDigest = (value) => crypto.createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
 const reseal = (value) => {
   const body = { ...value };
   delete body.evidenceDigest;
   value.evidenceDigest = crypto.createHash('sha256').update(JSON.stringify(canonical(body))).digest('hex');
   return value;
 };
+const reboundForNegativeTests = () => {
+  const value = structuredClone(evidence);
+  for (const item of value.integratedImplementationInventory) for (const file of item.files) {
+    file.sha256 = crypto.createHash('sha256').update(fs.readFileSync(new URL(`../${file.file}`, import.meta.url))).digest('hex');
+  }
+  value.bindings.integratedImplementationDigest = recordDigest(value.integratedImplementationInventory);
+  value.bindings.installManifestDigest = crypto.createHash('sha256')
+    .update(fs.readFileSync(new URL('../plugins/kstack/install-health-audit-manifest-v1.json', import.meta.url))).digest('hex');
+  return reseal(value);
+};
 
-test('current OpenCode and Goose evidence replays as a fail-closed two-host proof candidate', () => {
-  const result = validateSecondHostEvidenceBundle(evidence, evidence.proof.observedAt);
+test('WP00 source change invalidates prior two-host currentness without rewriting evidence', () => {
+  assert.throws(() => validateSecondHostEvidenceBundle(evidence, evidence.proof.observedAt), /integrated implementation inventory drift/u);
+  const rebound = reboundForNegativeTests();
+  const result = validateSecondHostEvidenceBundle(rebound, rebound.proof.observedAt);
   assert.equal(result.result, 'PASS');
   assert.equal(result.proofOutcome, 'FIRST_HOST_UNSTABLE');
   assert.deepEqual(result.hosts, ['opencode:20/20', 'goose:20/20']);
@@ -38,19 +51,19 @@ test('cross-host fixture evidence remains distinct while normalized semantics ar
 });
 
 test('binding, semantic, and review-state drift are rejected', () => {
-  const binding = structuredClone(evidence);
+  const binding = reboundForNegativeTests();
   binding.bindings.gooseEvidenceDigest = '0'.repeat(64);
   assert.throws(() => validateSecondHostEvidenceBundle(reseal(binding), evidence.proof.observedAt), /currentness binding drift/u);
-  const semantics = structuredClone(evidence);
+  const semantics = reboundForNegativeTests();
   semantics.semanticResultSet[0].observedDecisionCode = 'ALLOW';
   assert.throws(() => validateSecondHostEvidenceBundle(reseal(semantics), evidence.proof.observedAt), /semantic normalization/u);
-  const review = structuredClone(evidence);
+  const review = reboundForNegativeTests();
   review.finalReview.receiptPresent = true;
   assert.throws(() => validateSecondHostEvidenceBundle(reseal(review), evidence.proof.observedAt), /final review state/u);
 });
 
 test('measured scans, port code, Goose preservation, negative receipts, and root evidence cannot be asserted by construction', () => {
-  const scan = structuredClone(evidence);
+  const scan = reboundForNegativeTests();
   scan.measurements.genericSourceHostBranchScan.findings.push({ token: 'goose', line: 1 });
   scan.measurements.genericSourceHostBranchScan.passed = true;
   const scanBody = { ...scan.measurements.genericSourceHostBranchScan };
@@ -59,19 +72,19 @@ test('measured scans, port code, Goose preservation, negative receipts, and root
   scan.proof.sharedBoundary.genericSourceHostBranchScanReceiptDigest = scan.measurements.genericSourceHostBranchScan.receiptDigest;
   assert.throws(() => validateSecondHostEvidenceBundle(reseal(scan), evidence.proof.observedAt), /generic source scan/u);
 
-  const port = structuredClone(evidence);
+  const port = reboundForNegativeTests();
   port.proof.adapters[1].portImplementations[0].implementationDigest = '0'.repeat(64);
   assert.throws(() => validateSecondHostEvidenceBundle(reseal(port), evidence.proof.observedAt), /adapter port implementation binding/u);
 
-  const preservation = structuredClone(evidence);
+  const preservation = reboundForNegativeTests();
   preservation.proof.preservation.goose.resultDigest = '1'.repeat(64);
   assert.throws(() => validateSecondHostEvidenceBundle(reseal(preservation), evidence.proof.observedAt), /preservation binding/u);
 
-  const negative = structuredClone(evidence);
+  const negative = reboundForNegativeTests();
   negative.measurements.negativeMeasurements['background-orphan'].passed = false;
   assert.throws(() => validateSecondHostEvidenceBundle(reseal(negative), evidence.proof.observedAt), /negative measurement binding/u);
 
-  const root = structuredClone(evidence);
+  const root = reboundForNegativeTests();
   root.proof.executions[1].disposableRootDigest = crypto.createHash('sha256').update('goose-label-only').digest('hex');
   root.result = evaluateSecondHostAbstractionProof(root.proof, root.proof.observedAt);
   assert.throws(() => validateSecondHostEvidenceBundle(reseal(root), evidence.proof.observedAt), /disposable root measurement binding/u);

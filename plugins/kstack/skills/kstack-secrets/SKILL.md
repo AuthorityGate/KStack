@@ -12,6 +12,10 @@ exact approved target operation.
 
 1. Read `../../references/SECRET_BROKER.md` and the current repository authority
    configuration.
+   If `.kstack/config.json` already enrolls an authoritative Jira credential
+   source, do not create a parallel platform credential merely because another
+   host is running KStack. In this repository, Jira custody is WSL-only and the
+   native-Windows DPAPI Jira route is retired.
 2. Never request or accept a credential value in chat. Inventory only safe
    metadata supplied by the owner: purpose, kind, environment, target label,
    current custody family, desired backend, and lifecycle intent.
@@ -24,11 +28,24 @@ exact approved target operation.
 
 ## Work
 
-1. Validate the closed metadata inventory and generate a content-free migration
-   plan with `node ../../scripts/kstack-secret-broker.mjs`. Unsupported backend,
-   platform, or adapter combinations remain blocked.
+1. Run `node ../../scripts/kstack-secret-broker.mjs status` before any broker
+   action. While it reports `UNAVAILABLE / IMPLEMENTATION_NONCONFORMANT`, only
+   closed metadata inventory validation and content-free planning are allowed.
+   Do not invoke any Windows/Linux worker mode, enroll a value, contact a
+   backend/target, or treat a caller-supplied qualified-cell string as evidence.
+   Unsupported backend, platform, or adapter combinations remain unavailable.
+   Do not use the broker to migrate this repository's Jira credential to
+   Windows. Cross-host Jira work requires a target-bound WSL executor handoff,
+   not duplicate custody.
 2. Require the exact backend cell and target adapter to pass synthetic
    qualification before a real value is enrolled.
+   Only after a later implementation item removes the global fence may Linux
+   qualification run the protected worker's `Probe`, `SyntheticLifecycle`, and
+   `SyntheticJiraAdapter` modes against the real desktop Secret Service.
+   Missing `/usr/bin/secret-tool`, missing D-Bus session custody, a locked or
+   failed provider, and WSL/headless operation remain
+   `BLOCKED_UNQUALIFIED`; never substitute the protocol test double or the Jira
+   credential file for real backend qualification.
 3. Direct the owner to the protected local no-echo entry command. Do not place a
    value in a tool argument, ordinary environment variable, file created by the
    model, clipboard instruction, stdout, or stderr.
@@ -43,7 +60,7 @@ exact approved target operation.
 
 ## Result
 
-Report counts and opaque IDs only. Distinguish `INVENTORIED`,
+Report counts and opaque IDs only. Distinguish `UNAVAILABLE`, `INVENTORIED`,
 `BLOCKED_UNQUALIFIED`, `READY_FOR_NO_ECHO_ENROLLMENT`, `PILOT_VALIDATED`,
 `MIGRATED_SOURCE_RETAINED`, and `MIGRATION_COMPLETE`. Never equate enrollment
 with migration completion or fixture evidence with production qualification.

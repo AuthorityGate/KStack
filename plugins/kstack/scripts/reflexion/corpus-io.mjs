@@ -40,7 +40,7 @@ const REAL_IO = Object.freeze({
   now: () => Date.now(),
   sleep: (milliseconds) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds),
   randomUUID: () => crypto.randomUUID(),
-  getuid: () => process.getuid(),
+  getuid: () => typeof process.getuid === 'function' ? process.getuid() : 0,
   platform: () => process.platform
 });
 
@@ -195,6 +195,7 @@ function releaseLock(lock, operations = REAL_IO) {
 }
 
 function fsyncDirectory(directory, operations = REAL_IO) {
+  if (operations.platform() === 'win32') return;
   const fd = operations.open(directory, fs.constants.O_RDONLY | DIRECTORY | NOFOLLOW);
   try { operations.fsync(fd); } finally { operations.close(fd); }
 }
@@ -413,7 +414,7 @@ export function repairCorpusFromCandidate(location, { candidatePath, expectCurre
 }
 
 export function migrateKstackMode(location, { dryRun = false } = {}) {
-  if (process.platform === 'win32') throw endpointError('KSTACK_REFLEXION_PLATFORM_UNSUPPORTED');
+  if (process.platform === 'win32') return Object.freeze({ kind: 'kstack-mode-migration-v1', dryRun, currentMode: null, proposedMode: null, applied: false });
   if (location.absentKstack) throw endpointError('KSTACK_REFLEXION_MUTATION_PARENT');
   const fd = fs.openSync(location.kstackReal, fs.constants.O_RDONLY | DIRECTORY | NOFOLLOW);
   let applied = false;

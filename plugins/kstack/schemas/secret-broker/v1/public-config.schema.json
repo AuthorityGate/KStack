@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://authoritygate.local/kstack/schemas/secret-broker/v1/public-config.schema.json",
+  "title": "KStack Secret Broker public configuration v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "enabled",
+    "frontEndMode",
+    "portfolioPolicyId",
+    "brokerProfileId",
+    "inventoryMode",
+    "desiredDevelopmentBackend",
+    "desiredProductionBackend",
+    "minimumEvidenceByEnvironment",
+    "directPathPolicy",
+    "jiraRoute",
+    "publicCompatibilityProfileId",
+    "publicQualificationRef"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "kstack-secret-broker-public-config-v1" },
+    "enabled": { "type": "boolean" },
+    "frontEndMode": { "enum": ["EXPLICIT_ONLY"] },
+    "portfolioPolicyId": { "$ref": "#/$defs/registryId" },
+    "brokerProfileId": { "$ref": "#/$defs/registryId" },
+    "inventoryMode": { "enum": ["OWNER_SUPPLIED_SAFE_METADATA_ONLY"] },
+    "desiredDevelopmentBackend": { "enum": ["NONE", "OS_LOCAL"] },
+    "desiredProductionBackend": { "enum": ["NONE", "OPENBAO"] },
+    "minimumEvidenceByEnvironment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["development", "pilot", "production"],
+      "properties": {
+        "development": { "const": "SYNTHETIC_QUALIFIED" },
+        "pilot": { "const": "PILOT_VALIDATED" },
+        "production": { "const": "PRODUCTION_APPROVED" }
+      }
+    },
+    "directPathPolicy": { "enum": ["REGISTERED_DENY_V1"] },
+    "jiraRoute": { "enum": ["WSL_AUTHORITATIVE_V1"] },
+    "publicCompatibilityProfileId": { "$ref": "#/$defs/registryId" },
+    "publicQualificationRef": {
+      "oneOf": [
+        { "const": "UNAVAILABLE" },
+        { "type": "string", "pattern": "^ksr1_[A-Za-z0-9_-]{22}$" }
+      ]
+    }
+  },
+  "$defs": {
+    "registryId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{0,62}[a-z0-9]$",
+      "maxLength": 64
+    }
+  }
+}

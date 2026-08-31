@@ -6,7 +6,7 @@
     "hostImplementationEvidenceDigest": "00ae912aebbca8feb76f8541ae5893bedb732bf546bbcaef52a300474666ad5d",
     "openCodeEvidenceDigest": "8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f",
     "gooseEvidenceDigest": "4b14bddf46e0cf52a1e93d057b79542affbc4fdec2653698a9507ceae3f0bb7f",
-    "installManifestDigest": "1e1dc6f5a05f32ce9dd77532b529bd2238dd67887af2d75d2c19b8f74ec12c3a",
+    "installManifestDigest": "ca007a05bc9931626832266c58b82bcf57479e5cf2f1796dd7978d10a1850971",
     "integratedImplementationDigest": "694644a1879652eb083bc330400066d90e75f50a2c6304bb130a97c0cfac926b"
   },
   "integratedImplementationInventory": [
@@ -1574,14 +1574,14 @@
         "methodId": "GENERIC_SOURCE_HOST_BRANCH_SCAN",
         "sourceDigests": [
           "f0d5fdcfaa92f8d790da80cb7b0c1bb43b1171116e259b0ec0680233f9442219",
-          "788bd38a760b0233d52b2f49e7cfcb625b175b37a88ddf38f0dd519dfd77cace"
+          "a73cdfc7179b9571889e7674092eac38b25e2f1cb7cafda822636153025525d0"
         ],
         "observation": {
           "scanReceiptDigest": "3294741f6444f3483a44678840a6e91cf958b7dac26766911deac8789424c1ef",
           "findings": []
         },
         "passed": true,
-        "receiptDigest": "7960c75cbd44cd7bbce5d062c7b30e2c91c22132cde907c8734f3521a3f31858"
+        "receiptDigest": "cabcb9552c59ac0b9bcbc98f77e678a4d02e9f4dc7301a0228fe7d11d3139709"
       },
       "host-retry-duplication": {
         "schema": "kstack-second-host-negative-measurement-v1",
@@ -1737,7 +1737,7 @@
     },
     "generic-host-branch": {
       "sourceCount": 2,
-      "evidenceDigest": "7960c75cbd44cd7bbce5d062c7b30e2c91c22132cde907c8734f3521a3f31858"
+      "evidenceDigest": "cabcb9552c59ac0b9bcbc98f77e678a4d02e9f4dc7301a0228fe7d11d3139709"
     },
     "host-retry-duplication": {
       "sourceCount": 2,
@@ -1774,7 +1774,7 @@
   },
   "finalReview": {
     "required": true,
-    "targetDigest": "e486331fd2463b038e4e6fdc7d72de40366b686f45cc3249d2120cd3e5009f15",
+    "targetDigest": "fec78d1d44aa6b15ed3e5b1cc65ac68329c37a4c6e557b29270dc49ce9d75bf0",
     "receiptPresent": false,
     "receiptDigest": null
   },
@@ -2358,7 +2358,7 @@
       {
         "caseId": "generic-host-branch",
         "passed": true,
-        "evidenceDigest": "7960c75cbd44cd7bbce5d062c7b30e2c91c22132cde907c8734f3521a3f31858"
+        "evidenceDigest": "cabcb9552c59ac0b9bcbc98f77e678a4d02e9f4dc7301a0228fe7d11d3139709"
       },
       {
         "caseId": "host-retry-duplication",
@@ -2409,11 +2409,11 @@
     "proofId": "opencode-goose-advisory-public-read-v1",
     "profileId": "advisory-public-read-v1",
     "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
-    "evidenceDigest": "aee7dd752ad02d5ba874bd698fa0068ee0940a6f2018de9bf3f226aafb260f12",
+    "evidenceDigest": "664c4bf761d0e0648b482dcfded5e5f311de4dbe2fc1b883cc5ef5a818052cbf",
     "reasonCodes": [
       "KSTACK_SECOND_HOST_OPEN_DEFECT"
     ],
     "provenHosts": []
   },
-  "evidenceDigest": "8d825e43a6a381e4ab64a1ee79356e60fe21049f28de2a9649e8cf80670974af"
+  "evidenceDigest": "c50364e9677cd2caa66ab2f30cb4b8d14727f901d9fc6f441afbabdbc754c5f4"
 }

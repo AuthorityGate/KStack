@@ -11,15 +11,13 @@ import { categoricalEncode, isWellFormedScalarString, matchLessons, normalizeMat
 import { diagnoseCurrentCorpus, formatLockTimeoutDiagnosis, migrateKstackMode, mutateValidatedCorpus, readValidatedCorpus, repairCorpusFromCandidate, resolveProjectCorpus } from './reflexion/corpus-io.mjs';
 import { isPromptReferenceAllowed } from './reflexion/prompt-assembler.mjs';
 import { formatUnavailableSentinelError, invalidateRuntimeContract, removeUnavailableSentinel, UnavailableSentinelError } from './reflexion/unavailable-sentinel.mjs';
+import { CONDITION_IDENTIFIER, currentRuntimeFields, RESOLVER_PROBE_IDENTIFIER, selectRuntimeProfile } from './reflexion/runtime-profile.mjs';
 import { runResolverConformance } from './reflexion-architecture/resolver-client.mjs';
 
 const DENIED_ENVIRONMENT = Object.freeze(['NODE_OPTIONS', 'NODE_PATH', 'NODE_ICU_DATA']);
 const CONTRACT_BASENAME = 'reflexion-runtime-contract-v1.txt';
 const SENTINEL_BASENAME = 'reflexion-runtime-unavailable-v1';
-const CONTRACT_REVISION = 'kstack-reflexion-r11-v1';
-const CONDITION_IDENTIFIER = 'node-esm-import-default-v1';
-const RESOLVER_PROBE_IDENTIFIER = '3e2a3a2daf77c4c2b16d2919f86995f41188248b553f62c27e4f448b03d31f64';
-const UNICODE_PROBE_IDENTIFIER = 'ce0453507f8603f09be1d4b7581d47b8a39f040189e9bf43b193f2c88f4f3f23';
+const CONTRACT_REVISION = 'kstack-reflexion-r12-v1';
 const NOFOLLOW = fs.constants.O_NOFOLLOW ?? 0;
 const DIRECTORY = fs.constants.O_DIRECTORY ?? 0;
 const REPAIR_ENDPOINT_EXPECTATIONS = new Set([
@@ -369,18 +367,15 @@ export function runReflexionCommand(args) {
   }
 }
 
-function runtimeFields() {
-  return { node: process.versions.node.match(/^\d+\.\d+/u)?.[0], v8: process.versions.v8.match(/^\d+\.\d+/u)?.[0], icu: process.versions.icu?.match(/^\d+\.\d+/u)?.[0], unicode: process.versions.unicode, icuSmall: process.config.variables.icu_small, v8I18n: process.config.variables.v8_enable_i18n_support, platform: process.platform, arch: process.arch };
-}
-
 function assertRuntimeTuple() {
-  const fields = runtimeFields();
-  if (fields.node !== '24.12' || fields.v8 !== '13.6' || fields.icu !== '77.1' || fields.unicode !== '16.0' || fields.icuSmall !== false || fields.v8I18n !== 1 || fields.platform === 'win32' || process.execArgv.length !== 0 || DENIED_ENVIRONMENT.some((name) => process.env[name] !== undefined) || '\uFDFA'.normalize('NFKC').toLowerCase().length !== 18 || Buffer.byteLength('\uFDFA'.normalize('NFKC').toLowerCase()) !== 33 || '\u0130'.normalize('NFKC').toLowerCase() !== 'i\u0307') throw fixedError('KSTACK_REFLEXION_RUNTIME_MISMATCH');
-  return fields;
+  const fields = currentRuntimeFields();
+  const profile = selectRuntimeProfile(fields);
+  if (!profile || process.execArgv.length !== 0 || DENIED_ENVIRONMENT.some((name) => process.env[name] !== undefined) || '\uFDFA'.normalize('NFKC').toLowerCase().length !== 18 || Buffer.byteLength('\uFDFA'.normalize('NFKC').toLowerCase()) !== 33 || '\u0130'.normalize('NFKC').toLowerCase() !== 'i\u0307') throw fixedError('KSTACK_REFLEXION_RUNTIME_MISMATCH');
+  return Object.freeze({ fields, profile });
 }
 
-function contractBytes(fields) {
-  const lines = ['KSTACK_REFLEXION_RUNTIME_CONTRACT_V1', `revision=${CONTRACT_REVISION}`, `node=${fields.node}`, `v8=${fields.v8}`, `icu=${fields.icu}`, `unicode=${fields.unicode}`, `icuSmall=${fields.icuSmall}`, `v8I18n=${fields.v8I18n}`, `platform=${fields.platform}`, `arch=${fields.arch}`, 'execArgv=[]', `conditions=${CONDITION_IDENTIFIER}`, `resolverProbeSha256=${RESOLVER_PROBE_IDENTIFIER}`, `unicodeProbeSha256=${UNICODE_PROBE_IDENTIFIER}`, 'nfkcLowerFdFA=33:18', 'dottedI=0069-0307'];
+function contractBytes(fields, profile) {
+  const lines = ['KSTACK_REFLEXION_RUNTIME_CONTRACT_V1', `revision=${CONTRACT_REVISION}`, `node=${fields.node}`, `v8=${fields.v8}`, `icu=${fields.icu}`, `unicode=${fields.unicode}`, `icuSmall=${fields.icuSmall}`, `v8I18n=${fields.v8I18n}`, `platform=${fields.platform}`, `arch=${fields.arch}`, 'execArgv=[]', `conditions=${CONDITION_IDENTIFIER}`, `resolverProbeSha256=${RESOLVER_PROBE_IDENTIFIER}`, `unicodeProbeSha256=${profile.unicodeProbeSha256}`, 'nfkcLowerFdFA=33:18', 'dottedI=0069-0307'];
   return Buffer.from(`${lines.join('\n')}\n`, 'ascii');
 }
 
@@ -392,7 +387,7 @@ function parseContract(bytes) {
   const values = {};
   if (lines.length !== expectedKeys.length) throw fixedError('KSTACK_REFLEXION_CONTRACT_STALE');
   for (let index = 0; index < lines.length; index += 1) { const prefix = `${expectedKeys[index]}=`; if (!lines[index].startsWith(prefix)) throw fixedError('KSTACK_REFLEXION_CONTRACT_STALE'); values[expectedKeys[index]] = lines[index].slice(prefix.length); }
-  if (values.revision !== CONTRACT_REVISION || values.conditions !== CONDITION_IDENTIFIER || values.resolverProbeSha256 !== RESOLVER_PROBE_IDENTIFIER || values.unicodeProbeSha256 !== UNICODE_PROBE_IDENTIFIER || values.nfkcLowerFdFA !== '33:18' || values.dottedI !== '0069-0307') throw fixedError('KSTACK_REFLEXION_CONTRACT_STALE');
+  if (values.revision !== CONTRACT_REVISION || values.conditions !== CONDITION_IDENTIFIER || !/^[0-9a-f]{64}$/u.test(values.resolverProbeSha256) || !/^[0-9a-f]{64}$/u.test(values.unicodeProbeSha256) || values.nfkcLowerFdFA !== '33:18' || values.dottedI !== '0069-0307') throw fixedError('KSTACK_REFLEXION_CONTRACT_STALE');
   return values;
 }
 
@@ -424,27 +419,28 @@ function readRuntimeContract(installedRoot, ignoreSentinel = false) {
 
 function admitRuntimeContract(installedRoot) {
   const values = readRuntimeContract(installedRoot);
-  const fields = assertRuntimeTuple();
+  const { fields, profile } = assertRuntimeTuple();
   const compared = { node: fields.node, v8: fields.v8, icu: fields.icu, unicode: fields.unicode, icuSmall: String(fields.icuSmall), v8I18n: String(fields.v8I18n), platform: fields.platform, arch: fields.arch, execArgv: '[]' };
   if (Object.entries(compared).some(([key, value]) => values[key] !== value)) throw fixedError('KSTACK_REFLEXION_RUNTIME_MISMATCH');
+  if (values.resolverProbeSha256 !== RESOLVER_PROBE_IDENTIFIER || values.unicodeProbeSha256 !== profile.unicodeProbeSha256) throw fixedError('KSTACK_REFLEXION_RUNTIME_MISMATCH');
 }
 
-function fsyncDirectory(directory) { const fd = fs.openSync(directory, fs.constants.O_RDONLY | DIRECTORY | NOFOLLOW); try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); } }
+function fsyncDirectory(directory) { if (process.platform === 'win32') return; const fd = fs.openSync(directory, fs.constants.O_RDONLY | DIRECTORY | NOFOLLOW); try { fs.fsyncSync(fd); } finally { fs.closeSync(fd); } }
 
 async function generateRuntimeContract(installedRoot) {
   try { invalidateRuntimeContract(installedRoot); } catch (error) {
     if (error instanceof UnavailableSentinelError) { process.stderr.write(formatUnavailableSentinelError(error)); process.exitCode = 73; return null; }
     throw error;
   }
-  const fields = assertRuntimeTuple();
+  const { fields, profile } = assertRuntimeTuple();
   const conformance = await runResolverConformance(path.join(installedRoot, 'scripts', 'reflexion-architecture', 'resolver-driver.mjs'));
-  if (conformance.resolverProbeSha256 !== RESOLVER_PROBE_IDENTIFIER || conformance.unicodeProbeSha256 !== UNICODE_PROBE_IDENTIFIER) throw fixedError('KSTACK_REFLEXION_RUNTIME_MISMATCH');
+  if (conformance.resolverProbeSha256 !== RESOLVER_PROBE_IDENTIFIER || conformance.unicodeProbeSha256 !== profile.unicodeProbeSha256) throw fixedError('KSTACK_REFLEXION_RUNTIME_MISMATCH');
   const parent = path.join(installedRoot, '.codex-plugin');
   const artifact = path.join(parent, CONTRACT_BASENAME);
   const temporary = path.join(parent, `.${CONTRACT_BASENAME}.${process.pid}.${crypto.randomUUID()}.tmp`);
   let fd;
   try {
-    const bytes = contractBytes(fields); parseContract(bytes);
+    const bytes = contractBytes(fields, profile); parseContract(bytes);
     fd = fs.openSync(temporary, fs.constants.O_WRONLY | fs.constants.O_CREAT | fs.constants.O_EXCL | NOFOLLOW, 0o600);
     fs.fchmodSync(fd, 0o600); fs.writeFileSync(fd, bytes); fs.fsyncSync(fd); fs.closeSync(fd); fd = undefined;
     fs.renameSync(temporary, artifact); fsyncDirectory(parent);
@@ -490,7 +486,6 @@ export function enactStartupDecision(decision, effects) {
   if (decision.action === 'silent-import') return;
   if (decision.action === 'entry-mismatch') { effects.writeStderr('KSTACK_REFLEXION_ENTRY_MISMATCH\n'); effects.setExitCode(1); return; }
   if (DENIED_ENVIRONMENT.some((name) => process.env[name] !== undefined)) { effects.writeStderr('KSTACK_REFLEXION_ENVIRONMENT_DENIED\n'); effects.setExitCode(1); return; }
-  if (process.platform === 'win32') { effects.writeStderr('KSTACK_REFLEXION_PLATFORM_UNSUPPORTED\n'); effects.setExitCode(1); return; }
   const argv = process.argv.slice(2);
   const bootstrap = bootstrapRoot(argv, moduleUrl);
   if (bootstrap === false) { effects.writeStderr('KSTACK_REFLEXION_BOOTSTRAP_INVALID\n'); effects.setExitCode(1); return; }

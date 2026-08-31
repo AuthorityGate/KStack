@@ -6,7 +6,7 @@
     { "skillId": "kstack-design-clarify", "scripts": [] },
     { "skillId": "kstack-experience", "scripts": [{ "path": "scripts/kstack-experience.mjs", "probeId": "experience-import-v1" }] },
     { "skillId": "kstack-implement", "scripts": [{ "path": "scripts/kstack-experience.mjs", "probeId": "experience-import-v1" }, { "path": "scripts/kstack-reflexion.mjs", "probeId": "reflexion-no-match-v1" }, { "path": "scripts/kstack-workflow-contract.mjs", "probeId": "workflow-contract-import-v1" }] },
-    { "skillId": "kstack-init", "scripts": [{ "path": "scripts/kstack-config.mjs", "probeId": "config-import-v1" }] },
+    { "skillId": "kstack-init", "scripts": [{ "path": "scripts/kstack-config.mjs", "probeId": "config-import-v1" }, { "path": "scripts/kstack-safety-admin.mjs", "probeId": "safety-admin-import-v1" }] },
     { "skillId": "kstack-interrogate", "scripts": [] },
     { "skillId": "kstack-jira", "scripts": [{ "path": "scripts/kstack-jira.mjs", "probeId": "jira-import-v1" }, { "path": "scripts/kstack-jira-bootstrap.mjs", "probeId": "jira-bootstrap-import-v1" }] },
     { "skillId": "kstack-memory", "scripts": [{ "path": "scripts/kstack-config.mjs", "probeId": "config-import-v1" }, { "path": "scripts/kstack-memory.mjs", "probeId": "memory-import-v1" }] },
@@ -26,6 +26,7 @@
     { "probeId": "memory-import-v1", "path": "scripts/kstack-memory.mjs", "kind": "esm-import-v1" },
     { "probeId": "post-deploy-import-v1", "path": "scripts/kstack-post-deploy.mjs", "kind": "esm-import-v1" },
     { "probeId": "reflexion-no-match-v1", "path": "scripts/kstack-reflexion.mjs", "kind": "reflexion-no-match-v1" },
+    { "probeId": "safety-admin-import-v1", "path": "scripts/kstack-safety-admin.mjs", "kind": "esm-import-v1" },
     { "probeId": "secret-broker-import-v1", "path": "scripts/kstack-secret-broker.mjs", "kind": "esm-import-v1" },
     { "probeId": "workflow-contract-import-v1", "path": "scripts/kstack-workflow-contract.mjs", "kind": "esm-import-v1" }
   ]
