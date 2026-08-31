@@ -79,6 +79,23 @@ function runSafetyHook(input) {
   });
 }
 
+function runManifestHook(handler, input, host) {
+  const environment = {
+    PATH: process.env.PATH,
+    HOME: os.tmpdir(),
+    TMPDIR: os.tmpdir(),
+    XDG_CONFIG_HOME: os.tmpdir(),
+    XDG_CACHE_HOME: os.tmpdir(),
+    XDG_STATE_HOME: os.tmpdir(),
+    LANG: 'C.UTF-8'
+  };
+  environment[host === 'codex' ? 'PLUGIN_ROOT' : 'CLAUDE_PLUGIN_ROOT'] = path.resolve('plugins/kstack');
+  return spawnSync(handler.command, {
+    cwd: path.resolve('.'), input, encoding: 'utf8', shell: true, env: environment,
+    timeout: 3_000, maxBuffer: 64 * 1024
+  });
+}
+
 async function readyBroker(value = request(), options = {}) {
   const calls = [];
   const scanner = options.scanner ?? new OutboundContentScanStageV1({ objectSource: async () => [] });
@@ -749,16 +766,28 @@ test('worker throw sites and broker propagation share one exhaustive executor er
 });
 
 test('host hook exposes Jira ask authority on each host, preserves hard deny, disclosure boundary, and detect-only control changes', async () => {
-  const manifest = JSON.parse(fs.readFileSync('plugins/kstack/hooks/hooks.json', 'utf8'));
-  const handlers = manifest.hooks.PreToolUse[0].hooks;
-  assert.equal(manifest.hooks.PreToolUse[0].matcher, '*');
-  assert.deepEqual(handlers.map((handler) => handler.timeout), [2, 2]);
-  assert.deepEqual(handlers.map((handler) => /--scope (user|project)$/u.exec(handler.command)?.[1]), ['user', 'project']);
-  assert.deepEqual(handlers.map((handler) => handler.command), [
-    'node "${CLAUDE_PLUGIN_ROOT}/scripts/kstack-safety-hook.mjs" --scope user',
-    'node "${CLAUDE_PLUGIN_ROOT}/scripts/kstack-safety-hook.mjs" --scope project'
-  ]);
-  assert.ok(handlers.every((handler) => !handler.command.includes('PLUGIN_ROOT:-.')));
+  const codexPlugin = JSON.parse(fs.readFileSync('plugins/kstack/.codex-plugin/plugin.json', 'utf8'));
+  const manifests = {
+    codex: JSON.parse(fs.readFileSync('plugins/kstack/hooks/codex-hooks.json', 'utf8')),
+    claude: JSON.parse(fs.readFileSync('plugins/kstack/hooks/hooks.json', 'utf8'))
+  };
+  assert.equal(codexPlugin.hooks, './hooks/codex-hooks.json');
+  for (const [host, manifest] of Object.entries(manifests)) {
+    const handlers = manifest.hooks.PreToolUse[0].hooks;
+    const variable = host === 'codex' ? 'PLUGIN_ROOT' : 'CLAUDE_PLUGIN_ROOT';
+    assert.equal(manifest.hooks.PreToolUse[0].matcher, '*');
+    assert.deepEqual(handlers.map((handler) => handler.timeout), [2, 2]);
+    assert.deepEqual(handlers.map((handler) => /--scope (user|project)$/u.exec(handler.command)?.[1]), ['user', 'project']);
+    assert.deepEqual(handlers.map((handler) => handler.command), [
+      `node "\${${variable}}/scripts/kstack-safety-hook.mjs" --scope user`,
+      `node "\${${variable}}/scripts/kstack-safety-hook.mjs" --scope project`
+    ]);
+    assert.ok(handlers.every((handler) => !handler.command.includes('PLUGIN_ROOT:-.')));
+    if (host === 'codex') assert.deepEqual(handlers.map((handler) => handler.commandWindows), [
+      'node "%PLUGIN_ROOT%\\scripts\\kstack-safety-hook.mjs" --scope user',
+      'node "%PLUGIN_ROOT%\\scripts\\kstack-safety-hook.mjs" --scope project'
+    ]);
+  }
   assert.equal(detectHookHost({}, { PLUGIN_ROOT: '/installed/codex/plugin', CLAUDE_PLUGIN_ROOT: '/compat/path' }), 'codex');
   assert.equal(detectHookHost({}, { CLAUDE_PLUGIN_ROOT: '/installed/claude/plugin' }), 'claude');
   const root = activeRoot();
@@ -819,6 +848,26 @@ test('host hook exposes Jira ask authority on each host, preserves hard deny, di
   const malformedVerdict = await evaluateSafetyHook({ ...base, cwd: malformedRoot, model: 'gpt', turn_id: 'turn', tool_input: { command: 'git commit -m safe' } });
   assert.equal(malformedVerdict.hookSpecificOutput.permissionDecision, 'deny');
   assert.match(malformedVerdict.hookSpecificOutput.permissionDecisionReason, /untrusted/u);
+
+  const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-safety-outside-'));
+  const executableCases = [
+    { name: 'outside enrollment', input: JSON.stringify({ ...base, cwd: outsideRoot, tool_input: { command: 'git status' } }), check: (value) => assert.deepEqual(value, {}) },
+    { name: 'enrolled allowed action', input: JSON.stringify({ ...base, tool_input: { command: 'git status' } }), check: (value) => assert.deepEqual(value, {}) },
+    { name: 'covered deny action', input: JSON.stringify({ ...base, tool_input: { command: 'printf "$JIRA_API_TOKEN"' } }), check: (value) => assert.equal(value.hookSpecificOutput.permissionDecision, 'deny') },
+    { name: 'malformed input', input: '{}', check: (value) => assert.equal(value.hookSpecificOutput.permissionDecision, 'deny') },
+    { name: 'oversized input', input: hookEnvelopeWithSize(root, HOOK_INPUT_LIMIT + 1), check: (value) => { assert.equal(value.hookSpecificOutput.permissionDecision, 'deny'); assert.match(value.hookSpecificOutput.permissionDecisionReason, /exceeds/u); } }
+  ];
+  for (const [host, manifest] of Object.entries(manifests)) {
+    for (const handler of manifest.hooks.PreToolUse[0].hooks) {
+      for (const fixture of executableCases) {
+        const result = runManifestHook(handler, fixture.input, host);
+        assert.equal(result.status, 0, `${host} ${fixture.name}: ${result.stderr}`);
+        assert.equal(result.stderr, '', `${host} ${fixture.name}`);
+        assert.ok(Buffer.byteLength(result.stdout, 'utf8') <= 4 * 1024, `${host} ${fixture.name}`);
+        fixture.check(JSON.parse(result.stdout));
+      }
+    }
+  }
 });
 
 test('clean project enrollment regenerates local state while only the canonical plugin hook ships', () => {

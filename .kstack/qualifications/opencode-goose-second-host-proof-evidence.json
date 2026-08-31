@@ -3,10 +3,10 @@
   "bindings": {
     "builderDigest": "e041ab757073736b6478c5f24e8c4d28cbdbfaa0b2d47d9129fed32d7a26da8e",
     "evaluatorDigest": "02f9230219431797759c00be050926c29cc06648eb6137803140d1c91205d73b",
-    "hostImplementationEvidenceDigest": "34a38e4bd2f6338fa72fe3ca653a127c719d56d93290be0d2fcc5278c414162c",
+    "hostImplementationEvidenceDigest": "00ae912aebbca8feb76f8541ae5893bedb732bf546bbcaef52a300474666ad5d",
     "openCodeEvidenceDigest": "8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f",
     "gooseEvidenceDigest": "4b14bddf46e0cf52a1e93d057b79542affbc4fdec2653698a9507ceae3f0bb7f",
-    "installManifestDigest": "2c13b52d6fdafcfbbaaf64b40c1844c3f04401b0239fa79d6c51eed8f174ff1d",
+    "installManifestDigest": "1e1dc6f5a05f32ce9dd77532b529bd2238dd67887af2d75d2c19b8f74ec12c3a",
     "integratedImplementationDigest": "694644a1879652eb083bc330400066d90e75f50a2c6304bb130a97c0cfac926b"
   },
   "integratedImplementationInventory": [
@@ -1574,14 +1574,14 @@
         "methodId": "GENERIC_SOURCE_HOST_BRANCH_SCAN",
         "sourceDigests": [
           "f0d5fdcfaa92f8d790da80cb7b0c1bb43b1171116e259b0ec0680233f9442219",
-          "821eb4b5d02ed4ba35cce3867a4a8565ced64f92a04ccd8f8182add97d6bc139"
+          "788bd38a760b0233d52b2f49e7cfcb625b175b37a88ddf38f0dd519dfd77cace"
         ],
         "observation": {
           "scanReceiptDigest": "3294741f6444f3483a44678840a6e91cf958b7dac26766911deac8789424c1ef",
           "findings": []
         },
         "passed": true,
-        "receiptDigest": "6b61fc5e88c24a368208183f864d74c9db62d1a3f714e8c906680bfdf9c6d081"
+        "receiptDigest": "7960c75cbd44cd7bbce5d062c7b30e2c91c22132cde907c8734f3521a3f31858"
       },
       "host-retry-duplication": {
         "schema": "kstack-second-host-negative-measurement-v1",
@@ -1737,7 +1737,7 @@
     },
     "generic-host-branch": {
       "sourceCount": 2,
-      "evidenceDigest": "6b61fc5e88c24a368208183f864d74c9db62d1a3f714e8c906680bfdf9c6d081"
+      "evidenceDigest": "7960c75cbd44cd7bbce5d062c7b30e2c91c22132cde907c8734f3521a3f31858"
     },
     "host-retry-duplication": {
       "sourceCount": 2,
@@ -1774,7 +1774,7 @@
   },
   "finalReview": {
     "required": true,
-    "targetDigest": "c18033417a9a54ff9d5a4a333ccc0677829d44b82e6641887400d8c3923d3b8b",
+    "targetDigest": "e486331fd2463b038e4e6fdc7d72de40366b686f45cc3249d2120cd3e5009f15",
     "receiptPresent": false,
     "receiptDigest": null
   },
@@ -1792,84 +1792,84 @@
         {
           "itemId": "HP-TC01",
           "implementationDigest": "0b501e5082c5c3ccaee9bc18a75d82bf0e3b80c9372cd8f7e6c8ca0d4f1747f8",
-          "validationReceiptDigest": "82ec8e1e4b6f15e830da813683d0610bf814d7e54c73715bd4572df74c812c1b",
+          "validationReceiptDigest": "1f69596355a0e1cf99b9a20ff5bb8d69bd274df4692c19edbb7d598ff17c4ea3",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC02",
           "implementationDigest": "47ea632ea4c19d5b1d2b38e25ab54fbacec3583332db67a25ee9266eee8ad35b",
-          "validationReceiptDigest": "ad2231f471b7044067e262587bd44ce86f17429184d01b1775bc645024bc4051",
+          "validationReceiptDigest": "f99df18013d77a3a93536bc0d9b805f64cfe105e2b44bb795fb6e44e9bd01305",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC03",
           "implementationDigest": "3887f13fbafb2fb6dd5fd046ab25fad1dc35faf25984e8667c33351b251cf024",
-          "validationReceiptDigest": "72ebb15e203993265efef1a9c4d2a6ffcc74479d9b80a3bc4601f25c3f26ddd6",
+          "validationReceiptDigest": "f3f62ca89793f1b0d6341b97955937a6e43fe3e7c9703cc41b8438a4863d64fa",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC04",
           "implementationDigest": "bdab12f24a2491dce253083a8165164588a5fd41f08ce1a13bbf7bd03eaff31e",
-          "validationReceiptDigest": "68ab7b5c7c42b95b3fcf5d38c55ab0ed1e772a45eedabf71754b8d33f78ddb28",
+          "validationReceiptDigest": "bf4303d76b9a2cc379590db8f4a466f9b73bfc85d9a72b392e8d1ba832f4f60f",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC05",
           "implementationDigest": "f4880554cbe774f05e0324c26254fe9868073d9ffab9a4b3a6f6b5069c116f3b",
-          "validationReceiptDigest": "ed99b0de715dfb7428ff703943b270d330f971825b3bc6a0a9d29c27b9f715dc",
+          "validationReceiptDigest": "6468206f3607ffb58aeb0b73a8d2c5d28a5bed479d887065ee69e4bee2c3f303",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC06",
           "implementationDigest": "edf753335f97b7eac248a172e078abd23d76dd31b219184bea5250296897b83d",
-          "validationReceiptDigest": "3a24e29ea65ba5d05b9af8a51451d8f07e3b0cdbc5ea41342c694f967a5df4a3",
+          "validationReceiptDigest": "fe20ef543a4b0801c9fc353c35fe09e92551d871bbfe78f1537bf60816c9f5ba",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC07",
           "implementationDigest": "54cc932d89e921e6b8185f1f08020e4bf1de77f6eb41d4550e4e9cd2c8489fed",
-          "validationReceiptDigest": "b328a56414f7fe6347914b9d82a7325cbef76aab35f31ea4b9f165b678da2ef3",
+          "validationReceiptDigest": "9f700260e47ddaee958c7e9b0d78ba253ec481d6f9ae8a644b35626e92100086",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC08",
           "implementationDigest": "5747f5fad6c3bafc6c431ec5a9a557aeb2e224e51d5b855ccdec6df0eeb4ce66",
-          "validationReceiptDigest": "9a3d27ffe213a82802a62cbe35176c7e2019923bc36ffc85e6d4b2d97a7728f5",
+          "validationReceiptDigest": "9b501bb07efaa01880b0b686ffcf6ea6dcac79d8b84dac13a928846a94a5f41b",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC09",
           "implementationDigest": "c2543f1a39a942de9f3ca26aa826b94f0f9491dc2bbb0e60d657d7cf1b632148",
-          "validationReceiptDigest": "f5e465fc821b193db87f24d68358cfba669f3a7b733cd167427496d0ae7eb744",
+          "validationReceiptDigest": "5a79afa46dc59756a7c2ca7db1908064be7d7d4f46a7ec4713e385db3eb18709",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC10",
           "implementationDigest": "2d6c2b4aaac766d383f9e92327f141ddfeec99c67b376d8e1cb1bd473f32ed7f",
-          "validationReceiptDigest": "ad67160b88a6f78770bec9a913ba32768cbcffaa184b42d964050c13df13652d",
+          "validationReceiptDigest": "5e93ed53c46dcbaf9fcd451a7cc0dd8eb1baf3b231dcd308a98b3e93d7112fdd",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC11",
           "implementationDigest": "dc5ed531cb88c4d46d500bb0ce3bd789f92f08f52b319c5eee1c505c0249398b",
-          "validationReceiptDigest": "7b63e924a91c83a8c86d7c69c274e51f7b33ed65dc7487dc9a9ac1c12877b29c",
+          "validationReceiptDigest": "a034c32979642d2d85f8345f385434fd4bfbb31080484ba4c1935d29596c209a",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HP-TC12",
           "implementationDigest": "47013f4a66b3300c49a8341d80af32f291833607bb1ba0bdf535fff3d7d15dd5",
-          "validationReceiptDigest": "ca4a037c2cb0fc87fd907b427cc233170992dfdc0cbea5d17260b3e13af11f76",
+          "validationReceiptDigest": "d34a93fa397a092f4ac3233c7553d867b6723bb14c9b7e25f5a4bbc4f2d27e72",
           "implemented": true,
           "current": true
         }
@@ -1878,35 +1878,35 @@
         {
           "itemId": "HB-TC01",
           "implementationDigest": "8b03e9d11f4a0fa5204354cc11b3693e1bfc78c1361c32a84a3512043d4f5a30",
-          "validationReceiptDigest": "94a9b5a0e693b19ee5d89081195caf70c8527816aab2f8a4e2fa4cf1b125ac7e",
+          "validationReceiptDigest": "131b5404b5ccac328c852a02cc33fd869499930d5c840de3eb61a9ee46f77ea0",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HB-TC02",
           "implementationDigest": "7c5bb05147dfcd0e1f53384fa5f1ebbf30a45f486ce1282bcfe5681f2e9647d2",
-          "validationReceiptDigest": "1a7b430b5cd178fadb4655891efd324d7e384e2cdb385ff5dd3f4c14b4e2521d",
+          "validationReceiptDigest": "569094aa7978cbf34a93a7cd7b6cc86dddc4a2de374fc7b60a09e0de23cbbf98",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HB-TC03",
           "implementationDigest": "4b370d45b6e9f62769b38cee50bcd51001ca6afb02e29a7652eca5936c18a24f",
-          "validationReceiptDigest": "21eabf149f4cc0711ce35496c99b38889c0623b2df3c8ac73b3394ef8b42dddc",
+          "validationReceiptDigest": "6d95babefdd5be0a8f53e296e5432e6bfc59f9953ee6b051e372bd6b86611d40",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HB-TC04",
           "implementationDigest": "c2543f1a39a942de9f3ca26aa826b94f0f9491dc2bbb0e60d657d7cf1b632148",
-          "validationReceiptDigest": "efae8662126f9bd835fc61df2f1c0ff4f850b528f29992c29321920c98607cf9",
+          "validationReceiptDigest": "3f510a13277f45c2d9f5641c49bfe356a05740e0b87593816c79f4284c568f18",
           "implemented": true,
           "current": true
         },
         {
           "itemId": "HB-TC05",
           "implementationDigest": "5aeefbc527942eb180fd2de98e707f4ca04e7c24f346c3ef4d406b93def75c68",
-          "validationReceiptDigest": "03a02c3411bf6125c2624254aec6f3f9968185e0ab87f3047f88287f4793ebdf",
+          "validationReceiptDigest": "8044089ffe9d1ada70b033f6e6ceb38ca9f0c26634bb8849d85b74ab6b302ecb",
           "implemented": true,
           "current": true
         }
@@ -1942,7 +1942,7 @@
       "openDefectCodes": [
         "INDEPENDENT_FINAL_REVIEW_PENDING"
       ],
-      "evaluatedAt": "2026-08-30T21:27:49.565Z",
+      "evaluatedAt": "2026-08-31T01:18:52.983Z",
       "expiresAt": "2026-09-06T04:35:46.611Z"
     },
     "secondHostObjective": {
@@ -2358,7 +2358,7 @@
       {
         "caseId": "generic-host-branch",
         "passed": true,
-        "evidenceDigest": "6b61fc5e88c24a368208183f864d74c9db62d1a3f714e8c906680bfdf9c6d081"
+        "evidenceDigest": "7960c75cbd44cd7bbce5d062c7b30e2c91c22132cde907c8734f3521a3f31858"
       },
       {
         "caseId": "host-retry-duplication",
@@ -2401,7 +2401,7 @@
         "evidenceDigest": "76b7d0d07c95322333c47ae192e2cb2577ad12e5d23b684d6d4c1862a79924f6"
       }
     ],
-    "observedAt": "2026-08-30T21:27:49.565Z",
+    "observedAt": "2026-08-31T01:18:52.983Z",
     "expiresAt": "2026-09-06T04:35:46.611Z"
   },
   "result": {
@@ -2409,11 +2409,11 @@
     "proofId": "opencode-goose-advisory-public-read-v1",
     "profileId": "advisory-public-read-v1",
     "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
-    "evidenceDigest": "669c37ed1ac1346803a1a8558b6870363a545b9d4e319bcf1e52d846b43be075",
+    "evidenceDigest": "aee7dd752ad02d5ba874bd698fa0068ee0940a6f2018de9bf3f226aafb260f12",
     "reasonCodes": [
       "KSTACK_SECOND_HOST_OPEN_DEFECT"
     ],
     "provenHosts": []
   },
-  "evidenceDigest": "24abdb295db760ab5dc6568ad9711e7600b6f73406cd341b23c7b7c0b25eea77"
+  "evidenceDigest": "8d825e43a6a381e4ab64a1ee79356e60fe21049f28de2a9649e8cf80670974af"
 }

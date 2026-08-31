@@ -1,7 +1,7 @@
 {
   "schema": "kstack-domain-implementation-validation-v1",
-  "startedAt": "2026-08-30T22:13:04.624Z",
-  "completedAt": "2026-08-30T22:13:55.953Z",
+  "startedAt": "2026-08-31T00:20:16.003Z",
+  "completedAt": "2026-08-31T00:21:26.038Z",
   "inventory": [
     {
       "itemId": "domain-d0-catalog-runtime",
@@ -650,27 +650,31 @@
     },
     "status": 0,
     "signal": null,
-    "errorCode": "EPERM",
-    "testCount": null,
-    "tapAssertionCount": null,
-    "passCount": null,
-    "failCount": null,
-    "cancelledCount": null,
-    "skippedCount": null,
-    "todoCount": null,
-    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "errorCode": null,
+    "testCount": 64,
+    "tapAssertionCount": 64,
+    "passCount": 64,
+    "failCount": 0,
+    "cancelledCount": 0,
+    "skippedCount": 0,
+    "todoCount": 0,
+    "stdoutSha256": "2710e8edcd98de1021ed2d17280e99a255042403e2437982736a302b8eeb6561",
     "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
-  "testExecutionDigest": "d896fef85bdf213317adb37ebbe6f746e03a4723bf4f32074872f0c1b320d730",
+  "testExecutionDigest": "14cb148675841ff02dc6f89c0089d598cf30dd1cb08c5c3feacd3952cc153692",
   "rows": [
     {
       "itemId": "domain-d0-catalog-runtime",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "0481463cb0392085494493954c274d07463f421b3ce4b37f8f34d7e06f2d2ffe",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "d8fec258077551d157577b07186387a45870a208500e1237230a953750690c3a",
+      "validationCaseNames": [
+        "catalog and pack schemas are closed, deterministic, and content bound",
+        "selection is exact, applicability bound, and digest protected",
+        "one host-neutral selection renders natively for Hermes and OpenClaw without authority"
+      ],
+      "validationReceiptDigest": "42c876e0769b8ac264974251d936f216856e879c5bb61afa804116712e02fc10",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -678,10 +682,16 @@
       "itemId": "domain-d1-identity",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "d3ecf3f9b77b78cc94bfac04550436b8e60b45473897b003edb791c2ed551d52",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "01473447e89337edab7180c14d1df089ae7515e68c055f5a5a36117cb941d12e",
+      "validationCaseNames": [
+        "D1 canonical requests and external trust roots are exact, closed, and domain bound",
+        "GitHub protected review binds repository, commit, fixed blob, ruleset, principal, completeness, and raw evidence",
+        "broker retains closed evidence and atomically consumes one exact action binding",
+        "concurrent reuse has exactly one winner and action or target substitution cannot reuse approval bytes",
+        "missing trusted time, protected retention, or healthy rollback witness fails closed with no receipt"
+      ],
+      "validationReceiptDigest": "b1bfd4d82f97ab513e39accd7e203d027e0853a0c5aa76b2049fd14ad568409c",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -689,10 +699,13 @@
       "itemId": "domain-d2f1-inventory",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "35d91b4993dc53191b43958b8d30934c87348a4d929ae7c9754da7a2688f16d1",
+      "validationCaseNames": [
+        "D2-F1 resolves only the closed inventory and enforces every cross-tier equality",
+        "D2 inventory and artifact parsing reject duplicate keys, wrong types, bytes, and unknown fields"
+      ],
+      "validationReceiptDigest": "423d5470ec9579999249d8d863e9eeac04339cfbb76a6b7c442bd8d7590caa03",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -700,10 +713,12 @@
       "itemId": "domain-d2f2-policy",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "417d044a303b9f15a89e57ec100235dd846efcaaaa4705059f9cbc5e9ac50da0",
+      "validationCaseNames": [
+        "D2-F2 uses distinct policy domains and refuses valid artifacts that violate policy"
+      ],
+      "validationReceiptDigest": "99bb825c0d4b0cae8a71700a8c56bf02d399de11100cb15bd2b1ed69da6912f6",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -711,10 +726,13 @@
       "itemId": "domain-d2f3-selection",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "1e13480cc1e0ff3dc297fbd0df4e73eb3a8e8cb409797f40ef7b5a312e3b5a74",
+      "validationCaseNames": [
+        "D2-F3 admits one exact selection and binds it into composition and dispatch receipts",
+        "D2-F3 rejects stale guards, substitutions, expired time, and fabricated owner acceptance"
+      ],
+      "validationReceiptDigest": "99b74870fef02f723f88da4f3b8ab0afdf7edaa8d11d1e6cbed9797189023f45",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -722,10 +740,20 @@
       "itemId": "domain-d3-separation",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "24be07b6d930c35bcc9478c2dc21b1f4ca561ec715ec92d8cdd73400df4160c1",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "89eae18844ee4e77feb146bc960186d74ca6838e2fea8ad959fec7a922c712ff",
+      "validationCaseNames": [
+        "D3 classifier makes every weakening class and unknown transition fail into the quorum path",
+        "D3 failure modes have an explicit openness order and non-closed weakening cannot bypass quorum",
+        "D3 external separation policy is closed, ordered, complete, and never repository resident",
+        "D3 authorizes one exact two-person, two-group, role-separated pair and binds downstream CAS",
+        "D3 retains the exact two-review evidence inventory before consuming the pair",
+        "D3 compound transitions require every represented weakening action",
+        "D3 gridlock rejects one person, one group, role substitution, and receipt disagreement",
+        "D3 pair consumption is atomic/replay closed and stale or widened downstream use fails",
+        "D3 point-of-use rejects forged provenance, substituted bindings, and malformed timestamps"
+      ],
+      "validationReceiptDigest": "acfbb13258f72471c1a8788ab308c78bc87195069ba6d98e284452b2c8650ea5",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -733,10 +761,21 @@
       "itemId": "domain-d4d10-evidence",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "4f166b9e7a267fe1ead15a7c4decf8fd90974a18212b96013d16d37d33f0c93d",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "906efc10bf16d32ebbb0d7fe836fb9d109b1965bdce03a4c25f8d2039e9fbd3b",
+      "validationCaseNames": [
+        "producer trust keys bind the declared Ed25519 algorithm to the actual SPKI key type",
+        "D4 composition and dispatch are branded, immutable, and stale-guarded before any result exists",
+        "D10 authenticates workflow-owned evidence and pure validation emits supported only for complete assertions",
+        "D4 never emits supported without at least one authenticated asserting descriptor",
+        "D4 rejects caller-asserted trusted time without a protected current authority binding",
+        "evidence broker rejects unadmitted dispatches, cross-bound descriptors, unverified native evidence, and unqualified producers",
+        "pure validation rejects inventory additions, missing evidence, binding changes, and untrusted roots",
+        "commit coordinator reruns validation and atomically commits or recovers one nonce set and receipt",
+        "commit recovery rejects a stored receipt substitution and recovers an exact post-commit crash",
+        "coordinator rejects stale policy, nonce conflict, expired decision, and decision substitution"
+      ],
+      "validationReceiptDigest": "8275b685f5d9e6af45d4d7d047dbfd87ccea2959931ca238f2367d13dcb20906",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -744,10 +783,17 @@
       "itemId": "domain-d5f1-schemas",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "a5792fd14d1a67ab2212ed37a9b3dcd5a73f0ded75a57f250582fd0dad6f038b",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "0665c13cb9865b57bc57c3d0529815e540c29d2090a1c5b3b5434c5280e2a61f",
+      "validationCaseNames": [
+        "D5 canonical JSON is UTF-8-key ordered, round-trips exactly, and rejects alternate encodings",
+        "D5 repaired registry owns exactly 16 collision-free types and rejects D2 type confusion",
+        "D5 bundle validation closes content, evidence, fixture, index, and manifest digests",
+        "D5 schema registry binds every schema, vector set, and opened validator identity",
+        "D5 schema documents and canonicalizer limits reject adversarial near misses",
+        "D5 catalog graph proves the complete available-pack tuple from one closed inventory"
+      ],
+      "validationReceiptDigest": "907673177a72fb94ade8111e65cf92b59f466c233f6a781b01a0686b7ad6e25c",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -755,10 +801,13 @@
       "itemId": "domain-d5f2-activation",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "ad3966b4b2ae739220fd3c2f8b2fee2f0bfe8080933ca176e6e97ceb50489c00",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "dda602e3a4cd6f433e53dd2cd42811d75a1023f344fcfc3faf1ca92ec30effac",
+      "validationCaseNames": [
+        "D5 activation classifies every transition and refuses stale, untrusted, or non-durable inputs",
+        "D5 activation challenge, staging, authenticated CAS, and exact recovery are fail closed"
+      ],
+      "validationReceiptDigest": "f1943e1a1dbd5d7041b47cbbe128041e1d98d7d49e7be19a34f1737365127c68",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -766,10 +815,13 @@
       "itemId": "domain-d6-budgets",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "64807878e845980b9204ce87a5e83e9bd0f3032c8bac9ef73cc91c4c15f40436",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "26b3f7c73a496537e5eb4224daf637f4220af71e8b2a03124bc3625fd138e6f8",
+      "validationCaseNames": [
+        "D6 exact budget binds catalog applicability, whole-request tokens, all caps, and dispatch recheck",
+        "D6 fallback uses the qualified one-byte upper bound and rejects proof/profile ambiguity"
+      ],
+      "validationReceiptDigest": "f6a8a5bf6d1822a8b826a7990a9d3fdb4554e6abe74a29b7ad089d5a3f65200e",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -777,10 +829,16 @@
       "itemId": "domain-d7-evaluation",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "1ac8465b752c5e25709e8eeb993833f267b46599d9d34cbe74d6d12cc21a0ab9",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "561e3320ef4208b1e5c4142cddb365114f4f62a6c18fdf15613f2ad3bc64f246",
+      "validationCaseNames": [
+        "D7 freezes the exact 300-case balanced corpus and reproduces the preregistered power plan",
+        "each candidate pack has its own digest-bound balanced 300-case profile and corpus",
+        "D7 enforces 900 isolated frozen executions, deliberate gridlock, and two-person agreement",
+        "D7 exact safety bounds, 100k stratified bootstrap, Holm gates, and qualification-only disposition are executable",
+        "D7 independently exercises every failing analysis gate and both refusal dispositions"
+      ],
+      "validationReceiptDigest": "9a5e4498f7b6641839a8d505ca1332bb30a4c5082670d39a0054196121b5d43e",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -788,10 +846,17 @@
       "itemId": "domain-d8-time",
       "maturity": "CORE_IMPLEMENTED",
       "implementationDigest": "fc398be477a03d18d85bc43cbe48463f51d4d79bb06d1bd9cd253bc0f0238eea",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "cc56416b33b7a522c29b165db20b6d3d9364720809f9f180db990a5e465d636f",
+      "validationCaseNames": [
+        "D8 requires an external exact policy and two authenticated independent overlapping sources",
+        "D8 publishes only after durable anchor and two external CAS witnesses, then guards current use",
+        "D8 recovers only the one durable pending successor after a partial witness CAS",
+        "D8 refuses witness split-brain before publishing a successor",
+        "D8 recovers only the exact pending genesis after one namespace was created",
+        "D8 conservative temporal predicates close equality and one-nanosecond boundaries"
+      ],
+      "validationReceiptDigest": "20bdd657d05ca5f8ce497955e4d3cefd71b63c281e28081176c77222d10069bd",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -799,10 +864,15 @@
       "itemId": "pack-release-operations",
       "maturity": "CANDIDATE_ONLY",
       "implementationDigest": "716e1b498d0efaefcfdac64fe6e174bb287c779e02171dbe0f103cd460cd59c6",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "2686cc5fee434cafa278d8b20739c4afe38440a5679ab35b7bf54e7ba57525d1",
+      "validationCaseNames": [
+        "each governed pack candidate is an independently digest-bound canonical D5 bundle",
+        "pack candidates contain reasoning/evidence only and cannot smuggle runtime authority",
+        "candidate regeneration is byte-stable and never activates or executes a pack",
+        "every evaluation corpus is bound to the exact checked-in candidate bundle and pack profile"
+      ],
+      "validationReceiptDigest": "5d6e11e5f2e5f33c36960edc53751cc490eac91879d916578f4d0934ae73a168",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -810,10 +880,15 @@
       "itemId": "pack-product-experience",
       "maturity": "CANDIDATE_ONLY",
       "implementationDigest": "e8e7785c5d0b878a72ce9153a12faea5cc1ec3fdd41607cd2f9f065727ba2a7b",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "a64e09ef36ba37e7993cb932158ceccd08b2a07f0a6b7d27e26e8913e050e33b",
+      "validationCaseNames": [
+        "each governed pack candidate is an independently digest-bound canonical D5 bundle",
+        "pack candidates contain reasoning/evidence only and cannot smuggle runtime authority",
+        "candidate regeneration is byte-stable and never activates or executes a pack",
+        "every evaluation corpus is bound to the exact checked-in candidate bundle and pack profile"
+      ],
+      "validationReceiptDigest": "befcde3cd2f0a3811e76938f7465481ae78159d408ef7792fb451e2eb11770b0",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -821,10 +896,15 @@
       "itemId": "pack-assurance",
       "maturity": "CANDIDATE_ONLY",
       "implementationDigest": "fc7b682baaafcdcd8bf2d57f93137195b8eb45b2106dbf8df78751cfd06cac2e",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "79defb20337c12daf2d4be673fbc6f1d4013ac52326b633041e56837cfa45eb4",
+      "validationCaseNames": [
+        "each governed pack candidate is an independently digest-bound canonical D5 bundle",
+        "pack candidates contain reasoning/evidence only and cannot smuggle runtime authority",
+        "candidate regeneration is byte-stable and never activates or executes a pack",
+        "every evaluation corpus is bound to the exact checked-in candidate bundle and pack profile"
+      ],
+      "validationReceiptDigest": "65a7ca09963a49633168aab3ebc8fe4d079e5404faf44abcaa366935082cd4b3",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -832,10 +912,15 @@
       "itemId": "pack-research-knowledge",
       "maturity": "CANDIDATE_ONLY",
       "implementationDigest": "069eae5978b4d25851dc7147826aa6f4292e94b5a6df199f40e91c41259d5ed5",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "9383263a69047e242a46fe79a887d2d069070f9e6fa1e73fb03268cd522b8f5e",
+      "validationCaseNames": [
+        "each governed pack candidate is an independently digest-bound canonical D5 bundle",
+        "pack candidates contain reasoning/evidence only and cannot smuggle runtime authority",
+        "candidate regeneration is byte-stable and never activates or executes a pack",
+        "every evaluation corpus is bound to the exact checked-in candidate bundle and pack profile"
+      ],
+      "validationReceiptDigest": "7d985e671e2d54084450dd54ce84c034493d567c05d134d8f6266853d602263f",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     },
@@ -843,14 +928,21 @@
       "itemId": "domain-acquisition-trial",
       "maturity": "OFFLINE_TRIAL_IMPLEMENTED",
       "implementationDigest": "30235799aecab11e164525a025d89b4a2fbefcbec677a615740e30e4d1519bc2",
-      "validationCaseNames": [],
-      "validationReceiptDigest": "6da1c578c02c92f89ec51a852ff85192f375024b96447cd781318a865eebf7f9",
+      "validationCaseNames": [
+        "the acquisition source set is the exact owner-approved seven-file MIT corpus",
+        "saved verification and translation records are canonical, exact-covered, and authority-free",
+        "pinned offline bytes reproduce the stored receipt and translation, then qualify without activation",
+        "translation sealing rejects forged provenance and every executable or binding substitution",
+        "offline verification refuses substituted bytes and symlinked corpus files",
+        "qualification is all-required, preserves native fallback, and never activates"
+      ],
+      "validationReceiptDigest": "c81b0ef2f71de9c9c1482b72a11bb78d9825e44a3aafdf1549dabc921abc9a06",
       "implemented": true,
-      "current": false,
+      "current": true,
       "qualified": false,
       "activated": false
     }
   ],
-  "aggregate": "FAIL",
-  "evidenceDigest": "3243c559fbb371004cb9bbc0ffeac310fcfa7bb534378406e3443df17d95e498"
+  "aggregate": "PASS",
+  "evidenceDigest": "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f"
 }

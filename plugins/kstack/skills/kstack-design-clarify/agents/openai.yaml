@@ -3,4 +3,4 @@ interface:
   short_description: "Lock owner answers after design round one"
   default_prompt: "Use $kstack-design-clarify at the mandatory post-round-one checkpoint."
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

@@ -344,15 +344,16 @@ test('memory cannot enable automatic context injection', () => {
   assert.match(validateConfig(config).join('\n'), /contextInjection must be disabled/);
 });
 
-test('all skills are explicit-only and contain no scaffold TODOs', () => {
+test('user-facing entry skills are discoverable while internal workflows remain explicit-only', () => {
   const skillsRoot = path.join(root, 'plugins', 'kstack', 'skills');
+  const discoverable = new Set(['kstack-design-clarify', 'kstack-experience', 'kstack-jira', 'kstack-post-deploy', 'kstack-secrets']);
   for (const name of fs.readdirSync(skillsRoot)) {
     const skillRoot = path.join(skillsRoot, name);
     if (!fs.statSync(skillRoot).isDirectory()) continue;
     const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
     const metadata = fs.readFileSync(path.join(skillRoot, 'agents', 'openai.yaml'), 'utf8');
     assert.doesNotMatch(skill, /\[TODO|TODO:/);
-    assert.match(metadata, /allow_implicit_invocation:\s*false/);
+    assert.match(metadata, new RegExp(`allow_implicit_invocation:\\s*${discoverable.has(name) ? 'true' : 'false'}`));
     assert.match(metadata, new RegExp(`\\$${name}\\b`));
   }
 });

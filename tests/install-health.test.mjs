@@ -40,7 +40,7 @@ function createNativeRuntime(selectedSource = sourceRoot) {
     assert.equal(result.status, 0, result.stderr);
   }
   const generated = spawnSync(process.execPath, [path.join(root, 'scripts', 'kstack-reflexion.mjs'), 'runtime-contract-generate', '--installed-plugin-root', root], { encoding: 'utf8', env: cleanEnvironment() });
-  assert.equal(generated.status, 0, generated.stderr);
+  assert.equal(generated.status, 0, `${generated.stderr}${generated.stdout}${generated.error?.message ?? ''}`);
   return root;
 }
 
@@ -57,16 +57,16 @@ function createNonExecutableSourceCheckout(selectedSource = sourceRoot) {
   return root;
 }
 
-function runHealth(root, extra = [], environment = {}, selectedSource = sourceRoot) {
+function runHealth(root, extra = [], environment = {}, selectedSource = sourceRoot, host = 'claude') {
   const args = [
     runner,
     '--source-root', selectedSource,
-    '--host', 'claude',
+    '--host', host,
     '--scope', 'user',
     '--mode', 'symlink',
     '--changed-state', 'true',
-    '--root', 'execution-root', root, 'admitted', 'execution',
-    '--surface', 'claude-filesystem', 'claude', path.join(root, 'skills'), root, 'plugin',
+    '--root', `${host}-execution-root`, root, 'admitted', 'execution',
+    '--surface', `${host}-filesystem`, host, path.join(root, 'skills'), root, 'plugin',
     ...extra
   ];
   const result = spawnSync(process.execPath, args, { encoding: 'utf8', env: cleanEnvironment(environment), timeout: 30_000, maxBuffer: 2 * 1024 * 1024 });
@@ -116,6 +116,8 @@ test('the central contract and source audit are bound without manifest self-refe
   assert.equal(manifest.entries.some((entry) => entry.path === 'install-health-audit-manifest-v1.json'), false);
   assert.equal(manifest.entries.some((entry) => entry.path === 'scripts/kstack-install-health.mjs'), true);
   assert.equal(manifest.entries.some((entry) => entry.path === 'install-health-contract-v1.json'), true);
+  assert.equal(manifest.entries.some((entry) => entry.path === '.codex-plugin/plugin.json'), true);
+  assert.equal(manifest.entries.some((entry) => entry.path === 'hooks/codex-hooks.json'), true);
   assert.equal(manifest.entries.some((entry) => entry.path === 'package-lock.json'), true);
   const current = spawnSync(process.execPath, [path.join(repositoryRoot, 'tests', 'helpers', 'generate-install-health-audit-manifest.mjs'), '--check'], { encoding: 'utf8' });
   assert.equal(current.status, 0, current.stderr);
@@ -130,8 +132,8 @@ test('installed probes execute, e108a79-class missing contract fails, and unavai
     assert.equal(healthy.health.overallStatus, 'PASS');
     assert.equal(healthy.health.interactiveActivationTested, false);
     assert.equal(healthy.health.activationClaim, 'installed-files-paths-lookups-structurally-sound-v1');
-    assert.equal(healthy.health.roots[0].executedProbeCount, 11);
-    assert.deepEqual(healthy.health.roots[0].probeResults.map((probe) => probe.outcome), Array(11).fill('PASS'));
+    assert.equal(healthy.health.roots[0].executedProbeCount, 13);
+    assert.deepEqual(healthy.health.roots[0].probeResults.map((probe) => probe.outcome), Array(13).fill('PASS'));
 
     const installedScript = path.join(runtime, 'scripts', 'kstack-config.mjs');
     fs.chmodSync(installedScript, 0o644);
@@ -170,11 +172,52 @@ test('installed probes execute, e108a79-class missing contract fails, and unavai
     const degraded = JSON.parse(degradedLine.slice('KSTACK_POST_DEPLOY_HEALTH_V1 '.length));
     assert.equal(degradedResult.status, 0);
     assert.equal(degraded.overallStatus, 'DEGRADED');
-    assert.equal(degraded.roots[0].executedProbeCount, 10);
+    assert.equal(degraded.roots[0].executedProbeCount, 12);
     assert.ok(degraded.roots[0].probeResults.some((probe) => probe.code === 'KSTACK_POST_DEPLOY_REFLEXION_UNAVAILABLE' && probe.outcome === 'SKIPPED_UNAVAILABLE' && probe.launched === false));
   } finally {
     fs.rmSync(runtime, { recursive: true, force: true });
     fs.rmSync(sourceCheckout, { recursive: true, force: true });
+  }
+});
+
+test('Codex post-install health executes the host-specific hook manifest and rejects a broken root binding', { timeout: 60_000 }, () => {
+  const runtime = createNativeRuntime();
+  try {
+    const healthy = runHealth(runtime, [], {}, runtime, 'codex');
+    assert.equal(healthy.result.status, 0, JSON.stringify(healthy.health.diagnostics));
+    assert.equal(healthy.health.overallStatus, 'PASS');
+    assert.deepEqual(
+      healthy.health.roots[0].probeResults.slice(0, 2).map((probe) => probe.probeId),
+      ['safety-hook-codex-user-launch-v1', 'safety-hook-codex-project-launch-v1']
+    );
+
+    const pluginManifestPath = path.join(runtime, '.codex-plugin', 'plugin.json');
+    const pluginManifest = JSON.parse(fs.readFileSync(pluginManifestPath, 'utf8'));
+    pluginManifest.version = `${pluginManifest.version.split('+', 1)[0]}+codex.20260831011255883`;
+    fs.writeFileSync(pluginManifestPath, `${JSON.stringify(pluginManifest, null, 2)}\n`);
+    const stamped = runHealth(runtime, [], {}, sourceRoot, 'codex');
+    assert.equal(stamped.result.status, 0, JSON.stringify(stamped.health.diagnostics));
+    pluginManifest.description = `${pluginManifest.description} tampered`;
+    fs.writeFileSync(pluginManifestPath, `${JSON.stringify(pluginManifest, null, 2)}\n`);
+    const tampered = runHealth(runtime, [], {}, sourceRoot, 'codex');
+    assert.equal(tampered.result.status, 1);
+    assert.ok(tampered.health.diagnostics.some((item) => item.code === 'KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT'));
+    pluginManifest.description = pluginManifest.description.replace(/ tampered$/u, '');
+    fs.writeFileSync(pluginManifestPath, `${JSON.stringify(pluginManifest, null, 2)}\n`);
+
+    const manifestPath = path.join(runtime, 'hooks', 'codex-hooks.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    for (const handler of manifest.hooks.PreToolUse[0].hooks) handler.command = handler.command.replace('${PLUGIN_ROOT}', '${CLAUDE_PLUGIN_ROOT}');
+    fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    const regenerated = spawnSync(process.execPath, [path.join(repositoryRoot, 'tests', 'helpers', 'generate-install-health-audit-manifest.mjs'), '--plugin-root', runtime], { encoding: 'utf8', env: cleanEnvironment() });
+    assert.equal(regenerated.status, 0, regenerated.stderr);
+
+    const broken = runHealth(runtime, [], {}, runtime, 'codex');
+    assert.equal(broken.result.status, 1);
+    assert.equal(broken.health.overallStatus, 'FAILED');
+    assert.ok(broken.health.diagnostics.some((item) => item.code === 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID' && item.blocking === true));
+  } finally {
+    fs.rmSync(runtime, { recursive: true, force: true });
   }
 });
 

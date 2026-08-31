@@ -3,4 +3,4 @@ interface:
   short_description: "Create or connect this project's Jira space"
   default_prompt: "Use $kstack-jira to create or connect this repository's own Jira project/space and delivery backlog, or to track its Jira work. Carry an explicitly requested creation through guarded apply and verified read-back; do not stop at an offline preview."
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

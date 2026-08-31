@@ -6,25 +6,26 @@ Claude Code. It is a narrow, host-native derivative of ideas explored by
 for complex repositories where the normal agent must remain in control.
 
 KStack does not replace `HOME`, `CODEX_HOME`, agent permissions, project rules,
-or toolchain configuration. It does not run automatically. Each capability is
-loaded only when the user invokes it.
+or toolchain configuration. Five tightly scoped user-facing entry skills may be
+selected when the request clearly matches them; authority and side effects are
+still governed inside the workflow. All other capabilities remain explicit-only.
 
 ## Commands
 
 | Workflow | Codex | Claude Code |
 |---|---|---|
-| Configure a project | `$kstack-init` | `/kstack-init` |
-| Challenge the objective | `$kstack-objectives` | `/kstack-objectives` |
-| Review product and technical design | `$kstack-design` | `/kstack-design` |
-| Run the complete new-environment review | `$kstack-review` | `/kstack-review` |
-| Implement an approved design | `$kstack-implement` | `/kstack-implement` |
-| Interrogate an implementation-plan change | `$kstack-interrogate` | `/kstack-interrogate` |
-| Run post-implementation quality control | `$kstack-qc` | `/kstack-qc` |
-| Govern product UX and brand quality | `$kstack-experience` | `/kstack-experience` |
-| Use explicit local/private memory | `$kstack-memory` | `/kstack-memory` |
-| Inventory and migrate protected credentials | `$kstack-secrets` | `/kstack-secrets` |
+| Configure a project | `$kstack:kstack-init` | `/kstack-init` |
+| Challenge the objective | `$kstack:kstack-objectives` | `/kstack-objectives` |
+| Review product and technical design | `$kstack:kstack-design` | `/kstack-design` |
+| Run the complete new-environment review | `$kstack:kstack-review` | `/kstack-review` |
+| Implement an approved design | `$kstack:kstack-implement` | `/kstack-implement` |
+| Interrogate an implementation-plan change | `$kstack:kstack-interrogate` | `/kstack-interrogate` |
+| Run post-implementation quality control | `$kstack:kstack-qc` | `/kstack-qc` |
+| Govern product UX and brand quality | `$kstack:kstack-experience` | `/kstack-experience` |
+| Use explicit local/private memory | `$kstack:kstack-memory` | `/kstack-memory` |
+| Inventory and migrate protected credentials | `$kstack:kstack-secrets` | `/kstack-secrets` |
 
-`$kstack-secrets` starts with a metadata-only inventory and never asks for a
+`$kstack:kstack-secrets` starts with a metadata-only inventory and never asks for a
 credential value in chat. Real enrollment uses a protected local no-echo prompt
 only after the exact backend and target adapter pass synthetic qualification.
 Enrollment retains the source; retirement and deletion are separate approvals.
@@ -83,8 +84,11 @@ under `~/.codex/skills`, because Codex cannot reliably refresh a local plugin
 marketplace directly from DrvFS/9p. Project-scoped setup installs skills only;
 run user-scoped Codex setup when the plugin itself must be refreshed.
 
-After installation, start inside the target repository with `$kstack-init` in
-Codex or `/kstack-init` in Claude Code. Initialization asks how objective
+Modern Codex plugin skills use the qualified `$kstack:kstack-*` names shown
+above. Repository-scoped or legacy direct skill copies retain the unqualified
+`$kstack-*` names. After installation, start inside the target repository with
+`$kstack:kstack-init` in modern Codex, `$kstack-init` for a direct Codex copy,
+or `/kstack-init` in Claude Code. Initialization asks how objective
 questioning, review lanes, model consultation, persistence, implementation,
 and external actions should behave, then writes `.kstack/config.json`.
 
@@ -116,7 +120,8 @@ intended backup, re-register the modern Codex plugin if applicable, and rerun
 `setup`. KStack does not perform those moves, removals, or restores.
 
 This installation-health result is distinct from application validation. After
-an application deployment, `$kstack-post-deploy` or `/kstack-post-deploy` runs
+an application deployment, `$kstack:kstack-post-deploy` in the modern Codex
+plugin, `$kstack-post-deploy` in a direct copy, or `/kstack-post-deploy` in Claude runs
 a KStack-owned browser canary and the repository's complete Playwright suite
 against the exact release/deployment/commit/artifact binding. User-facing v2
 plans also require a digest-bound product-experience contract and fresh
@@ -233,6 +238,13 @@ requires a different provider family.
 Provider review processes are sessionless and tool-disabled, receive only a
 minimal allowlisted environment, use private per-invocation work directories,
 and are bounded by single-flight locking and process timeouts.
+Selecting this staged workflow is standing authorization for every qualifying
+secret-scanned review packet. KStack does not ask for an authorization phrase,
+file, packet hash, or batch hash; those digests bind bytes and never grant
+permission. Each reviewer receives the same neutral current artifact, never
+the other model's report, output, scores, reasoning, or transcript. A provider
+host may still impose its own execution prompt, but that is not a KStack packet
+approval requirement.
 Immediately after the first completed staged review, the separate `kstack-design-clarify` procedure extracts
 every disagreement, hedge, unverified assumption, and objective-scope
 divergence from the actual round-one artifacts and asks the owner direct,

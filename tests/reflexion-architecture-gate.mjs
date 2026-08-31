@@ -163,7 +163,7 @@ const CAPABILITY_TOKEN_MANIFEST = new Map([
   ['kstack-host-replay.mjs', {Buffer:4,structuredClone:1}],
   ['kstack-host-request-context.mjs', {Buffer:1,structuredClone:1}],
   ['kstack-host-request-replay.mjs', {structuredClone:1}],
-  ['kstack-install-health.mjs', {Buffer:14,crypto:6,fs:44,module:1,os:4,path:78,pathToFileURL:2,process:16,spawnSync:3}],
+  ['kstack-install-health.mjs', {Buffer:14,crypto:6,fs:49,module:1,os:5,path:88,pathToFileURL:2,process:19,spawnSync:4}],
   ['kstack-invoke-role.mjs', {console:2,crypto:3,fileURLToPath:2,fs:11,path:12,process:6,structuredClone:1}],
   ['kstack-jira-bootstrap.mjs', {Buffer:10,URL:2,crypto:7,fileURLToPath:2,fs:18,fsp:22,os:4,path:14,process:17,readline:3,structuredClone:1}],
   ['kstack-jira-tracking.mjs', {Buffer:17,crypto:7,fileURLToPath:2,fs:28,fsp:28,isDeepStrictEqual:3,os:6,path:36,process:32,setTimeout:2}],
@@ -280,7 +280,7 @@ const CAPABILITY_USE_SITE_MANIFEST = new Map([
   ['kstack-host-replay.mjs','ab455c17dfcfc22a868db7f2409d84c710fb6eac7f7c7f65e945b16916b5e1d0'],
   ['kstack-host-request-context.mjs','de29405db87415cd30d5049e8af49431451bade7b52250397c304048dfdf47d0'],
   ['kstack-host-request-replay.mjs','158ae58378ca5a8ddc54f199ab781980646eab982e9caf890132b013e453e707'],
-  ['kstack-install-health.mjs','e5937b037a49321236557350eb9d9b8cd4b49219e16eb82114a9c42673878945'],
+  ['kstack-install-health.mjs','fcaa54f9fa1b03b1ab0fe8a89f75ba4eaee0e2303b35be52ce06b72086ac1eb9'],
   ['kstack-invoke-role.mjs','342c2d0574e022c7626cac5cd7a1f98626c5ba9b5a8bd528ef4278978958dd5c'],
   ['kstack-jira-bootstrap.mjs','b4268424675a3f5a0a73afe766091f17a4cc6710f068448140968ff65aa85d61'],
   ['kstack-jira-tracking.mjs','89a443c53a4d8a2be4e30c4e558d5dd376d862eeedbcbc3ed34becd8d7b34e13'],
@@ -646,7 +646,7 @@ function checkCapabilityManifest(scriptsRoot, files) {
     ['kstack-safety-broker.mjs', /\bspawnSync\(/gu, 1],
     ['kstack-safety-executor.mjs', /\bspawn\(/gu, 1],
     ['kstack-safety-worker.mjs', /\bspawn\(/gu, 1], ['kstack-safety-worker.mjs', /\bspawnSync\(/gu, 2],
-    ['kstack-install-health.mjs', /\bspawnSync\(/gu, 2],
+    ['kstack-install-health.mjs', /\bspawnSync\(/gu, 3],
     ['kstack-panel.mjs', /\bspawn\(/gu, 1],
     ['kstack-citation-native.mjs', /\bspawn\(/gu, 1], ['kstack-citation-native.mjs', /new Worker\(/gu, 1],
     ['kstack-citation-runtime.mjs', /\bspawn\(/gu, 2], ['kstack-citation-runtime.mjs', /\bspawnSync\(/gu, 2], ['kstack-citation-runtime.mjs', /new Worker\(/gu, 1],
@@ -770,9 +770,9 @@ function checkMetadata(repoRoot, scriptsRoot, files) {
     if (!files.includes(target)) throw gateError('KSTACK_ARCHITECTURE_PACKAGE_SCRIPT');
   }
   for (const metadata of [rootPackage, pluginPackage]) for (const key of ['main','bin','exports','imports']) if (Object.hasOwn(metadata, key)) throw gateError('KSTACK_ARCHITECTURE_LAUNCH_METADATA');
-  assert.deepEqual(Object.keys(pluginManifest), ['name','version','description','author','skills','interface']);
+  assert.deepEqual(Object.keys(pluginManifest), ['name','version','description','author','skills','hooks','interface']);
   assert.deepEqual(Object.keys(pluginManifest.interface), ['displayName','shortDescription','longDescription','developerName','category','capabilities','defaultPrompt']);
-  if (typeof pluginManifest.skills !== 'string') throw gateError('KSTACK_ARCHITECTURE_PLUGIN_MANIFEST');
+  if (typeof pluginManifest.skills !== 'string' || pluginManifest.hooks !== './hooks/codex-hooks.json') throw gateError('KSTACK_ARCHITECTURE_PLUGIN_MANIFEST');
   void scriptsRoot;
 }
 

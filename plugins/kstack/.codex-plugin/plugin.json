@@ -1,11 +1,12 @@
 {
   "name": "kstack",
-  "version": "0.1.0+codex.20260830011109",
+  "version": "0.2.0-rc.1+codex.20260830235750",
   "description": "Explicit objective, design, implementation, QC, product-experience, per-project Jira provisioning, and post-deploy validation workflows for Codex and Claude Code.",
   "author": {
     "name": "AuthorityGate"
   },
   "skills": "./skills/",
+  "hooks": "./hooks/codex-hooks.json",
   "interface": {
     "displayName": "KStack",
     "shortDescription": "Cooperative design, implementation, and QC workflows.",
@@ -30,6 +31,6 @@
       "opaque-secret-broker",
       "virtual-engineering-panels"
     ],
-    "defaultPrompt": "Use $kstack-init to configure KStack for this repository."
+    "defaultPrompt": "Use $kstack:kstack-init to configure KStack for this repository."
   }
 }

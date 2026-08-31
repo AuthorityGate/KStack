@@ -3,4 +3,4 @@ interface:
   short_description: "Validate a deployed release with Playwright"
   default_prompt: "Use $kstack-post-deploy to validate this exact deployed release with an independent browser canary and the repository's complete Playwright suite."
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

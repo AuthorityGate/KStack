@@ -375,6 +375,7 @@ try {
     } else if (!sourceStat.isFile() || !fs.readFileSync(source).equals(fs.readFileSync(cached))) process.exit(1);
   };
   for (const relative of [
+    ".codex-plugin/plugin.json",
     ".codex-plugin/reflexion-runtime-contract-v1.txt",
     "install-health-contract-v1.json",
     "install-health-audit-manifest-v1.json",
@@ -386,7 +387,10 @@ try {
     "scripts/kstack-safety-broker.mjs",
     "scripts/kstack-safety-hook.mjs",
     "scripts/kstack-safety-matchers.mjs",
+    "hooks/codex-hooks.json",
     "hooks/hooks.json",
+    "skills",
+    "references",
     "scripts/reflexion",
     "scripts/reflexion-architecture"
   ]) compare(relative);
@@ -584,4 +588,4 @@ if run_post_deploy_health; then :; else
   builtin exit "$kstack_status"
 fi
 
-printf '%s\n' "KStack workflows are explicit-only. Bounded safety hooks are default-on in enrolled projects and disclose unsupported, disabled, and untrusted states. Start with \$kstack-init in Codex or /kstack-init in Claude Code."
+printf '%s\n' "Five scoped KStack entry skills are discoverable; all other workflows remain explicit-only. Bounded safety hooks are default-on in enrolled projects and disclose unsupported, disabled, and untrusted states. Start with \$kstack:kstack-init in the modern Codex plugin, \$kstack-init in a direct Codex copy, or /kstack-init in Claude Code."

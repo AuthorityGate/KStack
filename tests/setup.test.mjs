@@ -23,7 +23,7 @@ if [ "\${1:-}" = "-e" ]; then exec "$KSTACK_REAL_NODE" "$@"; fi
 printf '%s\\n' "$*" >> "$KSTACK_SETUP_TEST_LOG"
 if [ "$KSTACK_SETUP_HEALTH_MODE" = "real" ]; then
   case "$*" in
-    *kstack-install-health.mjs*|*unavailable-sentinel.mjs*|*kstack-reflexion.mjs*runtime-contract-generate*) exec "$KSTACK_REAL_NODE" "$@" ;;
+    *kstack-install-health.mjs*|*kstack-safety-hook.mjs*|*unavailable-sentinel.mjs*|*kstack-reflexion.mjs*runtime-contract-generate*) exec "$KSTACK_REAL_NODE" "$@" ;;
   esac
 fi
 case "$*" in
@@ -119,7 +119,12 @@ exit 1
   return { directory, node, log };
 }
 
-function runSetupFixture(args, failMatch, { codexMode = null, healthMode = '', home: selectedHome = null } = {}) {
+function runSetupFixture(args, failMatch, {
+  codexMode = null,
+  healthMode = '',
+  home: selectedHome = null,
+  setupTimeoutMs = 60_000
+} = {}) {
   const fixture = fakeNodeFixture(codexMode);
   const target = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-setup-target-'));
   const home = selectedHome ?? fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-setup-home-'));
@@ -143,7 +148,7 @@ function runSetupFixture(args, failMatch, { codexMode = null, healthMode = '', h
     fs.mkdirSync(staleCache, { recursive: true });
     fs.writeFileSync(path.join(staleCache, 'stale-only.txt'), 'marketplace refresh must not update this cache\n');
   }
-  const result = spawnSync(path.join(root, 'setup'), [...args, '--target', target], { cwd: root, env: environment, encoding: 'utf8', timeout: 60_000, maxBuffer: 4 * 1024 * 1024, shell: false });
+  const result = spawnSync(path.join(root, 'setup'), [...args, '--target', target], { cwd: root, env: environment, encoding: 'utf8', timeout: setupTimeoutMs, maxBuffer: 4 * 1024 * 1024, shell: false });
   const calls = fs.existsSync(fixture.log) ? fs.readFileSync(fixture.log, 'utf8').trim().split('\n').filter(Boolean) : [];
   return { result, calls, target, home };
 }
@@ -152,10 +157,17 @@ function assertCurrentCodexCache(run) {
   const runtime = path.join(run.home, '.codex', 'skills', '.kstack-runtime');
   const version = JSON.parse(fs.readFileSync(path.join(runtime, '.codex-plugin', 'plugin.json'), 'utf8')).version;
   const cache = path.join(run.home, '.codex', 'plugins', 'cache', 'kstack', 'kstack', version);
-  assert.match(version, /^0\.1\.0\+codex\.\d{17}$/u);
+  assert.match(version, /^0\.2\.0-rc\.1\+codex\.\d{17}$/u);
   assert.equal(fs.existsSync(path.join(cache, '.codex-plugin', 'reflexion-runtime-contract-v1.txt')), true);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(runtime, '.codex-plugin', 'plugin.json'), 'utf8')).hooks, './hooks/codex-hooks.json');
+  assert.equal(fs.readFileSync(path.join(cache, '.codex-plugin', 'plugin.json'), 'utf8'), fs.readFileSync(path.join(runtime, '.codex-plugin', 'plugin.json'), 'utf8'));
+  assert.equal(fs.readFileSync(path.join(cache, 'hooks', 'codex-hooks.json'), 'utf8'), fs.readFileSync(path.join(runtime, 'hooks', 'codex-hooks.json'), 'utf8'));
   assert.equal(fs.existsSync(path.join(cache, 'scripts', 'reflexion')), true);
   assert.equal(fs.readFileSync(path.join(cache, 'scripts', 'kstack-reflexion.mjs'), 'utf8'), fs.readFileSync(path.join(runtime, 'scripts', 'kstack-reflexion.mjs'), 'utf8'));
+  const expectedSkills = ['kstack-design', 'kstack-design-clarify', 'kstack-experience', 'kstack-implement', 'kstack-init', 'kstack-interrogate', 'kstack-jira', 'kstack-memory', 'kstack-objectives', 'kstack-post-deploy', 'kstack-qc', 'kstack-review', 'kstack-secrets'];
+  const cachedSkills = fs.readdirSync(path.join(cache, 'skills'), { withFileTypes: true }).filter((entry) => entry.isDirectory() && entry.name.startsWith('kstack-')).map((entry) => entry.name).sort();
+  assert.deepEqual(cachedSkills, expectedSkills);
+  for (const skill of expectedSkills) assert.equal(fs.readFileSync(path.join(cache, 'skills', skill, 'SKILL.md'), 'utf8'), fs.readFileSync(path.join(runtime, 'skills', skill, 'SKILL.md'), 'utf8'));
   assert.equal(fs.existsSync(path.join(cache, 'stale-only.txt')), false);
   return { runtime, version, cache };
 }
@@ -174,6 +186,8 @@ test('setup targets host-native skill directories without a wrapper', () => {
   assert.match(setup, /KSTACK_CODEX_WINDOWS_CHECKOUT_DETECTED/);
   assert.match(setup, /Linux-native staged runtime/);
   assert.match(setup, /claude_in_scope "\$scope" plugin install kstack@kstack/);
+  assert.match(setup, /Five scoped KStack entry skills are discoverable/iu);
+  assert.match(setup, /\$kstack:kstack-init in the modern Codex plugin/iu);
   assert.match(setup, /bounded safety hooks are default-on/iu);
   assert.match(setup, /kstack-install-health\.mjs/);
   assert.match(setup, /KSTACK_POST_DEPLOY_HEALTH_V1/);
@@ -234,15 +248,23 @@ test('the overall health bound kills a hung runner and releases the same-HOME lo
   assert.doesNotMatch(retry.result.stderr, /KSTACK_POST_DEPLOY_SETUP_CONCURRENT/u);
 });
 
-test('copy setup builds a runtime that passes the real post-deploy auditor', { timeout: 60_000 }, () => {
-  const copied = runSetupFixture(['--host', 'codex', '--scope', 'project', '--copy'], '__never__', { healthMode: 'real' });
+test('copy setup builds a runtime that passes the real post-deploy auditor', { timeout: 130_000 }, () => {
+  const copied = runSetupFixture(
+    ['--host', 'codex', '--scope', 'project', '--copy'],
+    '__never__',
+    { healthMode: 'real', setupTimeoutMs: 120_000 }
+  );
   assert.equal(copied.result.status, 0, `${copied.result.stdout}\n${copied.result.stderr}`);
   assert.equal(fs.existsSync(path.join(copied.target, '.agents', 'skills', '.kstack-runtime', 'personas')), true);
   assert.match(copied.result.stdout, /KSTACK_POST_DEPLOY_HEALTH_V1 .*"overallStatus":"PASS"/u);
 });
 
-test('--host all copy mode continues a later distinct root after a hard failure and exits only after aggregation', () => {
-  const { result, calls, target } = runSetupFixture(['--host', 'all', '--scope', 'project', '--copy'], '.agents/skills/.kstack-runtime');
+test('--host all copy mode continues a later distinct root after a hard failure and exits only after aggregation', { timeout: 130_000 }, () => {
+  const { result, calls, target } = runSetupFixture(
+    ['--host', 'all', '--scope', 'project', '--copy'],
+    '.agents/skills/.kstack-runtime',
+    { setupTimeoutMs: 120_000 }
+  );
   assert.equal(result.status, 1);
   const firstProvision = calls.filter((line) => line.includes('.agents/skills/.kstack-runtime') && line.includes('provision-parent'));
   const laterVerification = calls.filter((line) => line.includes('.claude/skills/.kstack-runtime') && line.includes('verify-runtime'));

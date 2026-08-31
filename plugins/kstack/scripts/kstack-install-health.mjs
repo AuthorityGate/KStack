@@ -12,6 +12,7 @@ const MAX_CHILD_BYTES = 65_536;
 const MAX_PUBLIC_BYTES = 262_144;
 const IMPORT_MS = 5_000;
 const REFLEXION_MS = 10_000;
+const HOOK_MS = 3_000;
 const CODEX_MS = 3_000;
 const HEALTH_PREFIX = 'KSTACK_POST_DEPLOY_HEALTH_V1 ';
 const CLAIM = 'installed-files-paths-lookups-structurally-sound-v1';
@@ -129,11 +130,34 @@ function verifyEntry(root, entry, code, enforceExecutable = true) {
   if (!stat.isFile() || stat.isSymbolicLink() || stat.size !== entry.size || (enforceExecutable && !modeProjected && Boolean(stat.mode & 0o111) !== entry.executable) || sha256(fs.readFileSync(target)) !== entry.sha256) fail(code);
 }
 
-function validateInstalledRoot(root, manifest) {
+function verifyInstalledEntry(sourceRoot, root, entry) {
+  if (entry.path !== '.codex-plugin/plugin.json') {
+    verifyEntry(root, entry, 'KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT');
+    return;
+  }
+  const target = path.join(root, entry.path);
+  const targetBytes = fs.readFileSync(target);
+  if (targetBytes.length === entry.size && sha256(targetBytes) === entry.sha256) {
+    verifyEntry(root, entry, 'KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT');
+    return;
+  }
+  const stat = fs.lstatSync(target);
+  let modeProjected = false;
+  try { modeProjected = fs.statfsSync(target).type === 0x01021997; } catch {}
+  if (!stat.isFile() || stat.isSymbolicLink() || (!modeProjected && Boolean(stat.mode & 0o111) !== entry.executable)) fail('KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT');
+  const source = readBoundedJson(path.join(sourceRoot, entry.path), MAX_CONTRACT_BYTES, 'KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT').value;
+  const installed = readBoundedJson(target, MAX_CONTRACT_BYTES, 'KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT').value;
+  const base = typeof source.version === 'string' ? source.version.split('+', 1)[0] : '';
+  const escapedBase = base.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
+  if (!base || typeof installed.version !== 'string' || !new RegExp(`^${escapedBase}\\+codex\\.[0-9]{17}$`, 'u').test(installed.version)) fail('KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT');
+  if (canonical({ ...source, version: null }) !== canonical({ ...installed, version: null })) fail('KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT');
+}
+
+function validateInstalledRoot(sourceRoot, root, manifest) {
   const hasSkills = fs.existsSync(path.join(root, 'skills'));
   for (const entry of manifest.value.entries) {
     if (!hasSkills && (entry.path.startsWith('skills/') || entry.path.startsWith('references/'))) continue;
-    verifyEntry(root, entry, 'KSTACK_POST_DEPLOY_INSTALLED_ROOT_DIVERGENT');
+    verifyInstalledEntry(sourceRoot, root, entry);
   }
   const { bytes } = readBoundedJson(path.join(root, MANIFEST_NAME), MAX_MANIFEST_BYTES, 'HC_MANIFEST_COPY_DIVERGENT');
   if (sha256(bytes) !== manifest.sha256) fail('HC_MANIFEST_COPY_DIVERGENT');
@@ -143,6 +167,59 @@ function runChild(argv, { cwd, timeout, environment = {} }) {
   const env = { PATH: process.env.PATH, HOME: environment.HOME ?? cwd, TMPDIR: environment.TMPDIR ?? cwd, XDG_CONFIG_HOME: environment.XDG_CONFIG_HOME ?? cwd, XDG_CACHE_HOME: environment.XDG_CACHE_HOME ?? cwd, XDG_STATE_HOME: environment.XDG_STATE_HOME ?? cwd, LANG: 'C.UTF-8' };
   const result = spawnSync(process.execPath, argv, { cwd, env, encoding: 'utf8', timeout, maxBuffer: MAX_CHILD_BYTES, shell: false, windowsHide: true, killSignal: 'SIGKILL' });
   return { ...result, launched: !result.error || result.error.code === 'ETIMEDOUT', timedOut: result.error?.code === 'ETIMEDOUT' };
+}
+
+function hookHosts(args, root) {
+  if (args.host !== 'all') return [args.host];
+  if (root.rootId.startsWith('codex-')) return ['codex'];
+  if (root.rootId.startsWith('claude-')) return ['claude'];
+  return ['codex', 'claude'];
+}
+
+function hookLaunchFailure(probeId, code, launched = false) {
+  return { probeId, outcome: 'FAILED', code, launched, blocking: true, overridden: false, approvalRef: null };
+}
+
+function probeHookLaunch(root, host, scope) {
+  const probeId = `safety-hook-${host}-${scope}-launch-v1`;
+  let fixture;
+  try {
+    const manifestRelative = host === 'codex'
+      ? readBoundedJson(path.join(root, '.codex-plugin', 'plugin.json'), MAX_CONTRACT_BYTES, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID').value.hooks
+      : './hooks/hooks.json';
+    if (manifestRelative !== (host === 'codex' ? './hooks/codex-hooks.json' : './hooks/hooks.json')) return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID');
+    const manifest = readBoundedJson(path.join(root, manifestRelative.slice(2)), MAX_CONTRACT_BYTES, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID').value;
+    if (!exactKeys(manifest, ['description', 'hooks']) || !exactKeys(manifest.hooks, ['PreToolUse']) || !Array.isArray(manifest.hooks.PreToolUse) || manifest.hooks.PreToolUse.length !== 1) return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID');
+    const group = manifest.hooks.PreToolUse[0];
+    if (!exactKeys(group, ['matcher', 'hooks']) || group.matcher !== '*' || !Array.isArray(group.hooks) || group.hooks.length !== 2) return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID');
+    const handler = group.hooks.find((entry) => entry?.command?.endsWith(`--scope ${scope}`));
+    const handlerKeys = host === 'codex' ? ['command', 'commandWindows', 'statusMessage', 'timeout', 'type'] : ['command', 'statusMessage', 'timeout', 'type'];
+    const variable = host === 'codex' ? 'PLUGIN_ROOT' : 'CLAUDE_PLUGIN_ROOT';
+    const expected = `node \"\${${variable}}/scripts/kstack-safety-hook.mjs\" --scope ${scope}`;
+    if (!handler || !exactKeys(handler, handlerKeys) || handler.type !== 'command' || handler.timeout !== 2 || handler.command !== expected) return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID');
+    if (host === 'codex' && handler.commandWindows !== `node \"%PLUGIN_ROOT%\\scripts\\kstack-safety-hook.mjs\" --scope ${scope}`) return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID');
+
+    fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-health-hook-'));
+    const input = {
+      session_id: 'kstack-install-health', cwd: fixture, permission_mode: 'default', hook_event_name: 'PreToolUse',
+      tool_name: 'Bash', tool_input: { command: 'git status' }, tool_use_id: `health-${scope}`,
+      ...(host === 'codex' ? { model: 'health-probe', turn_id: 'health-turn' } : { prompt_id: 'health-prompt' })
+    };
+    const environment = {
+      PATH: [path.dirname(process.execPath), process.env.PATH].filter(Boolean).join(path.delimiter),
+      HOME: fixture, TMPDIR: fixture, XDG_CONFIG_HOME: fixture, XDG_CACHE_HOME: fixture, XDG_STATE_HOME: fixture, LANG: 'C.UTF-8'
+    };
+    environment[variable] = root;
+    const command = process.platform === 'win32' ? handler.commandWindows : handler.command;
+    const result = spawnSync(command, { cwd: fixture, env: environment, input: JSON.stringify(input), encoding: 'utf8', timeout: HOOK_MS, maxBuffer: MAX_CHILD_BYTES, shell: true, windowsHide: true, killSignal: 'SIGKILL' });
+    if (result.error?.code === 'ETIMEDOUT') return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_LAUNCH_TIMEOUT', true);
+    if (result.error || result.status !== 0 || result.stderr !== '' || result.stdout !== '{}') return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_LAUNCH_FAILED', !result.error);
+    return { probeId, outcome: 'PASS', code: null, launched: true, blocking: false, overridden: false, approvalRef: null };
+  } catch {
+    return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID');
+  } finally {
+    if (fixture) fs.rmSync(fixture, { recursive: true, force: true });
+  }
 }
 
 function probeImport(root, probe) {
@@ -312,8 +389,16 @@ function main(argv) {
     const manifest = validateManifest(sourceRoot); sourceManifestSha256 = manifest.sha256;
     for (const rootInput of args.roots) {
       const rootPath = fs.realpathSync.native(rootInput.path); const root = { ...rootInput, path: rootPath };
-      validateInstalledRoot(rootPath, manifest); validateReflexionState(root);
+      validateInstalledRoot(sourceRoot, rootPath, manifest); validateReflexionState(root);
       const probeResults = [];
+      for (const hookHost of hookHosts(args, root)) {
+        for (const scope of ['user', 'project']) {
+          const result = probeHookLaunch(rootPath, hookHost, scope);
+          probeResults.push(result);
+          if (result.blocking) break;
+        }
+        if (probeResults.some((probe) => probe.blocking)) break;
+      }
       if (root.role !== 'provisioning') {
         for (const probe of contract.value.probes) {
           const result = probe.kind === 'esm-import-v1' ? probeImport(rootPath, probe) : probeReflexion(rootPath, probe, root.reflexionState);

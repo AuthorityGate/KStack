@@ -3,4 +3,4 @@ interface:
   short_description: "Govern product UX, brand, and visual quality"
   default_prompt: "Use $kstack-experience to establish and validate this product's shared UX and brand contract."
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

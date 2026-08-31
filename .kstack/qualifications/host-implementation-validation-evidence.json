@@ -1,7 +1,7 @@
 {
   "schema": "kstack-host-implementation-validation-v1",
-  "startedAt": "2026-08-30T21:27:43.257Z",
-  "completedAt": "2026-08-30T21:27:48.565Z",
+  "startedAt": "2026-08-31T01:18:46.715Z",
+  "completedAt": "2026-08-31T01:18:51.983Z",
   "inventory": [
     {
       "itemId": "HP-TC01",
@@ -18,7 +18,7 @@
         },
         {
           "file": "tests/reflexion-architecture-gate.mjs",
-          "sha256": "de0880e54f1be9c0f75fd65ad838efcc7f3dfb0f8eb1828149665441b2bf5a46"
+          "sha256": "e4f18a9551c332cf8f16e05370abc7a4ece21579609693da773a7d2aaf57b0cf"
         }
       ],
       "validationSupportFiles": [
@@ -487,131 +487,131 @@
     "status": 0,
     "signal": null,
     "errorCode": null,
-    "stdoutSha256": "54f02b41865cc24cb083cd706e9bbfd5d53ff0a7dcdf538544110a4de09916af",
+    "stdoutSha256": "008d9bbb635c94b5ce85111a27d662159165ba377884ed8adfc70191cc07accf",
     "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
-  "testExecutionDigest": "99c95a92a15cb8bb6ba2440f70016568bd4a88c0761fc62041a7cab83c3a9deb",
+  "testExecutionDigest": "6602844989ca081e761be6c8f3f319dba37c2e85e8c67cac0352f03d59f2ba0c",
   "rows": [
     {
       "itemId": "HP-TC01",
       "implementationDigest": "0b501e5082c5c3ccaee9bc18a75d82bf0e3b80c9372cd8f7e6c8ca0d4f1747f8",
-      "validationReceiptDigest": "82ec8e1e4b6f15e830da813683d0610bf814d7e54c73715bd4572df74c812c1b",
+      "validationReceiptDigest": "1f69596355a0e1cf99b9a20ff5bb8d69bd274df4692c19edbb7d598ff17c4ea3",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC02",
       "implementationDigest": "47ea632ea4c19d5b1d2b38e25ab54fbacec3583332db67a25ee9266eee8ad35b",
-      "validationReceiptDigest": "ad2231f471b7044067e262587bd44ce86f17429184d01b1775bc645024bc4051",
+      "validationReceiptDigest": "f99df18013d77a3a93536bc0d9b805f64cfe105e2b44bb795fb6e44e9bd01305",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC03",
       "implementationDigest": "3887f13fbafb2fb6dd5fd046ab25fad1dc35faf25984e8667c33351b251cf024",
-      "validationReceiptDigest": "72ebb15e203993265efef1a9c4d2a6ffcc74479d9b80a3bc4601f25c3f26ddd6",
+      "validationReceiptDigest": "f3f62ca89793f1b0d6341b97955937a6e43fe3e7c9703cc41b8438a4863d64fa",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC04",
       "implementationDigest": "bdab12f24a2491dce253083a8165164588a5fd41f08ce1a13bbf7bd03eaff31e",
-      "validationReceiptDigest": "68ab7b5c7c42b95b3fcf5d38c55ab0ed1e772a45eedabf71754b8d33f78ddb28",
+      "validationReceiptDigest": "bf4303d76b9a2cc379590db8f4a466f9b73bfc85d9a72b392e8d1ba832f4f60f",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC05",
       "implementationDigest": "f4880554cbe774f05e0324c26254fe9868073d9ffab9a4b3a6f6b5069c116f3b",
-      "validationReceiptDigest": "ed99b0de715dfb7428ff703943b270d330f971825b3bc6a0a9d29c27b9f715dc",
+      "validationReceiptDigest": "6468206f3607ffb58aeb0b73a8d2c5d28a5bed479d887065ee69e4bee2c3f303",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC06",
       "implementationDigest": "edf753335f97b7eac248a172e078abd23d76dd31b219184bea5250296897b83d",
-      "validationReceiptDigest": "3a24e29ea65ba5d05b9af8a51451d8f07e3b0cdbc5ea41342c694f967a5df4a3",
+      "validationReceiptDigest": "fe20ef543a4b0801c9fc353c35fe09e92551d871bbfe78f1537bf60816c9f5ba",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC07",
       "implementationDigest": "54cc932d89e921e6b8185f1f08020e4bf1de77f6eb41d4550e4e9cd2c8489fed",
-      "validationReceiptDigest": "b328a56414f7fe6347914b9d82a7325cbef76aab35f31ea4b9f165b678da2ef3",
+      "validationReceiptDigest": "9f700260e47ddaee958c7e9b0d78ba253ec481d6f9ae8a644b35626e92100086",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC08",
       "implementationDigest": "5747f5fad6c3bafc6c431ec5a9a557aeb2e224e51d5b855ccdec6df0eeb4ce66",
-      "validationReceiptDigest": "9a3d27ffe213a82802a62cbe35176c7e2019923bc36ffc85e6d4b2d97a7728f5",
+      "validationReceiptDigest": "9b501bb07efaa01880b0b686ffcf6ea6dcac79d8b84dac13a928846a94a5f41b",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC09",
       "implementationDigest": "c2543f1a39a942de9f3ca26aa826b94f0f9491dc2bbb0e60d657d7cf1b632148",
-      "validationReceiptDigest": "f5e465fc821b193db87f24d68358cfba669f3a7b733cd167427496d0ae7eb744",
+      "validationReceiptDigest": "5a79afa46dc59756a7c2ca7db1908064be7d7d4f46a7ec4713e385db3eb18709",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC10",
       "implementationDigest": "2d6c2b4aaac766d383f9e92327f141ddfeec99c67b376d8e1cb1bd473f32ed7f",
-      "validationReceiptDigest": "ad67160b88a6f78770bec9a913ba32768cbcffaa184b42d964050c13df13652d",
+      "validationReceiptDigest": "5e93ed53c46dcbaf9fcd451a7cc0dd8eb1baf3b231dcd308a98b3e93d7112fdd",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC11",
       "implementationDigest": "dc5ed531cb88c4d46d500bb0ce3bd789f92f08f52b319c5eee1c505c0249398b",
-      "validationReceiptDigest": "7b63e924a91c83a8c86d7c69c274e51f7b33ed65dc7487dc9a9ac1c12877b29c",
+      "validationReceiptDigest": "a034c32979642d2d85f8345f385434fd4bfbb31080484ba4c1935d29596c209a",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HP-TC12",
       "implementationDigest": "47013f4a66b3300c49a8341d80af32f291833607bb1ba0bdf535fff3d7d15dd5",
-      "validationReceiptDigest": "ca4a037c2cb0fc87fd907b427cc233170992dfdc0cbea5d17260b3e13af11f76",
+      "validationReceiptDigest": "d34a93fa397a092f4ac3233c7553d867b6723bb14c9b7e25f5a4bbc4f2d27e72",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HB-TC01",
       "implementationDigest": "8b03e9d11f4a0fa5204354cc11b3693e1bfc78c1361c32a84a3512043d4f5a30",
-      "validationReceiptDigest": "94a9b5a0e693b19ee5d89081195caf70c8527816aab2f8a4e2fa4cf1b125ac7e",
+      "validationReceiptDigest": "131b5404b5ccac328c852a02cc33fd869499930d5c840de3eb61a9ee46f77ea0",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HB-TC02",
       "implementationDigest": "7c5bb05147dfcd0e1f53384fa5f1ebbf30a45f486ce1282bcfe5681f2e9647d2",
-      "validationReceiptDigest": "1a7b430b5cd178fadb4655891efd324d7e384e2cdb385ff5dd3f4c14b4e2521d",
+      "validationReceiptDigest": "569094aa7978cbf34a93a7cd7b6cc86dddc4a2de374fc7b60a09e0de23cbbf98",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HB-TC03",
       "implementationDigest": "4b370d45b6e9f62769b38cee50bcd51001ca6afb02e29a7652eca5936c18a24f",
-      "validationReceiptDigest": "21eabf149f4cc0711ce35496c99b38889c0623b2df3c8ac73b3394ef8b42dddc",
+      "validationReceiptDigest": "6d95babefdd5be0a8f53e296e5432e6bfc59f9953ee6b051e372bd6b86611d40",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HB-TC04",
       "implementationDigest": "c2543f1a39a942de9f3ca26aa826b94f0f9491dc2bbb0e60d657d7cf1b632148",
-      "validationReceiptDigest": "efae8662126f9bd835fc61df2f1c0ff4f850b528f29992c29321920c98607cf9",
+      "validationReceiptDigest": "3f510a13277f45c2d9f5641c49bfe356a05740e0b87593816c79f4284c568f18",
       "implemented": true,
       "current": true
     },
     {
       "itemId": "HB-TC05",
       "implementationDigest": "5aeefbc527942eb180fd2de98e707f4ca04e7c24f346c3ef4d406b93def75c68",
-      "validationReceiptDigest": "03a02c3411bf6125c2624254aec6f3f9968185e0ab87f3047f88287f4793ebdf",
+      "validationReceiptDigest": "8044089ffe9d1ada70b033f6e6ceb38ca9f0c26634bb8849d85b74ab6b302ecb",
       "implemented": true,
       "current": true
     }
   ],
   "aggregate": "PASS",
-  "evidenceDigest": "34a38e4bd2f6338fa72fe3ca653a127c719d56d93290be0d2fcc5278c414162c"
+  "evidenceDigest": "00ae912aebbca8feb76f8541ae5893bedb732bf546bbcaef52a300474666ad5d"
 }
