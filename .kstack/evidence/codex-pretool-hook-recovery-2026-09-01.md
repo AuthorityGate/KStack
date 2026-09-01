@@ -45,6 +45,15 @@ codex fork 01a04da4-73c1-72f3-85f3-bee6d1715827
 - `npm test`: 1,063 tests, 1,061 passed, 0 failed, 2 intentionally skipped.
 - `git diff --check`: passed.
 
+Post-publication setup installed Codex cache build
+`0.2.0-rc.1+codex.20260901163520968`. Its safety hook and the stable-runtime
+hook both match the qualified source SHA-256
+`c8aa5fa6c0695027bf99d3b69607afe529076523b16722befc27300bc6ab4709`.
+Both refreshed entrypoints returned `{}` with exit code 0 for the exact Watlow
+`view_image` envelope. Fresh ephemeral Codex thread
+`01a05dd4-34ad-73c3-a55c-4c8c6b84abd9` then ran a real `pwd` tool call in
+Watlow and completed with `HOOK_CANARY_OK` without hook warnings.
+
 Project safety-hook registration was left disabled through KStack's supported
 administration command, consistent with the owner's current trust policy. The
 source repair still prevents the false denial when hooks are later enabled.
