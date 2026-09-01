@@ -22,9 +22,11 @@ export const SECRET_BROKER_CONTENT_PATHS = Object.freeze([
   'scripts/secret-broker/config-document-v2.mjs',
   'scripts/secret-broker/config-migration-v2.mjs',
   'scripts/secret-broker/config-v2.mjs',
+  'scripts/secret-broker/control-plane-v1.mjs',
   'scripts/secret-broker/public-v1.mjs',
   'scripts/secret-broker/release-manifest-v1.mjs',
   'scripts/secret-broker/release-provenance-v1.mjs',
+  'scripts/secret-broker/synthetic-protected-state-v1.mjs',
   'secret-broker-accepted-design-v1.json',
   'skills/kstack-secrets/SKILL.md',
   'workers/kstack-secret-windows.ps1'
@@ -46,8 +48,9 @@ const STRICT_SEMVER = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(
 const VALIDATOR_PATHS = Object.freeze([
   'scripts/secret-broker/compatibility-v1.mjs', 'scripts/secret-broker/config-document-v2.mjs',
   'scripts/secret-broker/config-migration-v2.mjs', 'scripts/secret-broker/config-v2.mjs',
+  'scripts/secret-broker/control-plane-v1.mjs',
   'scripts/secret-broker/public-v1.mjs', 'scripts/secret-broker/release-manifest-v1.mjs',
-  'scripts/secret-broker/release-provenance-v1.mjs'
+  'scripts/secret-broker/release-provenance-v1.mjs', 'scripts/secret-broker/synthetic-protected-state-v1.mjs'
 ]);
 
 export class SecretBrokerReleaseManifestError extends Error {
@@ -116,9 +119,12 @@ export function buildSecretBrokerReleaseManifest(pluginRoot) {
     contractDigests: contracts(pluginRoot),
     publicConfigSchema: 'kstack-secret-broker-public-config-v1',
     publicApiSchemas: ['kstack-secret-broker-public-request-v1', 'kstack-secret-broker-public-result-v1'],
-    protectedRecordSchemas: [],
+    protectedRecordSchemas: [
+      'kstack-secret-audit-head-v1', 'kstack-secret-authority-head-v1',
+      'kstack-secret-protected-state-store-v1'
+    ],
     workerProtocols: ['kstack-secret-worker-windows-v1'],
-    adapterProtocols: ['kstack-secret-linux-adapter-v1'],
+    adapterProtocols: ['kstack-secret-linux-adapter-v1', 'kstack-secret-protected-state-synthetic-v1'],
     auditProtocol: 'UNAVAILABLE',
     qualificationProtocol: 'UNAVAILABLE',
     hostCompatibilityProfiles: ['linux-native', 'windows-native'],
@@ -150,9 +156,12 @@ export function validateSecretBrokerReleaseManifest(value, pluginRoot = null) {
   const exactArray = (actual, expected) => Array.isArray(actual) && hostCanonicalBytes(actual).equals(hostCanonicalBytes(expected));
   if (value.publicConfigSchema !== 'kstack-secret-broker-public-config-v1'
       || !exactArray(value.publicApiSchemas, ['kstack-secret-broker-public-request-v1', 'kstack-secret-broker-public-result-v1'])
-      || !exactArray(value.protectedRecordSchemas, [])
+      || !exactArray(value.protectedRecordSchemas, [
+        'kstack-secret-audit-head-v1', 'kstack-secret-authority-head-v1',
+        'kstack-secret-protected-state-store-v1'
+      ])
       || !exactArray(value.workerProtocols, ['kstack-secret-worker-windows-v1'])
-      || !exactArray(value.adapterProtocols, ['kstack-secret-linux-adapter-v1'])
+      || !exactArray(value.adapterProtocols, ['kstack-secret-linux-adapter-v1', 'kstack-secret-protected-state-synthetic-v1'])
       || value.auditProtocol !== 'UNAVAILABLE' || value.qualificationProtocol !== 'UNAVAILABLE'
       || !exactArray(value.hostCompatibilityProfiles, ['linux-native', 'windows-native'])
       || !DIGEST.test(value.installHealthContractDigest)

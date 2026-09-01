@@ -51,6 +51,11 @@ Reflexion retrieval, repair, runtime-contract, and prompt-routing details are do
 - Control-plane changes are detect-only and tamper-evident. Report `TAMPERED`,
   `UNTRUSTED`, `DISABLED`, and `OUTSIDE-ENROLLMENT` honestly; never claim that a
   hook prevents its owner from disabling it.
+- Project enrollment state is trusted by default across POSIX, native Windows,
+  and Windows-mounted WSL workspaces. Canonical paths, regular-file identity,
+  bounded parsing, and exact policy/release digests detect drift; projected
+  `0600`/`0700` permission bits are not an enrollment prerequisite. This does
+  not relax the separate protected credential-store checks.
 - Hook coverage is per host, action, tool path, mode, and enrollment. Hook skip,
   timeout, launch failure, safe/bare modes, bypasses, specialized paths, and
   direct external processes are coverage gaps, not fail-closed guarantees.

@@ -56,6 +56,45 @@ supplies an authenticated operator pin or installed-byte binding yet.
 Consequently an ordinary checkout remains `UNSIGNED_DEVELOPMENT`, and
 caller-created roots, keys, labels, or signatures cannot bootstrap trust.
 
+WP03 adds only the protected-control-plane record and adapter boundary. Closed
+canonical authority heads advance a positive epoch by exact compare-and-
+advance, bind the prior head digest, and require adapter-issued 256-bit CSPRNG
+update IDs that are retired on every attempted CAS, including mismatch. If a
+pre-commit retirement write cannot be durably confirmed, the operation returns
+only `ACKNOWLEDGEMENT_UNKNOWN` and deliberately retains a store-wide fence so
+the attempted ID cannot be reused. The synthetic store binds its authority namespace once and
+its audit namespace/initial epoch once, so another caller-selected lineage
+cannot bypass the retained heads. Closed canonical audit heads expose only
+`AcquireWriter`, `ReadHead`, and exact `CompareAndAdvance`; one unexpired writer
+owns the bound namespace/epoch, every successor keeps its exact lease and
+advances one ordinal, and any possibly committed failure is reconciled by
+read-only exact comparison without retry.
+The first locked entry after writer-lease expiry retains the store-wide fence:
+mutating surfaces return only `ACKNOWLEDGEMENT_UNKNOWN`, while open and
+read-only surfaces fail with the fixed locked-state error. Writer reacquisition,
+update-ID issuance, authority work, mismatched audit CAS, and all later access
+remain blocked pending explicit operator recovery. Non-string roots, throwing
+prospective-object and exported head-codec accessors, invalid/throwing clocks,
+lease deadlines beyond canonical UTC year 9999, and descriptor-read/close
+failures normalize to fixed typed errors.
+Neither interface has a generic set, reset, delete, truncate, import, locator,
+value-read, caller-selected epoch, or caller-selected ordinal operation.
+
+The shipped WP03 adapter is a file-backed fault-injection fixture, not protected
+production storage. Its identity is permanently `SYNTHETIC_UNQUALIFIED` with
+`productionEligible: false`. It can demonstrate restart durability and reject
+an older or forked broker snapshot only when its private root is kept outside
+that snapshot. It does not resist a principal who can copy, replace, or tamper
+with both roots; it is not independently administered, hardware monotonic,
+trusted-time qualified, or eligible for pilot/production evidence. Missing
+state, identity drift, aliases, or lock residue fail closed without automatic
+reset or reinitialization. Open, status, reads, snapshot verification, and
+mutations all serialize through the same exclusive lock; retained uncertainty
+fences make every one of those surfaces unavailable. WP04 still owns trusted identity/time/lease controls,
+and WP05 still owns the audit event chain, MAC/key custody, receipts, incidents,
+and evidence authority. The global runtime effect fence therefore remains
+unchanged.
+
 ## Evidence levels
 
 - `DISCOVERED`: a backend or adapter is present; no use claim.

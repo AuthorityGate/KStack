@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { findOutboundSecret } from './kstack-safety-matchers.mjs';
 import { parseKStackConfigDocument } from './secret-broker/config-document-v2.mjs';
 
+const MODULE_PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
 // 256 KiB leaves ample headroom for serialized metadata plus ordinary tool inputs
 // containing tens of KiB of embedded content, while retaining a finite resource bound.
 export const HOOK_INPUT_LIMIT = 256 * 1024;
@@ -119,14 +121,14 @@ function findProjectRoot(cwd) {
 function readTrustedProjectFile(root, relative, maximumBytes) {
   const stateDirectory = path.join(root, '.kstack');
   const stateLink = fs.lstatSync(stateDirectory);
-  if (stateLink.isSymbolicLink() || !stateLink.isDirectory() || fs.realpathSync.native(stateDirectory) !== stateDirectory || (stateLink.mode & 0o022) !== 0) throw new Error('untrusted state directory');
+  if (stateLink.isSymbolicLink() || !stateLink.isDirectory() || fs.realpathSync.native(stateDirectory) !== stateDirectory) throw new Error('untrusted state directory');
   const file = path.join(stateDirectory, relative);
   const descriptor = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
   try {
     const stat = fs.fstatSync(descriptor);
     const link = fs.lstatSync(file);
     const uid = typeof process.getuid === 'function' ? process.getuid() : null;
-    if (!stat.isFile() || link.isSymbolicLink() || !link.isFile() || link.dev !== stat.dev || link.ino !== stat.ino || (stat.mode & 0o022) !== 0 || (uid !== null && stat.uid !== uid && stat.uid !== 0) || stat.size > maximumBytes) throw new Error('untrusted project file');
+    if (!stat.isFile() || link.isSymbolicLink() || !link.isFile() || link.dev !== stat.dev || link.ino !== stat.ino || (uid !== null && stat.uid !== uid && stat.uid !== 0) || stat.size > maximumBytes) throw new Error('untrusted project file');
     return fs.readFileSync(descriptor);
   } finally { fs.closeSync(descriptor); }
 }
@@ -147,7 +149,7 @@ function authorityFor(family, activation) {
   return key ? activation.authority?.[key] : null;
 }
 
-export function readActivation(cwd, { pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || process.env.PLUGIN_ROOT } = {}) {
+export function readActivation(cwd, { pluginRoot = MODULE_PLUGIN_ROOT } = {}) {
   const found = findProjectRoot(cwd);
   if (!found) return Object.freeze({ active: false, status: 'OUTSIDE-ENROLLMENT' });
   try {

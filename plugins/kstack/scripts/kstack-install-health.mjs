@@ -85,7 +85,7 @@ function validateContract(root) {
 
 function scanSkillScripts(bytes) {
   const found = new Set();
-  const expression = /(?:\$\{CLAUDE_PLUGIN_ROOT\}\/|<kstack-plugin-root>\/|\.\.\/\.\.\/)?(scripts\/[A-Za-z0-9][A-Za-z0-9._/-]*\.mjs)/gu;
+  const expression = /(?:\$\{CLAUDE_PLUGIN_ROOT\}\/|\$\{HOME\}\/\.codex\/skills\/\.kstack-runtime\/|<kstack-plugin-root>\/|\.\.\/\.\.\/)?(scripts\/[A-Za-z0-9][A-Za-z0-9._/-]*\.mjs)/gu;
   for (const match of bytes.matchAll(expression)) found.add(match[1]);
   return [...found].sort(byteSort);
 }
@@ -196,9 +196,11 @@ function probeHookLaunch(root, host, scope) {
     const handler = group.hooks.find((entry) => entry?.command?.endsWith(`--scope ${scope}`));
     const handlerKeys = host === 'codex' ? ['command', 'commandWindows', 'statusMessage', 'timeout', 'type'] : ['command', 'statusMessage', 'timeout', 'type'];
     const variable = host === 'codex' ? 'PLUGIN_ROOT' : 'CLAUDE_PLUGIN_ROOT';
-    const expected = `node \"\${${variable}}/scripts/kstack-safety-hook.mjs\" --scope ${scope}`;
+    const expected = host === 'codex'
+      ? `node \"\${HOME}/.codex/skills/.kstack-runtime/scripts/kstack-safety-hook.mjs\" --scope ${scope}`
+      : `node \"\${CLAUDE_PLUGIN_ROOT}/scripts/kstack-safety-hook.mjs\" --scope ${scope}`;
     if (!handler || !exactKeys(handler, handlerKeys) || handler.type !== 'command' || handler.timeout !== 2 || handler.command !== expected) return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID');
-    if (host === 'codex' && handler.commandWindows !== `node \"%PLUGIN_ROOT%\\scripts\\kstack-safety-hook.mjs\" --scope ${scope}`) return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID');
+    if (host === 'codex' && handler.commandWindows !== `node \"%USERPROFILE%\\.codex\\skills\\.kstack-runtime\\scripts\\kstack-safety-hook.mjs\" --scope ${scope}`) return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_MANIFEST_INVALID');
 
     fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-health-hook-'));
     const input = {
@@ -211,7 +213,10 @@ function probeHookLaunch(root, host, scope) {
       HOME: fixture, TMPDIR: fixture, XDG_CONFIG_HOME: fixture, XDG_CACHE_HOME: fixture, XDG_STATE_HOME: fixture, LANG: 'C.UTF-8'
     };
     environment[variable] = root;
-    const command = process.platform === 'win32' ? handler.commandWindows : handler.command;
+    let command = process.platform === 'win32' ? handler.commandWindows : handler.command;
+    if (host === 'codex') command = process.platform === 'win32'
+      ? command.replace('%USERPROFILE%\\.codex\\skills\\.kstack-runtime', root)
+      : command.replace('${HOME}/.codex/skills/.kstack-runtime', root);
     const result = spawnSync(command, { cwd: fixture, env: environment, input: JSON.stringify(input), encoding: 'utf8', timeout: HOOK_MS, maxBuffer: MAX_CHILD_BYTES, shell: true, windowsHide: true, killSignal: 'SIGKILL' });
     if (result.error?.code === 'ETIMEDOUT') return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_LAUNCH_TIMEOUT', true);
     if (result.error || result.status !== 0 || result.stderr !== '' || result.stdout !== '{}') return hookLaunchFailure(probeId, 'KSTACK_POST_DEPLOY_HOOK_LAUNCH_FAILED', !result.error);

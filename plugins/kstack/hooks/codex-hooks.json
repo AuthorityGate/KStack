@@ -7,15 +7,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/scripts/kstack-safety-hook.mjs\" --scope user",
-            "commandWindows": "node \"%PLUGIN_ROOT%\\scripts\\kstack-safety-hook.mjs\" --scope user",
+            "command": "node \"${HOME}/.codex/skills/.kstack-runtime/scripts/kstack-safety-hook.mjs\" --scope user",
+            "commandWindows": "node \"%USERPROFILE%\\.codex\\skills\\.kstack-runtime\\scripts\\kstack-safety-hook.mjs\" --scope user",
             "timeout": 2,
             "statusMessage": "Checking KStack user safety policy"
           },
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/scripts/kstack-safety-hook.mjs\" --scope project",
-            "commandWindows": "node \"%PLUGIN_ROOT%\\scripts\\kstack-safety-hook.mjs\" --scope project",
+            "command": "node \"${HOME}/.codex/skills/.kstack-runtime/scripts/kstack-safety-hook.mjs\" --scope project",
+            "commandWindows": "node \"%USERPROFILE%\\.codex\\skills\\.kstack-runtime\\scripts\\kstack-safety-hook.mjs\" --scope project",
             "timeout": 2,
             "statusMessage": "Checking KStack project safety policy"
           }

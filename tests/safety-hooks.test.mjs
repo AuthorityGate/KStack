@@ -90,7 +90,10 @@ function runManifestHook(handler, input, host) {
     LANG: 'C.UTF-8'
   };
   environment[host === 'codex' ? 'PLUGIN_ROOT' : 'CLAUDE_PLUGIN_ROOT'] = path.resolve('plugins/kstack');
-  return spawnSync(handler.command, {
+  const command = host === 'codex'
+    ? handler.command.replace('${HOME}/.codex/skills/.kstack-runtime', path.resolve('plugins/kstack'))
+    : handler.command;
+  return spawnSync(command, {
     cwd: path.resolve('.'), input, encoding: 'utf8', shell: true, env: environment,
     timeout: 3_000, maxBuffer: 64 * 1024
   });
@@ -774,18 +777,17 @@ test('host hook exposes Jira ask authority on each host, preserves hard deny, di
   assert.equal(codexPlugin.hooks, './hooks/codex-hooks.json');
   for (const [host, manifest] of Object.entries(manifests)) {
     const handlers = manifest.hooks.PreToolUse[0].hooks;
-    const variable = host === 'codex' ? 'PLUGIN_ROOT' : 'CLAUDE_PLUGIN_ROOT';
     assert.equal(manifest.hooks.PreToolUse[0].matcher, '*');
     assert.deepEqual(handlers.map((handler) => handler.timeout), [2, 2]);
     assert.deepEqual(handlers.map((handler) => /--scope (user|project)$/u.exec(handler.command)?.[1]), ['user', 'project']);
     assert.deepEqual(handlers.map((handler) => handler.command), [
-      `node "\${${variable}}/scripts/kstack-safety-hook.mjs" --scope user`,
-      `node "\${${variable}}/scripts/kstack-safety-hook.mjs" --scope project`
+      host === 'codex' ? 'node "${HOME}/.codex/skills/.kstack-runtime/scripts/kstack-safety-hook.mjs" --scope user' : 'node "${CLAUDE_PLUGIN_ROOT}/scripts/kstack-safety-hook.mjs" --scope user',
+      host === 'codex' ? 'node "${HOME}/.codex/skills/.kstack-runtime/scripts/kstack-safety-hook.mjs" --scope project' : 'node "${CLAUDE_PLUGIN_ROOT}/scripts/kstack-safety-hook.mjs" --scope project'
     ]);
     assert.ok(handlers.every((handler) => !handler.command.includes('PLUGIN_ROOT:-.')));
     if (host === 'codex') assert.deepEqual(handlers.map((handler) => handler.commandWindows), [
-      'node "%PLUGIN_ROOT%\\scripts\\kstack-safety-hook.mjs" --scope user',
-      'node "%PLUGIN_ROOT%\\scripts\\kstack-safety-hook.mjs" --scope project'
+      'node "%USERPROFILE%\\.codex\\skills\\.kstack-runtime\\scripts\\kstack-safety-hook.mjs" --scope user',
+      'node "%USERPROFILE%\\.codex\\skills\\.kstack-runtime\\scripts\\kstack-safety-hook.mjs" --scope project'
     ]);
   }
   assert.equal(detectHookHost({}, { PLUGIN_ROOT: '/installed/codex/plugin', CLAUDE_PLUGIN_ROOT: '/compat/path' }), 'codex');
@@ -911,6 +913,14 @@ test('activation is idempotent, preserves explicit disablement, and reports cont
   assert.ok(JSON.parse(fs.readFileSync(activated.file, 'utf8')).protectedCredentialPaths.includes(defaultGitPushCredentialPath()));
   assert.equal(fs.existsSync(activated.audit), true);
   assert.equal(readActivation(projectRoot, { pluginRoot }).status, 'ENABLED');
+  const priorPluginRoot = process.env.PLUGIN_ROOT;
+  process.env.PLUGIN_ROOT = path.join(os.tmpdir(), 'deleted-codex-cache-root');
+  try {
+    assert.equal(readActivation(projectRoot).status, 'ENABLED');
+  } finally {
+    if (priorPluginRoot === undefined) delete process.env.PLUGIN_ROOT;
+    else process.env.PLUGIN_ROOT = priorPluginRoot;
+  }
   const disabled = setSafetyHooksEnabled(projectRoot, false);
   assert.equal(fs.existsSync(disabled.audit), true);
   assert.equal(activateSafetyHooks({ projectRoot, pluginRoot, preserveDisabled: true }).enabled, false);
@@ -928,6 +938,19 @@ test('activation is idempotent, preserves explicit disablement, and reports cont
   const auditActions = fs.readdirSync(path.join(projectRoot, '.kstack', 'safety-hooks-audit')).map((name) => JSON.parse(fs.readFileSync(path.join(projectRoot, '.kstack', 'safety-hooks-audit', name), 'utf8')).action);
   assert.deepEqual(auditActions.sort(), ['activate', 'disable', 'enable', 'install', 'rollback']);
   assert.equal(readActivation(projectRoot, { pluginRoot }).status, 'OUTSIDE-ENROLLMENT');
+});
+
+test('project enrollment trusts canonical regular state regardless of projected permission bits', () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-safety-default-trust-'));
+  const pluginRoot = path.resolve('plugins/kstack');
+  writePolicy(projectRoot);
+  const activated = activateSafetyHooks({ projectRoot, pluginRoot });
+  fs.chmodSync(path.join(projectRoot, '.kstack'), 0o777);
+  fs.chmodSync(path.join(projectRoot, '.kstack', 'config.json'), 0o666);
+  fs.chmodSync(path.join(projectRoot, '.kstack', 'safety-hooks.json'), 0o666);
+  const status = readActivation(projectRoot, { pluginRoot });
+  assert.equal(status.active, true);
+  assert.equal(status.status, 'ENABLED');
 });
 
 test('safety administration rejects duplicate-key repository policy through the shared config boundary', () => {

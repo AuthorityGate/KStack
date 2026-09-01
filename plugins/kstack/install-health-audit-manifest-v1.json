@@ -43,8 +43,8 @@
     {
       "path": "hooks/codex-hooks.json",
       "executable": false,
-      "size": 926,
-      "sha256": "61c262286f492adaf4047ab40943ce96cf367771ef290c16e915b355da965bc2"
+      "size": 1038,
+      "sha256": "2b976970d9247b4f00a3f4edd1bf6d0e99f88d01b69e24e9d5b795d1daca8a97"
     },
     {
       "path": "hooks/hooks.json",
@@ -61,8 +61,8 @@
     {
       "path": "install-health-contract-v1.json",
       "executable": false,
-      "size": 4117,
-      "sha256": "f45efac23544a69057ba33156e7fa327bb9c8063c9768025ee5b3f3c84c1521f"
+      "size": 4405,
+      "sha256": "2060957fe40534c4c09bc0d2bb41d233db3c301cfde4987ec037eae5688f5a54"
     },
     {
       "path": "package-lock.json",
@@ -301,14 +301,14 @@
     {
       "path": "references/SAFETY.md",
       "executable": false,
-      "size": 7019,
-      "sha256": "747287eea5d92cc06616cbcba9e195438b907f3e00a83839cb384641d68be141"
+      "size": 7390,
+      "sha256": "dfe3705e3bea9a9fda6c779161b6998f03e596f31c28332f4d98476b495b9944"
     },
     {
       "path": "references/SECRET_BROKER.md",
       "executable": false,
-      "size": 8289,
-      "sha256": "705409bb7b7cbb54e9518c116d77a121cfc400dd50e3791889657704b84d122d"
+      "size": 11054,
+      "sha256": "67a915d51a5db40047e8eeffa3788d119419ce5b1851ea23f435d55d335a9070"
     },
     {
       "path": "references/SKILL_SCOPE.md",
@@ -613,8 +613,8 @@
     {
       "path": "scripts/kstack-install-health.mjs",
       "executable": true,
-      "size": 38325,
-      "sha256": "6b687cf66a1044374cc0d12de1a13b918ae9e97d6d44a50156ed7bcf56b1eb45"
+      "size": 38759,
+      "sha256": "eda0d04652b6fb30aedad92446e09cf8d0ef77d17ccbc328274c5cdd107de4e1"
     },
     {
       "path": "scripts/kstack-invoke-role.mjs",
@@ -805,8 +805,8 @@
     {
       "path": "scripts/kstack-safety-hook.mjs",
       "executable": true,
-      "size": 18264,
-      "sha256": "903022c43e28821bd0e64f3b5b9111e062e478bd48eb19abdffddb6671d5d379"
+      "size": 18256,
+      "sha256": "e83e9596208c8d0e53c043f2d9623be60cf294cf57fdb1fda2f464961c8babe1"
     },
     {
       "path": "scripts/kstack-safety-matchers.mjs",
@@ -983,6 +983,12 @@
       "sha256": "3e90c2e040b3601620c34c2e67d5e03d01e73b246bc5bb2636709f544d862313"
     },
     {
+      "path": "scripts/secret-broker/control-plane-v1.mjs",
+      "executable": true,
+      "size": 9334,
+      "sha256": "26cdde4922487624c2c7188bad687cd1e083c1a4a04422b66ee8883b8c16d61f"
+    },
+    {
       "path": "scripts/secret-broker/public-v1.mjs",
       "executable": true,
       "size": 12794,
@@ -991,14 +997,20 @@
     {
       "path": "scripts/secret-broker/release-manifest-v1.mjs",
       "executable": true,
-      "size": 12940,
-      "sha256": "a7b432fb833811e6341056ff87d2f984358917a242f2eeb09c4511afaf955bfa"
+      "size": 13500,
+      "sha256": "54b82ea42d11d116c9785a80ddae243c6c3164530733c151e21f9e17fb472452"
     },
     {
       "path": "scripts/secret-broker/release-provenance-v1.mjs",
       "executable": true,
       "size": 9004,
       "sha256": "eb218f4bca9a9169fb61c42285dd93916b559855885ba029540569ded76dc599"
+    },
+    {
+      "path": "scripts/secret-broker/synthetic-protected-state-v1.mjs",
+      "executable": true,
+      "size": 26857,
+      "sha256": "e163097780660904f569cc1a212ff64e2716fce6ac941e5dba97242c11d3bab8"
     },
     {
       "path": "secret-broker-accepted-design-v1.json",
@@ -1009,14 +1021,14 @@
     {
       "path": "secret-broker-release-manifest-v1.json",
       "executable": false,
-      "size": 6077,
-      "sha256": "88458532fe40f7267a31ea78829ca8d5dcb5162bbc46d9b59840c7897b9258ae"
+      "size": 6872,
+      "sha256": "1ee7bf0b574c883e4bc773dfbc12ca4a37064f020d5ab1b365fe45fbfb3604e5"
     },
     {
       "path": "secret-broker-source-audit-manifest-v1.json",
       "executable": false,
-      "size": 3520,
-      "sha256": "3e1cd4dae01074212e5b50970b046a65f056401bf035604ee212509fbf50ab92"
+      "size": 3880,
+      "sha256": "c927171434fda54ff6a3fe446fd67d3ac150a95dd5cdf69fc83578edf70bf061"
     },
     {
       "path": "skills/kstack-design-clarify/SKILL.md",

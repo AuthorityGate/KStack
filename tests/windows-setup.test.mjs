@@ -33,6 +33,9 @@ test('native Windows setup is a distinct copy-based Codex installer with exact i
   assert.doesNotMatch(source, /\/kstack-init in Codex/u);
   const hooks = fs.readFileSync(path.join(root, 'plugins', 'kstack', 'hooks', 'codex-hooks.json'), 'utf8');
   assert.match(hooks, /"commandWindows"/u);
+  assert.match(hooks, /\$\{HOME\}\/\.codex\/skills\/\.kstack-runtime\/scripts\/kstack-safety-hook\.mjs/u);
+  assert.match(hooks, /%USERPROFILE%\\\\\.codex\\\\skills\\\\\.kstack-runtime\\\\scripts\\\\kstack-safety-hook\.mjs/u);
+  assert.doesNotMatch(hooks, /PLUGIN_ROOT/u);
 });
 
 test('real native Windows PowerShell installs and mutates an initialized project', { timeout: 120_000, skip: process.platform !== 'win32' && !fs.existsSync(powershell) }, (context) => {

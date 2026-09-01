@@ -139,8 +139,8 @@ test('installed probes execute, e108a79-class missing contract fails, and unavai
     assert.equal(healthy.health.overallStatus, 'PASS');
     assert.equal(healthy.health.interactiveActivationTested, false);
     assert.equal(healthy.health.activationClaim, 'installed-files-paths-lookups-structurally-sound-v1');
-    assert.equal(healthy.health.roots[0].executedProbeCount, 18);
-    assert.deepEqual(healthy.health.roots[0].probeResults.map((probe) => probe.outcome), Array(18).fill('PASS'));
+    assert.equal(healthy.health.roots[0].executedProbeCount, 20);
+    assert.deepEqual(healthy.health.roots[0].probeResults.map((probe) => probe.outcome), Array(20).fill('PASS'));
 
     const installedScript = path.join(runtime, 'scripts', 'kstack-config.mjs');
     fs.chmodSync(installedScript, 0o644);
@@ -179,7 +179,7 @@ test('installed probes execute, e108a79-class missing contract fails, and unavai
     const degraded = JSON.parse(degradedLine.slice('KSTACK_POST_DEPLOY_HEALTH_V1 '.length));
     assert.equal(degradedResult.status, 0);
     assert.equal(degraded.overallStatus, 'DEGRADED');
-    assert.equal(degraded.roots[0].executedProbeCount, 17);
+    assert.equal(degraded.roots[0].executedProbeCount, 19);
     assert.ok(degraded.roots[0].probeResults.some((probe) => probe.code === 'KSTACK_POST_DEPLOY_REFLEXION_UNAVAILABLE' && probe.outcome === 'SKIPPED_UNAVAILABLE' && probe.launched === false));
   } finally {
     fs.rmSync(runtime, { recursive: true, force: true });
@@ -214,7 +214,7 @@ test('Codex post-install health executes the host-specific hook manifest and rej
 
     const manifestPath = path.join(runtime, 'hooks', 'codex-hooks.json');
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-    for (const handler of manifest.hooks.PreToolUse[0].hooks) handler.command = handler.command.replace('${PLUGIN_ROOT}', '${CLAUDE_PLUGIN_ROOT}');
+    for (const handler of manifest.hooks.PreToolUse[0].hooks) handler.command = handler.command.replace('${HOME}/.codex/skills/.kstack-runtime', '${CLAUDE_PLUGIN_ROOT}');
     fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
     const regenerated = spawnSync(process.execPath, [path.join(repositoryRoot, 'tests', 'helpers', 'generate-install-health-audit-manifest.mjs'), '--plugin-root', runtime], { encoding: 'utf8', env: cleanEnvironment() });
     assert.equal(regenerated.status, 0, regenerated.stderr);
