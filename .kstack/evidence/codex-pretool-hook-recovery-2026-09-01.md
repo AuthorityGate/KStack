@@ -38,16 +38,19 @@ each tool call.
   any Codex plugin command because even a capability probe may reconcile the
   cache. It restores the compatibility links only after the final plugin
   installation and physical-cache verification, because later plugin commands
-  may prune them again. Open threads therefore keep launching a valid, current
-  hook across plugin refreshes. A fork is needed only to refresh the thread's
-  skill catalog, not to stop hook failures.
+  may prune them again. Open threads registered with a current absolute cache
+  path therefore keep launching a valid hook across plugin refreshes. Threads
+  created before the native Codex hook manifest may instead retain obsolete
+  `${PLUGIN_ROOT}` or `${CLAUDE_PLUGIN_ROOT}` commands; those commands cannot be
+  rewritten in place and require one fork. Current stable-HOME and cache-backed
+  threads need a fork only to refresh the thread's skill catalog.
 - Direct-broker detection is limited to Bash and PowerShell tool invocations.
   Non-shell tools such as `apply_patch` are no longer denied merely because
   their data mentions a KStack script path.
 - Regression tests cover both behaviors.
 
-An older installation that predates cache compatibility can retain its context
-and load the complete current registry with:
+The identified Watlow thread predates the native Codex hook manifest. It can
+retain its context and load the complete current hook registry with:
 
 ```text
 cd /mnt/e/Source/Projects/Watlow
@@ -85,3 +88,13 @@ compatibility links, and preserve the new physical cache qualification
 independently. A retained-session inventory found 19 KStack cache versions in
 August/September Codex records; 18 missing paths were restored to the stable
 runtime and the current physical cache was retained.
+
+Follow-up setup installed Codex cache build
+`0.2.0-rc.1+codex.20260901175822463`, emitted overall `PASS`, and restored all
+24 retired paths after retaining the new physical cache. The durable registry
+now contains 25 paths. Exact envelopes for `sleep`, the reported NIST document
+copy, the video-evidence Python command, and the document `unzip` check were
+replayed through both installed user and project hook entrypoints from the
+Watlow working directory: all eight launches exited 0 with zero stderr. The
+full suite again passed 1,061 of 1,063 tests with zero failures and two
+intentional skips.

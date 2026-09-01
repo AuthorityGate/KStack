@@ -568,7 +568,7 @@ install_host() {
         install_runtime "$dst_root" 1
         prepare_reflexion_root "$runtime_root" || return $?
         install_codex_plugin_from_runtime "$runtime_root" || return $?
-        printf '%s\n' 'KSTACK_CODEX_SESSION_COMPATIBILITY_ACTIVE: existing Codex threads retain their registered hook command path; setup preserves that retired cache path as a link to the repaired stable runtime. Fork with `codex fork SESSION_ID` only when the thread also needs the refreshed skill catalog.' >&2
+        printf '%s\n' 'KSTACK_CODEX_SESSION_COMPATIBILITY_ACTIVE: cache-backed Codex threads retain their registered hook command path; setup preserves retired cache paths as links to the repaired stable runtime. Threads created before the native Codex hook manifest may retain unsupported ${PLUGIN_ROOT}/${CLAUDE_PLUGIN_ROOT} commands and must be forked once with `codex fork SESSION_ID`. Current HOME-path or cache-backed threads need a fork only for the refreshed skill catalog.' >&2
         KSTACK_CODEX_MODERN=1
         register_health_root codex-native "$runtime_root" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" provisioning
         register_health_root codex-cache "$KSTACK_CODEX_CACHE_ROOT" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" execution

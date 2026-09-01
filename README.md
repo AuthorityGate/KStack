@@ -129,6 +129,14 @@ or `/kstack-init` in Claude Code. Initialization asks how objective
 questioning, review lanes, model consultation, persistence, implementation,
 and external actions should behave, then writes `.kstack/config.json`.
 
+Codex threads created before KStack shipped its native Codex hook manifest may
+retain obsolete `${PLUGIN_ROOT}` or `${CLAUDE_PLUGIN_ROOT}` hook commands.
+Setup cannot rewrite a hook command already registered inside a running thread;
+fork that thread once with `codex fork SESSION_ID`. Threads created with the
+current stable-HOME or cache-backed commands remain launchable across later
+KStack refreshes through the compatibility registry; fork those only when they
+also need the refreshed skill catalog.
+
 ### Post-deploy health result
 
 `setup` now finishes by emitting exactly one `KSTACK_POST_DEPLOY_HEALTH_V1`

@@ -317,7 +317,11 @@ test('--host all user plugin mode covers first install and already-installed pro
   assert.equal(existing.calls.includes('CODEX plugin add kstack@kstack'), true);
   assert.equal(existing.calls[0], 'CODEX plugin --help');
   assert.match(existing.result.stderr, /KSTACK_CODEX_SESSION_COMPATIBILITY_ACTIVE/u);
+  assert.match(existing.result.stderr, /created before the native Codex hook manifest/u);
+  assert.match(existing.result.stderr, /PLUGIN_ROOT.*CLAUDE_PLUGIN_ROOT/u);
+  assert.match(existing.result.stderr, /must be forked once/u);
   assert.match(existing.result.stderr, /codex fork SESSION_ID/u);
+  assert.match(existing.result.stderr, /HOME-path or cache-backed threads need a fork only for the refreshed skill catalog/u);
   const retiredCache = path.join(existing.home, '.codex', 'plugins', 'cache', 'kstack', 'kstack', '0.1.0+codex.20260812133549');
   assert.equal(fs.lstatSync(retiredCache).isSymbolicLink(), true);
   assert.equal(fs.realpathSync(retiredCache), path.join(existing.home, '.codex', 'skills', '.kstack-runtime'));
