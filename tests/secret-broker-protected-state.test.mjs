@@ -699,6 +699,110 @@ test('prospective requests are closed and validated before update-ID consumption
   }
   assert.equal(transformDisposition.result, 'ADVANCED');
 
+  const dependencyOrigin = authorityOrigin(REF_A);
+  const dependencyUnrelated = authorityOrigin(REF_B);
+  const dependencyOriginals = {
+    arrayJoin: Array.prototype.join,
+    arrayMap: Array.prototype.map,
+    arraySort: Array.prototype.sort,
+    bufferEquals: Buffer.prototype.equals,
+    bufferFrom: Buffer.from,
+    bufferToString: Buffer.prototype.toString,
+    jsonParse: JSON.parse,
+    regexpTest: RegExp.prototype.test
+  };
+  let unrelatedDisposition;
+  let dependencyParsed;
+  const dependencyBytes = canonicalAuthorityHeadBytes(dependencyOrigin);
+  try {
+    Array.prototype.join = () => '';
+    Array.prototype.map = () => [];
+    Array.prototype.sort = () => [];
+    Buffer.prototype.equals = () => true;
+    Buffer.from = () => Buffer.alloc(0);
+    Buffer.prototype.toString = () => '';
+    JSON.parse = () => ({});
+    RegExp.prototype.test = () => true;
+    unrelatedDisposition = reconcileAuthorityAdvance(dependencyOrigin, UPDATE_1, dependencyUnrelated);
+    dependencyParsed = parseAuthorityHead(dependencyBytes);
+  } finally {
+    Array.prototype.join = dependencyOriginals.arrayJoin;
+    Array.prototype.map = dependencyOriginals.arrayMap;
+    Array.prototype.sort = dependencyOriginals.arraySort;
+    Buffer.prototype.equals = dependencyOriginals.bufferEquals;
+    Buffer.from = dependencyOriginals.bufferFrom;
+    Buffer.prototype.toString = dependencyOriginals.bufferToString;
+    JSON.parse = dependencyOriginals.jsonParse;
+    RegExp.prototype.test = dependencyOriginals.regexpTest;
+  }
+  assert.equal(unrelatedDisposition, 'UNCERTAIN');
+  assert.deepEqual(dependencyParsed, dependencyOrigin);
+
+  const dependencyStaleState = fixture();
+  const dependencyStaleOrigin = dependencyStaleState.adapter.initializeAuthority(REF_A).head;
+  const dependencyStaleUpdateId = issue(dependencyStaleState.adapter);
+  assert.equal(dependencyStaleState.adapter.compareAndAdvanceAuthority(dependencyStaleOrigin, dependencyStaleUpdateId).result, 'ADVANCED');
+  let dependencyStaleDisposition;
+  try {
+    Array.prototype.sort = () => [];
+    Buffer.prototype.equals = () => true;
+    dependencyStaleDisposition = dependencyStaleState.adapter.verifyAuthoritySnapshot(dependencyStaleOrigin);
+  } finally {
+    Array.prototype.sort = dependencyOriginals.arraySort;
+    Buffer.prototype.equals = dependencyOriginals.bufferEquals;
+  }
+  assert.equal(dependencyStaleDisposition, 'EPOCH_MISMATCH');
+
+  const canonicalOpaqueRef = `ksr1_${Buffer.alloc(16).toString('base64url')}`;
+  const noncanonicalOpaqueRef = `${canonicalOpaqueRef.slice(0, -1)}B`;
+  const opaqueState = fixture();
+  let noncanonicalOpaqueError;
+  try {
+    Buffer.prototype.toString = function toString(encoding, ...args) {
+      if (encoding === 'base64url' && this.length === 16) return noncanonicalOpaqueRef.slice(5);
+      return Reflect.apply(dependencyOriginals.bufferToString, this, [encoding, ...args]);
+    };
+    try { opaqueState.adapter.initializeAuthority(noncanonicalOpaqueRef); }
+    catch (error) { noncanonicalOpaqueError = error; }
+  } finally {
+    Buffer.prototype.toString = dependencyOriginals.bufferToString;
+  }
+  assert.equal(noncanonicalOpaqueError?.code, 'KSTACK_SECRET_AUTHORITY_NAMESPACE_INVALID');
+  assert.equal(opaqueState.adapter.initializeAuthority(canonicalOpaqueRef).result, 'INITIALIZED');
+
+  const digestState = fixture();
+  const digestHead = digestState.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 1_000 }).head;
+  const digestUpdateId = issue(digestState.adapter);
+  let invalidDigestError;
+  try {
+    RegExp.prototype.test = () => true;
+    try { digestState.adapter.compareAndAdvanceAudit(digestHead, 'NOT_A_DIGEST', digestUpdateId); }
+    catch (error) { invalidDigestError = error; }
+  } finally {
+    RegExp.prototype.test = dependencyOriginals.regexpTest;
+  }
+  assert.equal(invalidDigestError?.code, 'KSTACK_SECRET_AUDIT_EVENT_DIGEST_INVALID');
+  assert.equal(digestState.adapter.compareAndAdvanceAudit(digestHead, EVENT_A, digestUpdateId).result, 'ADVANCED');
+
+  const allowOriginDescriptor = Object.getOwnPropertyDescriptor(Object.prototype, 'allowOrigin');
+  const codeDescriptor = Object.getOwnPropertyDescriptor(Object.prototype, 'code');
+  let pollutedOriginError;
+  let pollutedCodeError;
+  try {
+    Object.defineProperty(Object.prototype, 'allowOrigin', { value: true, configurable: true });
+    try { validateSecretUpdateId('epoch-origin'); } catch (error) { pollutedOriginError = error; }
+    Object.defineProperty(Object.prototype, 'code', { value: 'CALLER_SELECTED_CODE', configurable: true });
+    try { validateSecretUpdateId('invalid'); } catch (error) { pollutedCodeError = error; }
+  } finally {
+    if (allowOriginDescriptor) Object.defineProperty(Object.prototype, 'allowOrigin', allowOriginDescriptor);
+    else delete Object.prototype.allowOrigin;
+    if (codeDescriptor) Object.defineProperty(Object.prototype, 'code', codeDescriptor);
+    else delete Object.prototype.code;
+  }
+  assert.equal(pollutedOriginError?.code, 'KSTACK_SECRET_UPDATE_ID_INVALID');
+  assert.equal(pollutedCodeError?.code, 'KSTACK_SECRET_UPDATE_ID_INVALID');
+  assert.equal(pollutedCodeError?.message, 'KSTACK_SECRET_UPDATE_ID_INVALID');
+
   assert.equal(state.adapter.compareAndAdvanceAuthority(origin, updateId).result, 'ADVANCED');
   assert.throws(
     () => state.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 1_000, auditEpoch: 9 }),

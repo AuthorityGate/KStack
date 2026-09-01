@@ -2,8 +2,6 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { hostCanonicalBytes, parseHostCanonicalJson } from '../kstack-host-contract.mjs';
-import { validateOpaqueRef } from './public-v1.mjs';
 import {
   auditOrigin,
   auditSuccessor,
@@ -12,7 +10,10 @@ import {
   canonicalAuditHeadBytes,
   canonicalAuthorityHeadBytes,
   generateSecretUpdateId,
+  parseSecretCanonicalJson,
+  secretCanonicalBytes,
   validateSecretUpdateId,
+  validateSecretOpaqueRef,
   validateAuditHeadValue,
   validateAuthorityHeadValue
 } from './control-plane-v1.mjs';
@@ -35,7 +36,6 @@ const OPEN_KEYS = Object.freeze(['root', 'clock']);
 const AUDIT_WRITER_KEYS = Object.freeze(['auditNamespaceRef', 'ttlMs']);
 const ADVANCE_OPTION_KEYS = Object.freeze(['crashCut', 'acknowledgementCut']);
 const STATUS_KEYS = Object.freeze(['profileId', 'productionEligible', 'state']);
-const MAX_CANONICAL_CLOCK_MS = Date.parse('9999-12-31T23:59:59.999Z');
 const APPLY = Reflect.apply;
 const ARRAY_FILTER = Array.prototype.filter;
 const ARRAY_FIND = Array.prototype.find;
@@ -45,13 +45,18 @@ const ARRAY_IS_ARRAY = Array.isArray;
 const ARRAY_MAP = Array.prototype.map;
 const ARRAY_SOME = Array.prototype.some;
 const ARRAY_SORT = Array.prototype.sort;
+const BUFFER_CONSTRUCTOR = Buffer;
 const BUFFER_COMPARE = Buffer.compare;
 const BUFFER_EQUALS = Buffer.prototype.equals;
 const BUFFER_FROM = Buffer.from;
 const BUFFER_TO_STRING = Buffer.prototype.toString;
+const CRYPTO_RANDOM_BYTES = crypto.randomBytes;
+const CRYPTO_RANDOM_UUID = crypto.randomUUID;
 const DATE_CONSTRUCTOR = Date;
+const DATE_NOW = Date.now;
 const DATE_PARSE = Date.parse;
 const DATE_TO_ISO_STRING = Date.prototype.toISOString;
+const MAX_CANONICAL_CLOCK_MS = APPLY(DATE_PARSE, DATE_CONSTRUCTOR, ['9999-12-31T23:59:59.999Z']);
 const DEFINE_PROPERTY = Object.defineProperty;
 const DEFINE_PROPERTIES = Object.defineProperties;
 const FREEZE = Object.freeze;
@@ -60,8 +65,6 @@ const GET_OWN_PROPERTY_DESCRIPTOR = Object.getOwnPropertyDescriptor;
 const GET_PROTOTYPE_OF = Object.getPrototypeOf;
 const HAS_OWN = Object.hasOwn;
 const NUMBER_IS_SAFE_INTEGER = Number.isSafeInteger;
-const OBJECT_ENTRIES = Object.entries;
-const OBJECT_FROM_ENTRIES = Object.fromEntries;
 const OBJECT_PROTOTYPE = Object.prototype;
 const OWN_KEYS = Reflect.ownKeys;
 const WEAK_MAP_GET = WeakMap.prototype.get;
@@ -180,17 +183,32 @@ function exact(value, keys, code) {
   return snapshotRecord(value, keys, code);
 }
 function opaque(value, code) {
-  try { validateOpaqueRef(value); } catch { fail(code); }
+  try { validateSecretOpaqueRef(value); } catch { fail(code); }
 }
-function compare(left, right) { return BUFFER_COMPARE(BUFFER_FROM(left, 'utf8'), BUFFER_FROM(right, 'utf8')); }
-function randomOpaqueRef() { return `ksr1_${APPLY(BUFFER_TO_STRING, crypto.randomBytes(16), ['base64url'])}`; }
-function clone(value) { return parseHostCanonicalJson(hostCanonicalBytes(value)); }
+function compare(left, right) { return APPLY(BUFFER_COMPARE, BUFFER_CONSTRUCTOR, [APPLY(BUFFER_FROM, BUFFER_CONSTRUCTOR, [left, 'utf8']), APPLY(BUFFER_FROM, BUFFER_CONSTRUCTOR, [right, 'utf8'])]); }
+function randomOpaqueRef() { return `ksr1_${APPLY(BUFFER_TO_STRING, APPLY(CRYPTO_RANDOM_BYTES, crypto, [16]), ['base64url'])}`; }
+function clone(value) { return parseSecretCanonicalJson(secretCanonicalBytes(value)); }
 function frozen(value) {
-  if (ARRAY_IS_ARRAY(value)) return FREEZE(arrayMap(value, frozen));
-  if (plain(value)) return FREEZE(OBJECT_FROM_ENTRIES(arrayMap(OBJECT_ENTRIES(value), (entry) => [entry[0], frozen(entry[1])])));
+  if (ARRAY_IS_ARRAY(value)) {
+    const output = [];
+    for (let index = 0; index < value.length; index += 1) output[index] = frozen(value[index]);
+    return FREEZE(output);
+  }
+  if (plain(value)) {
+    const descriptors = GET_OWN_PROPERTY_DESCRIPTORS(value);
+    const keys = OWN_KEYS(descriptors);
+    const output = {};
+    for (let index = 0; index < keys.length; index += 1) {
+      const key = keys[index];
+      DEFINE_PROPERTY(output, key, {
+        value: frozen(descriptors[key].value), enumerable: true, configurable: true, writable: true
+      });
+    }
+    return FREEZE(output);
+  }
   return value;
 }
-function exactBytes(left, right) { return APPLY(BUFFER_EQUALS, hostCanonicalBytes(left), [hostCanonicalBytes(right)]); }
+function exactBytes(left, right) { return APPLY(BUFFER_EQUALS, secretCanonicalBytes(left), [secretCanonicalBytes(right)]); }
 
 function validateIdentity(value) {
   const checked = exact(value, IDENTITY_KEYS, 'KSTACK_SECRET_PROTECTED_IDENTITY_INVALID');
@@ -238,7 +256,7 @@ function validateState(value, identity) {
   validateSortedUnique(checkedValue.retiredWriterLeaseRefs, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   if (arraySome(checkedValue.issuedUpdateIds, (id) => arrayIncludes(checkedValue.retiredUpdateIds, id))) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
   const checked = frozen({ ...checkedValue, authorityHeads, auditHeads });
-  if (hostCanonicalBytes(checked).length > SYNTHETIC_PROTECTED_STATE_MAX_BYTES) fail('KSTACK_SECRET_PROTECTED_STATE_BYTES_EXCEEDED');
+  if (secretCanonicalBytes(checked).length > SYNTHETIC_PROTECTED_STATE_MAX_BYTES) fail('KSTACK_SECRET_PROTECTED_STATE_BYTES_EXCEEDED');
   return checked;
 }
 
@@ -265,7 +283,7 @@ function readPrivateCanonical(file, maximum, unavailableCode, invalidCode) {
     const bytes = fs.readFileSync(descriptor);
     const after = fs.fstatSync(descriptor);
     if (after.dev !== opened.dev || after.ino !== opened.ino || after.size !== opened.size || bytes.length !== opened.size) fail(invalidCode);
-    const parsed = parseHostCanonicalJson(bytes);
+    const parsed = parseSecretCanonicalJson(bytes);
     fs.closeSync(descriptor);
     descriptor = undefined;
     return parsed;
@@ -291,16 +309,16 @@ function syncDirectory(directory) {
 }
 
 function durableCreate(file, value) {
-  const bytes = hostCanonicalBytes(value);
+  const bytes = secretCanonicalBytes(value);
   const descriptor = fs.openSync(file, fs.constants.O_CREAT | fs.constants.O_EXCL | fs.constants.O_WRONLY, 0o600);
   try { fs.writeFileSync(descriptor, bytes); fs.fsyncSync(descriptor); } finally { fs.closeSync(descriptor); }
   syncDirectory(path.dirname(file));
 }
 
 function durableReplace(file, value) {
-  const bytes = hostCanonicalBytes(value);
+  const bytes = secretCanonicalBytes(value);
   const directory = path.dirname(file);
-  const temporary = path.join(directory, `.state.${process.pid}.${crypto.randomUUID()}.tmp`);
+  const temporary = path.join(directory, `.state.${process.pid}.${APPLY(CRYPTO_RANDOM_UUID, crypto, [])}.tmp`);
   let descriptor;
   let installed = false;
   try {
@@ -324,7 +342,7 @@ function durableReplace(file, value) {
 }
 
 function lockOwner() {
-  return frozen({ schemaVersion: 'kstack-secret-protected-state-lock-v1', token: crypto.randomUUID(), pid: process.pid });
+  return frozen({ schemaVersion: 'kstack-secret-protected-state-lock-v1', token: APPLY(CRYPTO_RANDOM_UUID, crypto, []), pid: process.pid });
 }
 
 function acquireLock(paths) {
@@ -362,7 +380,7 @@ function validateOpenOptions(options, code) {
     const selected = snapshotRecord(options, OPEN_KEYS, code, { requireAll: false });
     if (!HAS_OWN(selected, 'root')) throw new Error();
     const root = selected.root;
-    const clock = HAS_OWN(selected, 'clock') ? selected.clock : Date.now;
+    const clock = HAS_OWN(selected, 'clock') ? selected.clock : DATE_NOW;
     if (typeof root !== 'string') throw new Error();
     return { root, clock };
   } catch { fail(code); }
@@ -701,7 +719,7 @@ export function syntheticProtectedStateSnapshotBytes(adapter) {
       || checkedStatus.productionEligible !== false || checkedStatus.state !== 'SYNTHETIC_READY') {
     fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
   }
-  return hostCanonicalBytes({
+  return secretCanonicalBytes({
     schemaVersion: 'kstack-secret-protected-state-public-status-v1',
     profileId: SYNTHETIC_PROTECTED_STATE_PROFILE,
     productionEligible: false,
