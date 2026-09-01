@@ -25,6 +25,9 @@ const UPDATE_ERROR_CODES = new Set([
   'KSTACK_SECRET_AUDIT_HEAD_INVALID',
   'KSTACK_SECRET_AUDIT_UPDATE_ID_INVALID'
 ]);
+const APPLY = Reflect.apply;
+const ARRAY_INCLUDES = Array.prototype.includes;
+const ARRAY_SOME = Array.prototype.some;
 const ARRAY_IS_ARRAY = Array.isArray;
 const DEFINE_PROPERTY = Object.defineProperty;
 const DEFINE_PROPERTIES = Object.defineProperties;
@@ -33,6 +36,11 @@ const GET_PROTOTYPE_OF = Object.getPrototypeOf;
 const HAS_OWN = Object.hasOwn;
 const OBJECT_PROTOTYPE = Object.prototype;
 const OWN_KEYS = Reflect.ownKeys;
+const REGEXP_TEST = RegExp.prototype.test;
+const SET_HAS = Set.prototype.has;
+
+function arrayIncludes(values, value) { return APPLY(ARRAY_INCLUDES, values, [value]); }
+function arraySome(values, predicate) { return APPLY(ARRAY_SOME, values, [predicate]); }
 
 export class SecretControlPlaneError extends Error {
   constructor(code) {
@@ -57,8 +65,8 @@ function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
     actual = OWN_KEYS(descriptors);
   } catch { fail(code); }
   if (prototype !== OBJECT_PROTOTYPE) fail(code);
-  if (actual.some((key) => typeof key !== 'string' || !keys.includes(key))
-      || requireAll && (actual.length !== keys.length || keys.some((key) => !HAS_OWN(descriptors, key)))) fail(code);
+  if (arraySome(actual, (key) => typeof key !== 'string' || !arrayIncludes(keys, key))
+      || requireAll && (actual.length !== keys.length || arraySome(keys, (key) => !HAS_OWN(descriptors, key)))) fail(code);
   const snapshot = {};
   for (const key of actual) {
     const descriptor = descriptors[key];
@@ -86,14 +94,14 @@ export function validateSecretUpdateId(value, options = {}) {
   try {
     selected = snapshotRecord(options, UPDATE_OPTION_KEYS, 'KSTACK_SECRET_UPDATE_ID_INVALID', { requireAll: false });
     if (HAS_OWN(selected, 'allowOrigin') && typeof selected.allowOrigin !== 'boolean') fail('KSTACK_SECRET_UPDATE_ID_INVALID');
-    if (HAS_OWN(selected, 'code') && !UPDATE_ERROR_CODES.has(selected.code)) fail('KSTACK_SECRET_UPDATE_ID_INVALID');
+    if (HAS_OWN(selected, 'code') && !APPLY(SET_HAS, UPDATE_ERROR_CODES, [selected.code])) fail('KSTACK_SECRET_UPDATE_ID_INVALID');
   } catch {
     fail('KSTACK_SECRET_UPDATE_ID_INVALID');
   }
   const allowOrigin = selected.allowOrigin ?? false;
   const code = selected.code ?? 'KSTACK_SECRET_UPDATE_ID_INVALID';
   if (allowOrigin && value === 'epoch-origin') return value;
-  if (typeof value !== 'string' || !UPDATE_ID.test(value)) fail(code);
+  if (typeof value !== 'string' || !APPLY(REGEXP_TEST, UPDATE_ID, [value])) fail(code);
   const encoded = value.slice(5);
   let decoded;
   try { decoded = Buffer.from(encoded, 'base64url'); } catch { fail(code); }

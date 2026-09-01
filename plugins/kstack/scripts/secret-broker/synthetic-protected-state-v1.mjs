@@ -37,7 +37,9 @@ const ADVANCE_OPTION_KEYS = Object.freeze(['crashCut', 'acknowledgementCut']);
 const STATUS_KEYS = Object.freeze(['profileId', 'productionEligible', 'state']);
 const MAX_CANONICAL_CLOCK_MS = Date.parse('9999-12-31T23:59:59.999Z');
 const APPLY = Reflect.apply;
+const ARRAY_INCLUDES = Array.prototype.includes;
 const ARRAY_IS_ARRAY = Array.isArray;
+const ARRAY_SOME = Array.prototype.some;
 const DEFINE_PROPERTY = Object.defineProperty;
 const DEFINE_PROPERTIES = Object.defineProperties;
 const GET_OWN_PROPERTY_DESCRIPTORS = Object.getOwnPropertyDescriptors;
@@ -69,6 +71,9 @@ const SNAPSHOT_STATUS_ERROR_CODES = new Set([
   'KSTACK_SECRET_PROTECTED_STATE_LOCKED',
   'KSTACK_SECRET_PROTECTED_STATE_LOCK_FENCED'
 ]);
+
+function arrayIncludes(values, value) { return APPLY(ARRAY_INCLUDES, values, [value]); }
+function arraySome(values, predicate) { return APPLY(ARRAY_SOME, values, [predicate]); }
 
 function defineError(error, name, code, kind) {
   DEFINE_PROPERTIES(error, {
@@ -127,8 +132,8 @@ function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
     descriptors = GET_OWN_PROPERTY_DESCRIPTORS(value);
     actual = OWN_KEYS(descriptors);
   } catch { fail(code); }
-  if (actual.some((key) => typeof key !== 'string' || !keys.includes(key))
-      || requireAll && (actual.length !== keys.length || keys.some((key) => !HAS_OWN(descriptors, key)))) fail(code);
+  if (arraySome(actual, (key) => typeof key !== 'string' || !arrayIncludes(keys, key))
+      || requireAll && (actual.length !== keys.length || arraySome(keys, (key) => !HAS_OWN(descriptors, key)))) fail(code);
   const snapshot = {};
   for (const key of actual) {
     const descriptor = descriptors[key];
@@ -193,7 +198,7 @@ function validateState(value, identity) {
   validateSortedUnique(checkedValue.issuedUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   validateSortedUnique(checkedValue.retiredUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   validateSortedUnique(checkedValue.retiredWriterLeaseRefs, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  if (checkedValue.issuedUpdateIds.some((id) => checkedValue.retiredUpdateIds.includes(id))) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  if (arraySome(checkedValue.issuedUpdateIds, (id) => arrayIncludes(checkedValue.retiredUpdateIds, id))) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
   const checked = frozen({ ...checkedValue, authorityHeads, auditHeads });
   if (hostCanonicalBytes(checked).length > SYNTHETIC_PROTECTED_STATE_MAX_BYTES) fail('KSTACK_SECRET_PROTECTED_STATE_BYTES_EXCEEDED');
   return checked;
@@ -307,7 +312,7 @@ function validateAdvanceOptions(options) {
     const hasAcknowledgementCut = HAS_OWN(selected, 'acknowledgementCut');
     const crashCut = hasCrashCut ? selected.crashCut : undefined;
     const acknowledgementCut = hasAcknowledgementCut ? selected.acknowledgementCut : undefined;
-    if ((hasCrashCut && !['BEFORE_COMMIT', 'AFTER_COMMIT'].includes(crashCut))
+    if ((hasCrashCut && !arrayIncludes(['BEFORE_COMMIT', 'AFTER_COMMIT'], crashCut))
         || (hasAcknowledgementCut && acknowledgementCut !== 'AFTER_COMMIT')
         || (hasCrashCut && hasAcknowledgementCut)) throw new Error();
     return frozen({ ...(hasCrashCut ? { crashCut } : {}), ...(hasAcknowledgementCut ? { acknowledgementCut } : {}) });
@@ -499,8 +504,8 @@ export class SyntheticProtectedStateAdapter {
   }
 
   #retireAttempt(state, updateId) {
-    if (state.retiredUpdateIds.includes(updateId)) fail('KSTACK_SECRET_PROTECTED_UPDATE_ID_REUSED');
-    if (!state.issuedUpdateIds.includes(updateId)) fail('KSTACK_SECRET_PROTECTED_UPDATE_ID_NOT_ISSUED');
+    if (arrayIncludes(state.retiredUpdateIds, updateId)) fail('KSTACK_SECRET_PROTECTED_UPDATE_ID_REUSED');
+    if (!arrayIncludes(state.issuedUpdateIds, updateId)) fail('KSTACK_SECRET_PROTECTED_UPDATE_ID_NOT_ISSUED');
     return {
       ...state,
       issuedUpdateIds: state.issuedUpdateIds.filter((id) => id !== updateId),
@@ -516,7 +521,7 @@ export class SyntheticProtectedStateAdapter {
       let updateId;
       for (let attempt = 0; attempt < 32; attempt += 1) {
         const candidate = generateSecretUpdateId();
-        if (!state.issuedUpdateIds.includes(candidate) && !state.retiredUpdateIds.includes(candidate)) { updateId = candidate; break; }
+        if (!arrayIncludes(state.issuedUpdateIds, candidate) && !arrayIncludes(state.retiredUpdateIds, candidate)) { updateId = candidate; break; }
       }
       if (!updateId) fail('KSTACK_SECRET_PROTECTED_ID_COLLISION_EXHAUSTED');
       this.#writeState({ ...state, issuedUpdateIds: [...state.issuedUpdateIds, updateId].sort(compare) });
@@ -584,7 +589,7 @@ export class SyntheticProtectedStateAdapter {
       let writerLeaseRef;
       for (let attempt = 0; attempt < 32; attempt += 1) {
         const candidate = randomOpaqueRef();
-        if (!state.retiredWriterLeaseRefs.includes(candidate)) { writerLeaseRef = candidate; break; }
+        if (!arrayIncludes(state.retiredWriterLeaseRefs, candidate)) { writerLeaseRef = candidate; break; }
       }
       if (!writerLeaseRef) fail('KSTACK_SECRET_PROTECTED_ID_COLLISION_EXHAUSTED');
       const writerLeaseDeadline = leaseDeadline(now, ttlMs);

@@ -541,6 +541,64 @@ test('prospective requests are closed and validated before update-ID consumption
       (error) => error?.code === 'KSTACK_SECRET_PROTECTED_ADVANCE_OPTIONS_INVALID' && error.message === error.code
     );
   }
+
+  const intrinsicState = fixture();
+  const intrinsicOrigin = intrinsicState.adapter.initializeAuthority(REF_A).head;
+  const intrinsicUpdateId = issue(intrinsicState.adapter);
+  const marker = Symbol('post-import-unknown-field');
+  const originals = {
+    arrayIncludes: Array.prototype.includes,
+    arraySome: Array.prototype.some,
+    regexpTest: RegExp.prototype.test,
+    setHas: Set.prototype.has
+  };
+  const outcomes = {};
+  try {
+    Array.prototype.some = function some(callback, thisArg) {
+      for (let index = 0; index < this.length; index += 1) if (typeof this[index] === 'symbol') return false;
+      return Reflect.apply(originals.arraySome, this, [callback, thisArg]);
+    };
+    for (const [name, action] of [
+      ['unknownUpdateOption', () => validateSecretUpdateId(UPDATE_1, { [marker]: true })],
+      ['unknownOpenOption', () => SyntheticProtectedStateAdapter.open({ root: intrinsicState.root, clock: intrinsicState.clock, [marker]: true })],
+      ['unknownAdvanceOption', () => intrinsicState.adapter.compareAndAdvanceAuthority(intrinsicOrigin, intrinsicUpdateId, { [marker]: true })]
+    ]) {
+      try { action(); outcomes[name] = null; } catch (error) { outcomes[name] = { code: error?.code, message: error?.message }; }
+    }
+  } finally {
+    Array.prototype.some = originals.arraySome;
+  }
+  try {
+    Array.prototype.includes = () => true;
+    try { validateSecretUpdateId(UPDATE_1, { extra: true }); outcomes.unknownStringOption = null; }
+    catch (error) { outcomes.unknownStringOption = { code: error?.code, message: error?.message }; }
+  } finally {
+    Array.prototype.includes = originals.arrayIncludes;
+  }
+  try {
+    Set.prototype.has = () => true;
+    try { validateSecretUpdateId('invalid', { code: 'CALLER_SELECTED_CODE' }); outcomes.callerSelectedCode = null; }
+    catch (error) { outcomes.callerSelectedCode = { code: error?.code, message: error?.message }; }
+  } finally {
+    Set.prototype.has = originals.setHas;
+  }
+  try {
+    RegExp.prototype.test = () => true;
+    try { validateSecretUpdateId(`evil_${Buffer.alloc(32, 1).toString('base64url')}`); outcomes.noncanonicalUpdateId = null; }
+    catch (error) { outcomes.noncanonicalUpdateId = { code: error?.code, message: error?.message }; }
+  } finally {
+    RegExp.prototype.test = originals.regexpTest;
+  }
+  assert.deepEqual(outcomes, {
+    unknownUpdateOption: { code: 'KSTACK_SECRET_UPDATE_ID_INVALID', message: 'KSTACK_SECRET_UPDATE_ID_INVALID' },
+    unknownOpenOption: { code: 'KSTACK_SECRET_PROTECTED_OPEN_OPTIONS_INVALID', message: 'KSTACK_SECRET_PROTECTED_OPEN_OPTIONS_INVALID' },
+    unknownAdvanceOption: { code: 'KSTACK_SECRET_PROTECTED_ADVANCE_OPTIONS_INVALID', message: 'KSTACK_SECRET_PROTECTED_ADVANCE_OPTIONS_INVALID' },
+    unknownStringOption: { code: 'KSTACK_SECRET_UPDATE_ID_INVALID', message: 'KSTACK_SECRET_UPDATE_ID_INVALID' },
+    callerSelectedCode: { code: 'KSTACK_SECRET_UPDATE_ID_INVALID', message: 'KSTACK_SECRET_UPDATE_ID_INVALID' },
+    noncanonicalUpdateId: { code: 'KSTACK_SECRET_UPDATE_ID_INVALID', message: 'KSTACK_SECRET_UPDATE_ID_INVALID' }
+  });
+  assert.equal(intrinsicState.adapter.compareAndAdvanceAuthority(intrinsicOrigin, intrinsicUpdateId).result, 'ADVANCED');
+
   assert.equal(state.adapter.compareAndAdvanceAuthority(origin, updateId).result, 'ADVANCED');
   assert.throws(
     () => state.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 1_000, auditEpoch: 9 }),

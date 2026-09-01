@@ -8,7 +8,7 @@
 | Integrated dependency | SB-TC12 SHA-256 `0c516367cbf7ab6088f17f54594abd364119ad9020c90ca52ca64ed9739b681e` |
 | Direct contracts | SB-TC02 SHA-256 `6710fb7d611d890d4e8bd8e7182aa3fb687c54d1a9ced6bba2569123dac37075`; SB-TC03 SHA-256 `b8aadd172e87a4c9f3c349890162b73b3f5e5682818c0428c25edb0534ac8c99`; SB-TC07 SHA-256 `6635aa11e3769c33541a0807fdedd7d497ae7274f01054d2ee9e83703a4d5a4b`; SB-TC10 SHA-256 `a96c00d5e1d87ba690730ebf09856ab44cf8b99c18c2ea6b5127dbcce2b7168a` |
 | Dependency implementation | SB-WP02 final record SHA-256 `03184c8b95a070563caccb61d810f3cc7125908165a1a7c36a120e5f71e3118c` |
-| Disposition | `R9_REPAIRED`; completion remains pending exact-candidate binding and independent R10 review |
+| Disposition | `R10_REPAIRED`; completion remains pending exact-candidate binding and independent R11 review |
 | Runtime effect state | `UNAVAILABLE / IMPLEMENTATION_NONCONFORMANT` |
 
 ## Outcome
@@ -293,6 +293,24 @@ fields, and unknown fields, and operate only on the captured record.
 Regressions reproduce the R9 prototype-setter, mutable `Symbol.hasInstance`,
 symbol-field, and non-enumerable-field attacks.
 
+## R10 independent review and repair
+
+The independent R10 receipt at
+`.kstack/reviews/secret-broker-2026-08-28-wp03-r10/codex.md` has SHA-256
+`e32a1e5d765fc242c0a92a620ea3fe29ea6a4a20f338b92c779e01fa24374a76`
+and returned `revise/99`, two failed checks, two security findings, zero
+material dissent, and zero unresolved questions. It reproduced post-import
+mutation of `Array.prototype.some`/`includes`, `Set.prototype.has`, and
+`RegExp.prototype.test` bypassing record closure, the fixed diagnostic
+allowlist, and canonical update-ID validation before a protected CAS.
+
+The R10 repair captures each of those exact intrinsics at module initialization
+and invokes it only through captured `Reflect.apply`. All protected-state array
+membership decisions now use the captured primitive as well. A post-import
+mutation regression proves that symbol and string extras, caller-selected error
+codes, and noncanonical update IDs remain fixed-error rejections, and that a
+rejected advance does not consume its update ID.
+
 ## Observed verification
 
 - R9-repaired exact five-file focused matrix: 57 tests, 57 passed, zero failed
@@ -303,6 +321,16 @@ symbol-field, and non-enumerable-field attacks.
   two expected environment-gated skips; duration `506.164035ms`.
 - R9-repaired full repository suite: 1,063 tests, 1,061 passed, zero failed,
   and two expected environment-gated skips; duration `79996.262578ms`.
+- Both generated-manifest checks and `git diff --check` passed without output.
+
+- R10-repaired exact five-file focused matrix: 57 tests, 57 passed, zero failed
+  or skipped; duration `21788.363488ms`.
+- R10-repaired runtime-faithful architecture matrix: 9 tests, 9 passed, zero
+  failed or skipped; duration `5658.464581ms`.
+- R10-repaired Secret Broker CLI matrix: 24 tests, 22 passed, zero failed, and
+  two expected environment-gated skips; duration `456.280697ms`.
+- R10-repaired full repository suite: 1,063 tests, 1,061 passed, zero failed,
+  and two expected environment-gated skips; duration `75255.092903ms`.
 - Both generated-manifest checks and `git diff --check` passed without output.
 
 - R8-repaired exact five-file focused matrix: 57 tests, 57 passed, zero failed
@@ -350,8 +378,10 @@ accessor instability plus the remaining exported-boundary raw-error escapes.
 R8 identified and the current bytes repair mutable exported adapter/error
 classification and the focused-count error. R9 identified and the current
 bytes repair error-construction interception, remaining exported
-`Symbol.hasInstance` trust, and symbol/non-enumerable request fields.
-Independent R10 remains required for the exact repaired candidate.
+`Symbol.hasInstance` trust, and symbol/non-enumerable request fields. R10
+identified and the current bytes repair mutable array/set/regular-expression
+intrinsics in the closed-record and update-ID decisions. Independent R11
+remains required for the exact repaired candidate.
 
 The two skips are the fenced real Windows protected worker and fenced real
 Linux desktop Secret Service cell. The observed run made no network, Jira,

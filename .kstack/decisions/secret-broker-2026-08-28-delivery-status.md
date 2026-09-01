@@ -11,7 +11,7 @@ substitute for, or authorize through a frozen design candidate.
 | Accepted integrated candidate | SB-TC12 SHA-256 `0c516367cbf7ab6088f17f54594abd364119ad9020c90ca52ca64ed9739b681e` |
 | Closure receipt | R2 SHA-256 `2b07ca349d880f07077a1c19e35ccbdb943dfb621e0b3e6833f4c5b7e74bb0a1`; `approve/97`; all counters zero |
 | Completed delivery items | `SB-WP00` — baseline conformance fence, `approve/96`; `SB-WP01` / Jira KSTK-132 — public schemas, canonical codec, registry IDs, opaque refs, and safe CLI, `approve/96`; `SB-WP02` / Jira KSTK-133 — config-v2/package foundation, portable transactional migration, WSL-only Jira projection, acyclic manifests, and caller-ineligible provenance, `approve/97`; all counters zero |
-| Active delivery item | `SB-WP03` / Jira KSTK-135 — R9 `revise/99` error-construction interception, remaining exported `Symbol.hasInstance` trust, and symbol/non-enumerable request fields repaired with own-data-property errors, module-private provenance, and descriptor-closed requests; exact focused 57/57, architecture 9/9, and full 1,063 tests with zero failures; exact-candidate R10 pending |
+| Active delivery item | `SB-WP03` / Jira KSTK-135 — R10 `revise/99` same-realm array/set/regular-expression intrinsic mutation repaired with captured intrinsic dispatch; post-import regressions prove request closure, fixed diagnostics, canonical update IDs, and non-consumption on rejection; exact focused 57/57, architecture 9/9, and full 1,063 tests with zero failures; exact-candidate R11 pending |
 | Implementation claim | `READY_FOR_PROJECT_LOCAL_IMPLEMENTATION` |
 | Production claim | none |
 
