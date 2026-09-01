@@ -25,6 +25,7 @@ test('focused runtime final-review freeze is deterministic, complete, and secret
   assert.equal(new Set(first.artifacts.map(({ path: artifactPath }) => artifactPath)).size, first.artifacts.length);
   assert.equal(first.artifacts.some(({ path: artifactPath }) => artifactPath.startsWith('.kstack/secrets/')), false);
   assert.equal(first.artifacts.some(({ path: artifactPath }) => artifactPath.endsWith('Jira.txt')), false);
+  assert.equal(first.artifacts.some(({ path: artifactPath, role }) => artifactPath.startsWith('.kstack/evidence/') && role !== 'validation-evidence'), false);
   for (const required of [
     'plugins/kstack/scripts/kstack-host-contract.mjs',
     'plugins/kstack/scripts/kstack-domain-evaluation.mjs',

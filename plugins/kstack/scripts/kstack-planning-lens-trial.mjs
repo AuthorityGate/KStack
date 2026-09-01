@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findConfig, validateConfig } from './kstack-config.mjs';
+import { findConfig, readKStackConfig } from './kstack-config.mjs';
 import {
   analyzeTrial,
   captureOutput,
@@ -35,10 +35,7 @@ function requireArg(args, name) {
 function loadConfig(projectRoot, explicitPath) {
   const configPath = explicitPath ? path.resolve(explicitPath) : findConfig(projectRoot);
   if (!configPath) throw new Error('No .kstack/config.json found.');
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const errors = validateConfig(config, { configPath });
-  if (errors.length) throw new Error(`Invalid KStack config:\n- ${errors.join('\n- ')}`);
-  return config;
+  return readKStackConfig(configPath);
 }
 
 function initialize(directory, trialId, projectRoot) {

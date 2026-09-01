@@ -12,6 +12,11 @@ import {
   projectSecretBrokerConfig,
   validateSecretBrokerConfigValue
 } from '../plugins/kstack/scripts/secret-broker/config-v2.mjs';
+import {
+  canonicalKStackConfigV2Bytes,
+  parseKStackConfigDocument
+} from '../plugins/kstack/scripts/secret-broker/config-document-v2.mjs';
+import { defaultConfig } from '../plugins/kstack/scripts/kstack-config.mjs';
 
 const schemaPath = new URL('../plugins/kstack/schemas/secret-broker/v1/public-config.schema.json', import.meta.url);
 
@@ -80,4 +85,92 @@ test('legacy projection is disabled and v1 cannot smuggle a broker block', () =>
   );
   assert.deepEqual(projectSecretBrokerConfig({ schemaVersion: 2, secretBroker: DEFAULT_SECRET_BROKER_CONFIG }), DEFAULT_SECRET_BROKER_CONFIG);
   assert.throws(() => projectSecretBrokerConfig({ schemaVersion: 3 }), (error) => error?.code === 'KSTACK_SECRET_CONFIG_PARENT_VERSION_UNSUPPORTED');
+});
+
+test('shared config reader separates human-formatted v1 from canonical v2 before materialization', () => {
+  const legacyBytes = Buffer.from(`${JSON.stringify(defaultConfig, null, 2)}\n`, 'utf8');
+  assert.equal(parseKStackConfigDocument(legacyBytes).schemaVersion, 1);
+
+  const duplicateLegacy = legacyBytes.toString('utf8').replace(
+    '"schemaVersion": 1,',
+    '"schemaVersion": 1,\n  "schemaVersion": 1,'
+  );
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from(duplicateLegacy)),
+    (error) => error?.code === 'KSTACK_CONFIG_DUPLICATE_KEY'
+  );
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from(JSON.stringify({ ...defaultConfig, secretBroker: DEFAULT_SECRET_BROKER_CONFIG }))),
+    (error) => error?.code === 'KSTACK_SECRET_CONFIG_LEGACY_EXTENSION_FORBIDDEN'
+  );
+
+  const v2 = { ...structuredClone(defaultConfig), schemaVersion: 2, secretBroker: structuredClone(DEFAULT_SECRET_BROKER_CONFIG) };
+  const canonical = canonicalKStackConfigV2Bytes(v2);
+  assert.deepEqual(parseKStackConfigDocument(canonical), v2);
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from(`${JSON.stringify(v2, null, 2)}\n`)),
+    (error) => error?.code === 'KSTACK_CONFIG_V2_NONCANONICAL'
+  );
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from(canonical.toString('utf8').replace('"schemaVersion":2', '"schemaVersion":2,"schemaVersion":2'))),
+    (error) => error?.code === 'KSTACK_CONFIG_DUPLICATE_KEY'
+  );
+  const nestedUnknown = structuredClone(v2);
+  nestedUnknown.workflow.designGate.reviewBudget.unreviewedOverride = true;
+  assert.throws(
+    () => canonicalKStackConfigV2Bytes(nestedUnknown),
+    (error) => error?.code === 'KSTACK_CONFIG_SCHEMA_INVALID'
+  );
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.alloc(SECRET_BROKER_CONFIG_MAX_BYTES + 1, 0x20)),
+    (error) => error?.code === 'KSTACK_CONFIG_BYTES_EXCEEDED'
+  );
+});
+
+test('shared config lexer rejects every bounded hostile encoding class before use', () => {
+  const legacy = Buffer.from(`${JSON.stringify(defaultConfig, null, 2)}\n`, 'utf8');
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), legacy])),
+    (error) => error?.code === 'KSTACK_CONFIG_BOM_FORBIDDEN'
+  );
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from([0x7b, 0x22, 0xc3, 0x28, 0x22, 0x3a, 0x31, 0x7d])),
+    (error) => error?.code === 'KSTACK_CONFIG_UTF8_INVALID'
+  );
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from(`{"schemaVersion":1,"x":${'['.repeat(34)}0${']'.repeat(34)}}`)),
+    (error) => error?.code === 'KSTACK_CONFIG_DEPTH_EXCEEDED'
+  );
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from(`{"schemaVersion":1,"x":[${Array.from({ length: 1_025 }, () => '0').join(',')}]}`)),
+    (error) => error?.code === 'KSTACK_CONFIG_ARRAY_ITEMS_EXCEEDED'
+  );
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from(`{${Array.from({ length: 1_025 }, (_, index) => `"k${index}":0`).join(',')}}`)),
+    (error) => error?.code === 'KSTACK_CONFIG_OBJECT_PROPERTIES_EXCEEDED'
+  );
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from(`{"schemaVersion":1,"x":"${'a'.repeat(16_385)}"}`)),
+    (error) => error?.code === 'KSTACK_CONFIG_STRING_BYTES_EXCEEDED'
+  );
+  for (const numeral of ['9007199254740992', '-9007199254740992', '-0', '1.0', '1e2']) {
+    assert.throws(
+      () => parseKStackConfigDocument(Buffer.from(`{"schemaVersion":1,"x":${numeral}}`)),
+      (error) => error?.code === 'KSTACK_CONFIG_JSON_NUMBER_INVALID'
+    );
+  }
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from('{"schemaVersion":1} false')),
+    (error) => error?.code === 'KSTACK_CONFIG_TRAILING_DATA'
+  );
+  for (const escaped of ['\\ud800', '\\udc00', '\\ud800\\u0041']) {
+    assert.throws(
+      () => parseKStackConfigDocument(Buffer.from(`{"schemaVersion":1,"x":"${escaped}"}`)),
+      (error) => error?.code === 'KSTACK_CONFIG_JSON_SURROGATE_INVALID'
+    );
+  }
+  assert.throws(
+    () => parseKStackConfigDocument(Buffer.from('{"schemaVersion":1,"x":"é"}')),
+    (error) => error?.code === 'KSTACK_CONFIG_STRING_INVALID'
+  );
 });

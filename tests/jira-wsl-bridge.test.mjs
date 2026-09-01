@@ -13,12 +13,14 @@ test('native Windows Jira bridge has a closed command and execution surface', ()
   assert.match(source, /ValidateSet\('append', 'list', 'sync'\)/u);
   assert.match(source, /'--distribution'.*'--exec'/u);
   assert.match(source, /kstack-jira-tracking[.]mjs/u);
+  assert.match(source, /kstack-jira-wsl-config[.]mjs/u);
   assert.match(source, /KSTACK_JIRA_WSL_DISTRIBUTION_MISMATCH/u);
   assert.match(source, /KSTACK_JIRA_WSL_PROJECT_MISMATCH/u);
   assert.match(source, /\/usr\/bin\/mktemp/u);
   assert.match(source, /\/usr\/bin\/chmod' '600'/u);
   assert.doesNotMatch(source, /Invoke-Expression|Start-Process|cmd[.]exe|bash|-lc|sh -c/iu);
   assert.doesNotMatch(source, /credentialSource[.]path.*Get-Content|Authorization|apiToken|password/iu);
+  assert.doesNotMatch(source, /Get-Content -LiteralPath \$configPath -Raw \| ConvertFrom-Json/u);
 });
 
 test('WSL Jira executor binding is exact and contains no credential metadata', () => {

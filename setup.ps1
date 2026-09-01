@@ -45,7 +45,7 @@ function Copy-KStackRuntime {
   foreach ($directory in @('acquisition', 'scripts', 'hooks', 'packs', 'personas', 'schemas', 'native', 'workers', 'vendor', 'node_modules', 'skills', 'references', '.codex-plugin', '.claude-plugin')) {
     Invoke-KStackNative -Executable $RuntimeNode -Arguments @($copyHelper, (Join-Path $SourceRoot $directory), (Join-Path $Destination $directory)) | Out-Null
   }
-  foreach ($file in @('package.json', 'package-lock.json', '.npmrc', 'install-health-contract-v1.json', 'install-health-audit-manifest-v1.json', 'install-health-authority-registry-v1.json', 'secret-broker-accepted-design-v1.json')) {
+  foreach ($file in @('package.json', 'package-lock.json', '.npmrc', 'install-health-contract-v1.json', 'install-health-audit-manifest-v1.json', 'install-health-authority-registry-v1.json', 'secret-broker-accepted-design-v1.json', 'secret-broker-release-manifest-v1.json', 'secret-broker-source-audit-manifest-v1.json')) {
     Copy-Item -LiteralPath (Join-Path $SourceRoot $file) -Destination (Join-Path $Destination $file)
   }
   $marketplaceDirectory = Join-Path $Destination '.agents\plugins'

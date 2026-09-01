@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findOutboundSecret } from './kstack-safety-matchers.mjs';
+import { parseKStackConfigDocument } from './secret-broker/config-document-v2.mjs';
 
 // 256 KiB leaves ample headroom for serialized metadata plus ordinary tool inputs
 // containing tens of KiB of embedded content, while retaining a finite resource bound.
@@ -155,7 +156,7 @@ export function readActivation(cwd, { pluginRoot = process.env.CLAUDE_PLUGIN_ROO
     if (value.schemaVersion !== 1 || typeof value.enabled !== 'boolean' || value.activation?.user !== true || value.activation?.project !== true) throw new Error('registration schema is invalid');
     if (value.enabled === false) return Object.freeze({ active: false, status: 'DISABLED', root: found.root });
     const configBytes = readTrustedProjectFile(found.root, 'config.json', 1024 * 1024);
-    const config = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(configBytes));
+    const config = parseKStackConfigDocument(configBytes);
     const authority = validatedAuthority(config);
     let status = 'ENABLED';
     const policyDigest = crypto.createHash('sha256').update(configBytes).digest('hex');

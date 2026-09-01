@@ -7,6 +7,8 @@ import path from 'node:path';
 import readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 import { validateConfig } from './kstack-config.mjs';
+import { canonicalKStackConfigV2Bytes, parseKStackConfigDocument } from './secret-broker/config-document-v2.mjs';
+import { withKStackConfigWriteLock } from './secret-broker/config-migration-v2.mjs';
 import { canonicalJson } from './kstack-safety-broker.mjs';
 import {
   EXIT, JiraQueueError, classifyFetchError, jiraRequest, loadJiraState,
@@ -464,22 +466,26 @@ export async function startProjectSpace(state, args = {}) {
     if (existingRecord && existingRecord.state !== 'skipped') {
       fail('this repository already has a Jira delivery-stack record; use show, validate, apply, or reconcile instead of replacing it', EXIT.STATE_ERROR);
     }
-    const oldBytes = await fsp.readFile(state.configPath);
-    let currentConfig;
-    try { currentConfig = JSON.parse(oldBytes.toString('utf8')); } catch (error) {
-      fail(`KStack configuration changed or became invalid: ${sanitize(error.message)}`, EXIT.CONFIG_INVALID);
-    }
-    if (canonicalJson(currentConfig) !== canonicalJson(state.config)) fail('KStack configuration changed before Jira start', EXIT.CONFIG_DRIFT);
-    const newBytes = Buffer.from(`${JSON.stringify(configured.config, null, 2)}\n`, 'utf8');
-    const originalMode = (await fsp.stat(state.configPath)).mode & 0o777;
-    await atomicReplaceFile(state.configPath, newBytes, originalMode);
-    try {
-      return await previewDeliveryStackUnlocked(proposedState, previewArgs, lock);
-    } catch (error) {
-      const currentBytes = await fsp.readFile(state.configPath).catch(() => null);
-      if (currentBytes?.equals(newBytes)) await atomicReplaceFile(state.configPath, oldBytes, originalMode);
-      throw error;
-    }
+    return withKStackConfigWriteLock(state.configPath, async () => {
+      const oldBytes = await fsp.readFile(state.configPath);
+      let currentConfig;
+      try { currentConfig = parseKStackConfigDocument(oldBytes); } catch (error) {
+        fail(`KStack configuration changed or became invalid: ${sanitize(error.message)}`, EXIT.CONFIG_INVALID);
+      }
+      if (canonicalJson(currentConfig) !== canonicalJson(state.config)) fail('KStack configuration changed before Jira start', EXIT.CONFIG_DRIFT);
+      const newBytes = configured.config.schemaVersion === 2
+        ? canonicalKStackConfigV2Bytes(configured.config)
+        : Buffer.from(`${JSON.stringify(configured.config, null, 2)}\n`, 'utf8');
+      const originalMode = (await fsp.stat(state.configPath)).mode & 0o777;
+      await atomicReplaceFile(state.configPath, newBytes, originalMode);
+      try {
+        return await previewDeliveryStackUnlocked(proposedState, previewArgs, lock);
+      } catch (error) {
+        const currentBytes = await fsp.readFile(state.configPath).catch(() => null);
+        if (currentBytes?.equals(newBytes)) await atomicReplaceFile(state.configPath, oldBytes, originalMode);
+        throw error;
+      }
+    });
   });
 }
 

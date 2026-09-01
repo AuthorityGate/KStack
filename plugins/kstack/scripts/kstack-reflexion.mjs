@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { validateConfig } from './kstack-config.mjs';
+import { readKStackConfig } from './kstack-config.mjs';
 import { scanTextForSecrets } from './kstack-memory.mjs';
 import { categoricalEncode, isWellFormedScalarString, matchLessons, normalizeMatchValue, renderActorReference, renderEvidenceReport, scalarLength } from './reflexion/retrieval-core.mjs';
 import { diagnoseCurrentCorpus, formatLockTimeoutDiagnosis, migrateKstackMode, mutateValidatedCorpus, readValidatedCorpus, repairCorpusFromCandidate, resolveProjectCorpus } from './reflexion/corpus-io.mjs';
@@ -78,8 +78,7 @@ function loadState(args, { mutation = false } = {}) {
   const location = resolveProjectCorpus(selected, { mutation });
   const configPath = typeof args.config === 'string' ? path.resolve(initialCwd, args.config) : path.join(location.rootReal, '.kstack', 'config.json');
   let config;
-  try { config = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch { throw fixedError('KSTACK_REFLEXION_CONFIG_INVALID'); }
-  if (validateConfig(config).length) throw fixedError('KSTACK_REFLEXION_CONFIG_INVALID');
+  try { config = readKStackConfig(configPath); } catch { throw fixedError('KSTACK_REFLEXION_CONFIG_INVALID'); }
   return Object.freeze({ config, configPath, projectRoot: location.rootReal, location, projectRootDefaulted: defaulted });
 }
 

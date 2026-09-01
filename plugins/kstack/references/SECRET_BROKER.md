@@ -15,6 +15,47 @@ available, but every plan item is `UNAVAILABLE`; a caller-declared qualified
 cell is explicitly non-authoritative. The fence may be narrowed only by a later
 reviewed implementation item on the accepted design set.
 
+WP02 supplies only the value-free configuration and package foundation. One
+bounded duplicate-safe reader accepts exact legacy schema 1 as human-formatted
+JSON, rejects a broker block there, and accepts schema 2 only as canonical JSON
+with closed keys at every level. The synthetic migrator retains the exact v1
+preimage, journals and fsyncs the change, serializes every known repository
+config writer under one private lock derived only from the canonical config
+path, and uses a durable candidate plus an exclusive claim/install protocol.
+That protocol verifies the claimed inode after rename, never overwrites a path
+occupied by another writer, and recovers a crash with the active path absent or
+with either complete version installed. Journals, backups, fences, candidates,
+and locks are published only after their complete bytes are fsynced. Every
+artifact path must be distinct under portable case-folded normalization and,
+when it already exists, filesystem identity, so a Windows case alias or hard
+link cannot substitute for the retained preimage. The journal lock's
+stale-owner path is serialized by a separate exclusive reaper; an existing
+reaper is checked before main-lock acquisition, so even a reaper-only crash
+state fails closed for explicit operator recovery rather than risking removal
+of a newly acquired live lock. The native Windows Jira handoff
+obtains only a fixed value-free projection from the shared WSL config reader
+and never parses repository config directly. The
+journal binds the only admitted fence path. An intact durable
+`CONFIG_V2_COMMITTED` fence plus committed journal phase permanently denies v1
+rollback through the WP02 API before any later protected effect may begin.
+These same-principal files are not a custody or anti-tamper boundary: deletion
+or mutation produces explicit drift and fails closed, while stronger protected
+retention remains future work. WP02 does not migrate this repository's live
+configuration or contact its credential source.
+
+The Secret Broker release and source-audit manifests are deliberately acyclic:
+the release manifest excludes both manifests, while the self-excluding source
+audit includes and digest-binds the canonical completed release manifest.
+Publication provenance is a
+third external record signed by builder, security-approver, and publisher
+principals with distinct references and distinct Ed25519 public keys. The WP02
+verifier can prove only cryptographic agreement with caller-supplied bytes;
+that result is explicitly `SIGNED_PUBLICATION_CALLER_VERIFIED` and is never
+pilot- or production-eligible. No shipped installer or protected adapter
+supplies an authenticated operator pin or installed-byte binding yet.
+Consequently an ordinary checkout remains `UNSIGNED_DEVELOPMENT`, and
+caller-created roots, keys, labels, or signatures cannot bootstrap trust.
+
 ## Evidence levels
 
 - `DISCOVERED`: a backend or adapter is present; no use claim.

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readActivation } from './kstack-safety-hook.mjs';
 import { defaultGitPushCredentialPath } from './kstack-safety-executor.mjs';
+import { parseKStackConfigDocument } from './secret-broker/config-document-v2.mjs';
 
 export const SAFETY_CONTROL_FILES = Object.freeze([
   'hooks/hooks.json',
@@ -71,8 +72,9 @@ function durableWrite(file, value) {
 }
 
 function policySnapshot(projectRoot, existing) {
-  const bytes = descriptorRead(path.join(stateDirectory(projectRoot), 'config.json'));
-  const config = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  const configPath = path.join(stateDirectory(projectRoot), 'config.json');
+  const bytes = descriptorRead(configPath);
+  const config = parseKStackConfigDocument(bytes);
   const keys = ['inspect', 'edit', 'test', 'commit', 'push', 'pullRequest', 'merge', 'deploy', 'deviceInstall', 'destructive', 'externalTicketCreation'];
   for (const key of keys) if (!['allow', 'ask', 'deny'].includes(config?.authority?.[key])) throw new Error('KSTACK_SAFETY_AUTHORITY_INVALID');
   const policyDigest = sha256(bytes);

@@ -74,16 +74,6 @@ try {
   $boundWindowsPath = [IO.Path]::GetFullPath([string]$binding.windowsRepositoryPath).TrimEnd([IO.Path]::DirectorySeparatorChar)
   if ($boundWindowsPath -cne $projectPath) { Fail-KStackJiraWsl 'KSTACK_JIRA_WSL_PROJECT_MISMATCH' }
 
-  try { $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json } catch {
-    Fail-KStackJiraWsl 'KSTACK_JIRA_WSL_CONFIG_INVALID'
-  }
-  if (($config.jira.enabled -ne $true) -or
-    ($config.jira.tracking.repositoryNamespace -cne [string]$binding.repositoryNamespace) -or
-    ($config.jira.credentialSource.type -cne 'file') -or
-    ([string]$config.jira.credentialSource.path -cnotmatch '^/')) {
-    Fail-KStackJiraWsl 'KSTACK_JIRA_WSL_CONFIG_INVALID'
-  }
-
   $systemDirectory = [Environment]::GetFolderPath([Environment+SpecialFolder]::System)
   $wsl = Assert-RegularFile (Join-Path $systemDirectory 'wsl.exe') 'KSTACK_JIRA_WSL_EXECUTOR_UNAVAILABLE'
   $distributions = @(& $wsl '--list' '--quiet') | ForEach-Object { ([regex]::Replace([string]$_, "`0", '')).Trim() } | Where-Object { $_ }
@@ -99,6 +89,19 @@ try {
 
   $wslRoot = [string]$binding.wslRepositoryPath
   $wslConfig = "$wslRoot/.kstack/config.json"
+  $wslConfigScript = "$wslRoot/plugins/kstack/scripts/kstack-jira-wsl-config.mjs"
+  $projectionLines = @(Invoke-WslCapture $wsl ([string]$binding.distribution) @([string]$binding.nodePath, $wslConfigScript, $wslConfig) 'KSTACK_JIRA_WSL_CONFIG_INVALID')
+  try { $configProjection = (@($projectionLines) -join "`n") | ConvertFrom-Json } catch {
+    Fail-KStackJiraWsl 'KSTACK_JIRA_WSL_CONFIG_INVALID'
+  }
+  if ((Get-ExactKeys $configProjection) -cne 'credentialSourceAbsolute,credentialSourceType,jiraEnabled,repositoryNamespace,schemaVersion' -or
+    ($configProjection.schemaVersion -cne 'kstack-jira-wsl-config-projection-v1') -or
+    ($configProjection.jiraEnabled -ne $true) -or
+    ($configProjection.repositoryNamespace -cne [string]$binding.repositoryNamespace) -or
+    ($configProjection.credentialSourceType -cne 'file') -or
+    ($configProjection.credentialSourceAbsolute -ne $true)) {
+    Fail-KStackJiraWsl 'KSTACK_JIRA_WSL_CONFIG_INVALID'
+  }
   $wslScript = "$wslRoot/plugins/kstack/scripts/kstack-jira-tracking.mjs"
   $arguments = @('--distribution', [string]$binding.distribution, '--exec', [string]$binding.nodePath, $wslScript, $Command)
   if ($Command -eq 'append') {

@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { parseKStackConfigDocument } from './secret-broker/config-document-v2.mjs';
 
 export const OPEN_PROFILE_EXCEPTIONS = Object.freeze([
   'readCitationGroundingModeSelectorV1',
@@ -499,7 +500,7 @@ export function readCitationGroundingModeSelectorV1(checkoutRoot, { fsImpl = fs 
     if (!sameNodeIdentity(heldBefore, heldAfter) || !sameNodeIdentity(heldAfter, after)
         || heldBefore.size !== heldAfter.size || heldAfter.size !== BigInt(bytes.length)
         || heldBefore.mtimeNs !== heldAfter.mtimeNs || heldBefore.ctimeNs !== heldAfter.ctimeNs) return 'invalid';
-    const parsed = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    const parsed = parseKStackConfigDocument(bytes);
     const designGate = parsed?.workflow?.designGate;
     if (!designGate || !Object.hasOwn(designGate, 'citationGrounding') || designGate.citationGrounding === 'off') return 'legacy-off';
     return designGate.citationGrounding === 'advisory' ? 'candidate-advisory' : 'invalid';

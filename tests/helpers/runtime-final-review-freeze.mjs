@@ -120,6 +120,7 @@ function artifactRole(relativePath) {
   if (relativePath.startsWith('.kstack/roadmaps/')) return 'roadmap';
   if (relativePath.startsWith('.kstack/objectives/')) return 'objective';
   if (relativePath.startsWith('.kstack/qualifications/')) return 'qualification-evidence';
+  if (relativePath.startsWith('.kstack/evidence/')) return 'validation-evidence';
   if (relativePath.startsWith('.kstack/reviews/')) return 'validation-evidence';
   if (relativePath.startsWith('.kstack/decisions/')) {
     return relativePath.endsWith('runtime-maturity-focused-2026-08-28-status.md') ? 'deferred-status-report' : 'governing-decision';

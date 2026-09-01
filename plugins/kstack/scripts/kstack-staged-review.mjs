@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defaultConfig, findConfig, validateConfig } from './kstack-config.mjs';
+import { defaultConfig, findConfig, readKStackConfig } from './kstack-config.mjs';
 import { assertOutboundSecretScan, claudeInvocationArgs, readCapped, runProcess, sanitize } from './kstack-provider-runner.mjs';
 import { extractReview, finalBugFixIntake, reviewResponseSchema, sha256 } from './kstack-review-schema.mjs';
 import {
@@ -43,9 +43,7 @@ export function parseStagedReviewArgs(argv) {
 function loadConfig(projectRoot, explicitPath) {
   const file = explicitPath ? path.resolve(explicitPath) : findConfig(projectRoot);
   if (!file) return { file: null, config: structuredClone(defaultConfig) };
-  const config = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const errors = validateConfig(config);
-  if (errors.length) throw new Error(`Invalid KStack config:\n- ${errors.join('\n- ')}`);
+  const config = readKStackConfig(file);
   return { file, config };
 }
 

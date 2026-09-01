@@ -14,7 +14,7 @@ for (let index = 2; index < process.argv.length; index += 1) {
 }
 const outputPath = path.join(pluginRoot, 'install-health-audit-manifest-v1.json');
 const roots = ['acquisition', 'hooks', 'packs', 'personas', 'references', 'schemas', 'scripts', 'skills', 'workers'];
-const topLevel = ['.claude-plugin/plugin.json', '.codex-plugin/plugin.json', '.npmrc', 'install-health-authority-registry-v1.json', 'install-health-contract-v1.json', 'package-lock.json', 'package.json', 'secret-broker-accepted-design-v1.json'];
+const topLevel = ['.claude-plugin/plugin.json', '.codex-plugin/plugin.json', '.npmrc', 'install-health-authority-registry-v1.json', 'install-health-contract-v1.json', 'package-lock.json', 'package.json', 'secret-broker-accepted-design-v1.json', 'secret-broker-release-manifest-v1.json', 'secret-broker-source-audit-manifest-v1.json'];
 
 function walk(relative, entries) {
   const absolute = path.join(pluginRoot, relative);

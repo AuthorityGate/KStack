@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readKStackConfig } from './kstack-config.mjs';
 import { claudeInvocationArgs, readCapped, runProcess } from './kstack-provider-runner.mjs';
 import { groundingReviewResponseSchema } from './kstack-review-schema.mjs';
 import {
@@ -32,7 +33,7 @@ function parseArgs(argv) {
 function load(projectRoot) {
   const configFile = path.join(projectRoot, '.kstack', 'config.json');
   const configBytes = fs.readFileSync(configFile);
-  return { config: JSON.parse(configBytes), configBytes };
+  return { config: readKStackConfig(configFile), configBytes };
 }
 
 function smokeSchema() {

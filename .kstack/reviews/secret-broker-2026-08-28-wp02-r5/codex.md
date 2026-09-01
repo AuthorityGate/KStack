@@ -1,0 +1,1 @@
+{"decision":"approve","confidence":97,"failedChecks":[],"securityFindings":[],"materialDissent":[],"recommendation":"Close KSTK-133 as validated and preserve the documented WP02 fences and scope boundaries for WP03.","strongestObjection":"","unresolvedQuestions":[]}

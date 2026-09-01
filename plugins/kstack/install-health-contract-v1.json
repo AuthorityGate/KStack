@@ -28,6 +28,10 @@
     { "probeId": "reflexion-no-match-v1", "path": "scripts/kstack-reflexion.mjs", "kind": "reflexion-no-match-v1" },
     { "probeId": "safety-admin-import-v1", "path": "scripts/kstack-safety-admin.mjs", "kind": "esm-import-v1" },
     { "probeId": "secret-broker-import-v1", "path": "scripts/kstack-secret-broker.mjs", "kind": "esm-import-v1" },
+    { "probeId": "secret-config-document-import-v1", "path": "scripts/secret-broker/config-document-v2.mjs", "kind": "esm-import-v1" },
+    { "probeId": "secret-config-migration-import-v1", "path": "scripts/secret-broker/config-migration-v2.mjs", "kind": "esm-import-v1" },
+    { "probeId": "secret-release-manifest-import-v1", "path": "scripts/secret-broker/release-manifest-v1.mjs", "kind": "esm-import-v1" },
+    { "probeId": "secret-release-provenance-import-v1", "path": "scripts/secret-broker/release-provenance-v1.mjs", "kind": "esm-import-v1" },
     { "probeId": "workflow-contract-import-v1", "path": "scripts/kstack-workflow-contract.mjs", "kind": "esm-import-v1" }
   ]
 }

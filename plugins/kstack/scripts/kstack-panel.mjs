@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { defaultConfig, findConfig, validateConfig } from './kstack-config.mjs';
+import { defaultConfig, findConfig, readKStackConfig, validateConfig } from './kstack-config.mjs';
 import { assertOutboundSecretScan } from './kstack-safety-matchers.mjs';
 import { claudeInvocationArgs } from './kstack-provider-runner.mjs';
 import {
@@ -38,7 +38,7 @@ function parseArgs(argv) {
 
 function readConfig(projectRoot, explicitPath) {
   const file = explicitPath ? path.resolve(explicitPath) : findConfig(projectRoot);
-  const config = file ? JSON.parse(fs.readFileSync(file, 'utf8')) : structuredClone(defaultConfig);
+  const config = file ? readKStackConfig(file) : structuredClone(defaultConfig);
   const errors = validateConfig(config, { configPath: file });
   if (errors.length) fail('PANEL_CONFIG_INVALID', errors.join('; '));
   return { file, config };

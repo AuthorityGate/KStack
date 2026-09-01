@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
-import { findConfig, validateConfig } from './kstack-config.mjs';
+import { findConfig, readKStackConfig } from './kstack-config.mjs';
 import { sanitize } from './kstack-provider-runner.mjs';
 
 export const EXIT = Object.freeze({
@@ -184,11 +184,9 @@ export async function loadJiraState(options = {}) {
   const configPath = options.configPath ? path.resolve(options.configPath) : findConfig(options.cwd || process.cwd());
   if (!configPath) fail('No .kstack/config.json found.', EXIT.CONFIG_INVALID);
   let config;
-  try { config = JSON.parse(await fsp.readFile(configPath, 'utf8')); } catch (error) {
+  try { config = readKStackConfig(configPath, { command: options.command }); } catch (error) {
     fail(`could not load config: ${sanitize(error.message)}`, EXIT.CONFIG_INVALID);
   }
-  const errors = validateConfig(config, { configPath, command: options.command });
-  if (errors.length) fail(`invalid config: ${errors.join('; ')}`, EXIT.CONFIG_INVALID);
   const repoRoot = path.dirname(path.dirname(configPath));
   if (!versionAtLeast(process.versions.node, config.jira.nodeMinVersion)) {
     fail(`Node ${config.jira.nodeMinVersion}+ is required; found ${process.versions.node}`, EXIT.CONFIG_INVALID);

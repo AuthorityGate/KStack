@@ -45,8 +45,14 @@ test('the narrow mode selector returns only its closed outcomes and rejects a sy
   const config = path.join(configDirectory, 'config.json');
   fs.mkdirSync(configDirectory);
   assert.equal(readCitationGroundingModeSelectorV1(root), 'legacy-off');
-  fs.writeFileSync(config, '{"workflow":{"designGate":{"citationGrounding":"advisory"}}}');
+  const advisory = structuredClone(defaultConfig);
+  advisory.workflow.designGate.citationGrounding = 'advisory';
+  fs.writeFileSync(config, `${JSON.stringify(advisory, null, 2)}\n`);
   assert.equal(readCitationGroundingModeSelectorV1(root), 'candidate-advisory');
+  const unsupported = structuredClone(advisory);
+  unsupported.schemaVersion = 2;
+  fs.writeFileSync(config, JSON.stringify(unsupported));
+  assert.equal(readCitationGroundingModeSelectorV1(root), 'invalid');
   fs.writeFileSync(config, '{not json');
   assert.equal(readCitationGroundingModeSelectorV1(root), 'invalid');
   fs.unlinkSync(config);

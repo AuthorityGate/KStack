@@ -306,7 +306,9 @@ install_runtime() {
   cp "$ROOT/plugins/kstack/install-health-contract-v1.json" \
     "$ROOT/plugins/kstack/install-health-audit-manifest-v1.json" \
     "$ROOT/plugins/kstack/install-health-authority-registry-v1.json" \
-    "$ROOT/plugins/kstack/secret-broker-accepted-design-v1.json" "$runtime_root/"
+    "$ROOT/plugins/kstack/secret-broker-accepted-design-v1.json" \
+    "$ROOT/plugins/kstack/secret-broker-release-manifest-v1.json" \
+    "$ROOT/plugins/kstack/secret-broker-source-audit-manifest-v1.json" "$runtime_root/"
   mkdir -p "$runtime_root/.codex-plugin"
   cp "$ROOT/plugins/kstack/.codex-plugin/plugin.json" "$runtime_root/.codex-plugin/plugin.json"
   mkdir -p "$runtime_root/.claude-plugin"
@@ -383,6 +385,8 @@ try {
     "install-health-audit-manifest-v1.json",
     "install-health-authority-registry-v1.json",
     "secret-broker-accepted-design-v1.json",
+    "secret-broker-release-manifest-v1.json",
+    "secret-broker-source-audit-manifest-v1.json",
     "scripts/kstack-reflexion.mjs",
     "scripts/kstack-config.mjs",
     "scripts/kstack-memory.mjs",

@@ -3,6 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { sanitize } from './kstack-provider-runner.mjs';
+import { parseKStackConfigDocument } from './secret-broker/config-document-v2.mjs';
+import { projectSecretBrokerConfig } from './secret-broker/config-v2.mjs';
 
 export const defaultConfig = {
   schemaVersion: 1,
@@ -400,7 +402,8 @@ export function validateConfig(config, options = {}) {
 
   need(config && typeof config === 'object' && !Array.isArray(config), 'config must be an object');
   if (!config || typeof config !== 'object') return errors;
-  need(config.schemaVersion === 1, 'schemaVersion must be 1');
+  need(config.schemaVersion === 1 || config.schemaVersion === 2, 'schemaVersion must be 1 or 2');
+  try { projectSecretBrokerConfig(config); } catch (error) { need(false, error.code ?? 'secretBroker configuration is invalid'); }
   need(typeof config.project?.name === 'string', 'project.name must be a string');
   need(Array.isArray(config.project?.roots) && config.project.roots.length > 0, 'project.roots must be a non-empty array');
   need(allowed.objectiveDepth.has(config.workflow?.objectiveDepth), 'workflow.objectiveDepth is invalid');
@@ -800,8 +803,16 @@ export function findConfig(start = process.cwd()) {
   }
 }
 
-function readJson(file) {
-  return JSON.parse(fs.readFileSync(file, 'utf8'));
+export function readKStackConfig(file, options = {}) {
+  const config = parseKStackConfigDocument(fs.readFileSync(file));
+  const errors = validateConfig(config, { ...options, configPath: options.configPath ?? file });
+  if (errors.length) {
+    const error = new Error(`Invalid KStack config:\n- ${errors.join('\n- ')}`);
+    error.code = 'KSTACK_CONFIG_INVALID';
+    error.validationErrors = errors;
+    throw error;
+  }
+  return config;
 }
 
 function main(argv) {
@@ -820,16 +831,9 @@ function main(argv) {
 
   let config;
   try {
-    config = readJson(file);
+    config = readKStackConfig(file);
   } catch (error) {
     console.error(`${file}: ${error.message}`);
-    process.exitCode = 2;
-    return;
-  }
-
-  const errors = validateConfig(config, { configPath: file });
-  if (errors.length) {
-    for (const error of errors) console.error(`- ${error}`);
     process.exitCode = 2;
     return;
   }

@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findConfig, validateConfig } from './kstack-config.mjs';
+import { findConfig, readKStackConfig } from './kstack-config.mjs';
 import { finalBugFixIntake, sha256, validateReview } from './kstack-review-schema.mjs';
 import { buildDecisionPacket, evaluateGroundingOverlay, frameDecisionPacket, verifyDecisionPacket } from './kstack-citation-grounding.mjs';
 import {
@@ -59,9 +59,7 @@ function readRegularBytes(file) {
 export function evaluateDesignGate({ designFile, reviewDir, checksFile, configFile, round, skillClass = false }) {
   const design = fs.readFileSync(designFile);
   const designDigest = sha256(design);
-  const config = readJson(configFile);
-  const configErrors = validateConfig(config);
-  if (configErrors.length) throw new Error(`Invalid KStack config: ${configErrors.join('; ')}`);
+  const config = readKStackConfig(configFile);
   const policy = config.workflow.designGate;
   if (!policy) throw new Error('workflow.designGate is required');
 

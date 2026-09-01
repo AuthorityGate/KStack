@@ -6,7 +6,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
-import { findConfig, validateConfig } from './kstack-config.mjs';
+import { findConfig, readKStackConfig } from './kstack-config.mjs';
 import { sha256 } from './kstack-review-schema.mjs';
 
 const maxArtifactBytes = 1024 * 1024;
@@ -119,9 +119,7 @@ function ensureAuthority(memory, action, approved) {
 function loadState(configPath) {
   const resolvedConfig = configPath ? path.resolve(configPath) : findConfig();
   if (!resolvedConfig) throw new Error('No .kstack/config.json found.');
-  const config = JSON.parse(fs.readFileSync(resolvedConfig, 'utf8'));
-  const errors = validateConfig(config);
-  if (errors.length) throw new Error(`Invalid KStack config: ${errors.join('; ')}`);
+  const config = readKStackConfig(resolvedConfig);
   if (!config.memory?.enabled) throw new Error('KStack memory is disabled; run kstack-init or kstack-memory setup first.');
   const projectRoot = path.dirname(path.dirname(resolvedConfig));
   const bodyDirectory = path.resolve(projectRoot, config.memory.bodyDirectory);

@@ -930,6 +930,16 @@ test('activation is idempotent, preserves explicit disablement, and reports cont
   assert.equal(readActivation(projectRoot, { pluginRoot }).status, 'OUTSIDE-ENROLLMENT');
 });
 
+test('safety administration rejects duplicate-key repository policy through the shared config boundary', () => {
+  const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-safety-admin-duplicate-config-'));
+  writePolicy(projectRoot);
+  const configPath = path.join(projectRoot, '.kstack', 'config.json');
+  const source = fs.readFileSync(configPath, 'utf8');
+  fs.writeFileSync(configPath, source.replace('"authority":{', '"authority":{},"authority":{'), { mode: 0o600 });
+  assert.throws(() => activateSafetyHooks({ projectRoot, pluginRoot: path.resolve('plugins/kstack') }));
+  assert.equal(fs.existsSync(path.join(projectRoot, '.kstack', 'safety-hooks.json')), false);
+});
+
 test('canonical output is deterministic and broker failures use typed non-secret errors', () => {
   assert.equal(canonicalJson({ b: 2, a: ['x', true] }), '{"a":["x",true],"b":2}');
   const error = new SafetyProtocolError('KSG-TEST-001');
