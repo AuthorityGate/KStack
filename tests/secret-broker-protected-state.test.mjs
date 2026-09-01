@@ -18,11 +18,13 @@ import {
   parseAuthorityHead,
   reconcileAuditAdvance,
   reconcileAuthorityAdvance,
+  validateSecretUpdateId,
   validateAuditHeadValue,
   validateAuthorityHeadValue
 } from '../plugins/kstack/scripts/secret-broker/control-plane-v1.mjs';
 import {
   SyntheticProtectedStateAdapter,
+  SyntheticProtectedStateError,
   syntheticProtectedStateSnapshotBytes
 } from '../plugins/kstack/scripts/secret-broker/synthetic-protected-state-v1.mjs';
 
@@ -63,6 +65,15 @@ function throwingControlPlaneProperty(value, key, text = 'CALLER_CONTROL_PLANE_T
   Object.defineProperty(value, key, {
     enumerable: true,
     get() { throw new SecretControlPlaneError(text); }
+  });
+  return value;
+}
+
+function statefulProperty(value, key, first, later) {
+  let reads = 0;
+  Object.defineProperty(value, key, {
+    enumerable: true,
+    get() { reads += 1; return reads === 1 ? first : later; }
   });
   return value;
 }
@@ -197,6 +208,50 @@ test('authority and audit head codecs are closed, canonical, and exact', () => {
     assert.throws(
       () => parseAuditHead(hostileInput),
       (error) => error?.code === 'KSTACK_SECRET_AUDIT_HEAD_ENCODING_INVALID' && error.message === error.code
+    );
+  }
+
+  for (const action of [
+    () => validateAuthorityHeadValue(statefulProperty({ ...authority }, 'authorityEpoch', 1, 2)),
+    () => canonicalAuthorityHeadBytes(statefulProperty({ ...authority }, 'authorityEpoch', 1, 2)),
+    () => authorityHeadDigest(statefulProperty({ ...authority }, 'authorityEpoch', 1, 2)),
+    () => authoritySuccessor(statefulProperty({ ...authority }, 'authorityEpoch', 1, 2), UPDATE_1),
+    () => reconcileAuthorityAdvance(statefulProperty({ ...authority }, 'authorityEpoch', 1, 2), UPDATE_1, authority),
+    () => reconcileAuthorityAdvance(authority, UPDATE_1, statefulProperty({ ...authority }, 'authorityEpoch', 1, 2))
+  ]) {
+    assert.throws(action, (error) => error?.code === 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID' && error.message === error.code);
+  }
+  for (const action of [
+    () => validateAuditHeadValue(statefulProperty({ ...audit }, 'ordinal', 0, 1)),
+    () => canonicalAuditHeadBytes(statefulProperty({ ...audit }, 'ordinal', 0, 1)),
+    () => auditSuccessor(statefulProperty({ ...audit }, 'ordinal', 0, 1), EVENT_A, UPDATE_1),
+    () => reconcileAuditAdvance(statefulProperty({ ...audit }, 'ordinal', 0, 1), EVENT_A, UPDATE_1, audit),
+    () => reconcileAuditAdvance(audit, EVENT_A, UPDATE_1, statefulProperty({ ...audit }, 'ordinal', 0, 1))
+  ]) {
+    assert.throws(action, (error) => error?.code === 'KSTACK_SECRET_AUDIT_HEAD_INVALID' && error.message === error.code);
+  }
+
+  for (const hostileOptions of [
+    throwingProperty({}, 'allowOrigin'),
+    throwingControlPlaneProperty({}, 'code'),
+    new Proxy({}, { getPrototypeOf() { throw new Error('CALLER_OPTION_REFLECTION'); } }),
+    { code: 'CALLER_SELECTED_ERROR' }
+  ]) {
+    assert.throws(
+      () => validateSecretUpdateId('invalid', hostileOptions),
+      (error) => error?.code === 'KSTACK_SECRET_UPDATE_ID_INVALID' && error.message === error.code
+    );
+  }
+
+  const state = fixture();
+  for (const hostileAdapter of [
+    new Proxy({}, { getPrototypeOf() { throw new Error('CALLER_ADAPTER_REFLECTION'); } }),
+    new Proxy({}, { getPrototypeOf() { throw new SyntheticProtectedStateError('CALLER_ADAPTER_TYPED_REFLECTION'); } }),
+    new Proxy(state.adapter, {})
+  ]) {
+    assert.throws(
+      () => syntheticProtectedStateSnapshotBytes(hostileAdapter),
+      (error) => error?.code === 'KSTACK_SECRET_PROTECTED_ADAPTER_INVALID' && error.message === error.code
     );
   }
 });
@@ -559,6 +614,7 @@ test('every authority and audit retirement persistence boundary retains a store-
       assert.throws(retry, (error) => error?.code === 'KSTACK_SECRET_PROTECTED_STATE_LOCKED', `${target}:${faultName}`);
     }
   }
+
 });
 
 test('every public read, status, open, and snapshot surface fails closed on competing lock acquisition', () => {

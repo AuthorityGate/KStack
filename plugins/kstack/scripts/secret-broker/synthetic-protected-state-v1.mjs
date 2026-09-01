@@ -563,11 +563,24 @@ export class SyntheticProtectedStateAdapter {
 }
 
 export function syntheticProtectedStateSnapshotBytes(adapter) {
-  if (!(adapter instanceof SyntheticProtectedStateAdapter)) fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
+  let recognized;
+  try {
+    recognized = adapter instanceof SyntheticProtectedStateAdapter;
+  } catch {
+    fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
+  }
+  if (!recognized) fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
+  let status;
+  try {
+    status = SyntheticProtectedStateAdapter.prototype.status.call(adapter);
+  } catch (error) {
+    if (error instanceof SyntheticProtectedStateError) throw error;
+    fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
+  }
   return hostCanonicalBytes({
     schemaVersion: 'kstack-secret-protected-state-public-status-v1',
     profileId: SYNTHETIC_PROTECTED_STATE_PROFILE,
     productionEligible: false,
-    state: adapter.status().state
+    state: status.state
   });
 }

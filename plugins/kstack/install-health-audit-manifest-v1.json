@@ -985,8 +985,8 @@
     {
       "path": "scripts/secret-broker/control-plane-v1.mjs",
       "executable": true,
-      "size": 9334,
-      "sha256": "26cdde4922487624c2c7188bad687cd1e083c1a4a04422b66ee8883b8c16d61f"
+      "size": 10616,
+      "sha256": "a2e2da05fb21077b01835d1f3c1cbdbc1e6d8e7bc194885313e9dc60e4af02e4"
     },
     {
       "path": "scripts/secret-broker/public-v1.mjs",
@@ -1009,8 +1009,8 @@
     {
       "path": "scripts/secret-broker/synthetic-protected-state-v1.mjs",
       "executable": true,
-      "size": 26857,
-      "sha256": "e163097780660904f569cc1a212ff64e2716fce6ac941e5dba97242c11d3bab8"
+      "size": 27212,
+      "sha256": "e504387c854002c45c20cca71d522798131eff0c3be68ad62fd24b5c9376938b"
     },
     {
       "path": "secret-broker-accepted-design-v1.json",
@@ -1021,14 +1021,14 @@
     {
       "path": "secret-broker-release-manifest-v1.json",
       "executable": false,
-      "size": 6872,
-      "sha256": "1ee7bf0b574c883e4bc773dfbc12ca4a37064f020d5ab1b365fe45fbfb3604e5"
+      "size": 6873,
+      "sha256": "91cd0499261da863d855117b6fdc489a7010aa5de1733279f5161f95e9b6d251"
     },
     {
       "path": "secret-broker-source-audit-manifest-v1.json",
       "executable": false,
-      "size": 3880,
-      "sha256": "c927171434fda54ff6a3fe446fd67d3ac150a95dd5cdf69fc83578edf70bf061"
+      "size": 3881,
+      "sha256": "92cdedefd028afe0f2109f352ad322044270ec647e0d554251969540051e7b1e"
     },
     {
       "path": "skills/kstack-design-clarify/SKILL.md",

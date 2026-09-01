@@ -17,6 +17,14 @@ const AUDIT_KEYS = Object.freeze([
   'schemaVersion', 'auditNamespaceRef', 'auditEpoch', 'ordinal',
   'eventDigest', 'writerLeaseRef', 'writerLeaseDeadline', 'lastUpdateId'
 ]);
+const UPDATE_OPTION_KEYS = Object.freeze(['allowOrigin', 'code']);
+const UPDATE_ERROR_CODES = new Set([
+  'KSTACK_SECRET_UPDATE_ID_INVALID',
+  'KSTACK_SECRET_AUTHORITY_HEAD_INVALID',
+  'KSTACK_SECRET_AUTHORITY_UPDATE_ID_INVALID',
+  'KSTACK_SECRET_AUDIT_HEAD_INVALID',
+  'KSTACK_SECRET_AUDIT_UPDATE_ID_INVALID'
+]);
 
 export class SecretControlPlaneError extends Error {
   constructor(code) {
@@ -27,13 +35,23 @@ export class SecretControlPlaneError extends Error {
 }
 
 function fail(code) { throw new SecretControlPlaneError(code); }
-function plain(value) { return value !== null && typeof value === 'object' && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype; }
-function exact(value, keys, code) {
-  if (!plain(value) || Object.keys(value).length !== keys.length || keys.some((key) => !Object.hasOwn(value, key))
-      || Object.keys(value).some((key) => !keys.includes(key))) fail(code);
+function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)
+      || Object.getPrototypeOf(value) !== Object.prototype) fail(code);
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const actual = Reflect.ownKeys(descriptors);
+  if (actual.some((key) => typeof key !== 'string' || !keys.includes(key))
+      || requireAll && (actual.length !== keys.length || keys.some((key) => !Object.hasOwn(descriptors, key)))) fail(code);
+  const snapshot = {};
+  for (const key of actual) {
+    const descriptor = descriptors[key];
+    if (!descriptor.enumerable || !Object.hasOwn(descriptor, 'value')) fail(code);
+    Object.defineProperty(snapshot, key, {
+      value: descriptor.value, enumerable: true, configurable: true, writable: true
+    });
+  }
+  return snapshot;
 }
-function copy(value) { return parseHostCanonicalJson(hostCanonicalBytes(value)); }
-function frozen(value) { return Object.freeze(copy(value)); }
 function generation(value, allowZero, code) {
   if (!Number.isSafeInteger(value) || value < (allowZero ? 0 : 1) || value > SECRET_GENERATION_MAX) fail(code);
   return value;
@@ -46,7 +64,17 @@ function digest(value, code) {
   try { assertDigest(value); } catch { fail(code); }
   return value;
 }
-export function validateSecretUpdateId(value, { allowOrigin = false, code = 'KSTACK_SECRET_UPDATE_ID_INVALID' } = {}) {
+export function validateSecretUpdateId(value, options = {}) {
+  let selected;
+  try {
+    selected = snapshotRecord(options, UPDATE_OPTION_KEYS, 'KSTACK_SECRET_UPDATE_ID_INVALID', { requireAll: false });
+    if (Object.hasOwn(selected, 'allowOrigin') && typeof selected.allowOrigin !== 'boolean') fail('KSTACK_SECRET_UPDATE_ID_INVALID');
+    if (Object.hasOwn(selected, 'code') && !UPDATE_ERROR_CODES.has(selected.code)) fail('KSTACK_SECRET_UPDATE_ID_INVALID');
+  } catch {
+    fail('KSTACK_SECRET_UPDATE_ID_INVALID');
+  }
+  const allowOrigin = selected.allowOrigin ?? false;
+  const code = selected.code ?? 'KSTACK_SECRET_UPDATE_ID_INVALID';
   if (allowOrigin && value === 'epoch-origin') return value;
   if (typeof value !== 'string' || !UPDATE_ID.test(value)) fail(code);
   const encoded = value.slice(5);
@@ -71,20 +99,20 @@ function bounded(value, validator, code) {
 
 export function validateAuthorityHeadValue(value) {
   try {
-    exact(value, AUTHORITY_KEYS, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
-    if (value.schemaVersion !== SECRET_AUTHORITY_HEAD_VERSION) fail('KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
-    opaque(value.authorityNamespaceRef, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
-    generation(value.authorityEpoch, false, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
-    if ((value.authorityEpoch === 1) !== (value.priorAuthorityDigest === 'GENESIS')) {
+    const checked = snapshotRecord(value, AUTHORITY_KEYS, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
+    if (checked.schemaVersion !== SECRET_AUTHORITY_HEAD_VERSION) fail('KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
+    opaque(checked.authorityNamespaceRef, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
+    generation(checked.authorityEpoch, false, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
+    if ((checked.authorityEpoch === 1) !== (checked.priorAuthorityDigest === 'GENESIS')) {
       fail('KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
     }
-    if (value.priorAuthorityDigest === 'GENESIS') {
-      if (value.authorityEpoch !== 1 || value.lastUpdateId !== 'epoch-origin') fail('KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
+    if (checked.priorAuthorityDigest === 'GENESIS') {
+      if (checked.authorityEpoch !== 1 || checked.lastUpdateId !== 'epoch-origin') fail('KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
     } else {
-      digest(value.priorAuthorityDigest, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
-      validateSecretUpdateId(value.lastUpdateId, { code: 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID' });
+      digest(checked.priorAuthorityDigest, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
+      validateSecretUpdateId(checked.lastUpdateId, { code: 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID' });
     }
-    return frozen(value);
+    return Object.freeze(checked);
   } catch {
     fail('KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
   }
@@ -132,20 +160,20 @@ export function reconcileAuthorityAdvance(expected, nextUpdateId, observed) {
 
 export function validateAuditHeadValue(value) {
   try {
-    exact(value, AUDIT_KEYS, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
-    if (value.schemaVersion !== SECRET_AUDIT_HEAD_VERSION) fail('KSTACK_SECRET_AUDIT_HEAD_INVALID');
-    opaque(value.auditNamespaceRef, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
-    generation(value.auditEpoch, false, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
-    generation(value.ordinal, true, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
-    opaque(value.writerLeaseRef, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
-    trustedInstant(value.writerLeaseDeadline, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
-    if (value.ordinal === 0) {
-      if (value.eventDigest !== 'epoch-origin' || value.lastUpdateId !== 'epoch-origin') fail('KSTACK_SECRET_AUDIT_HEAD_INVALID');
+    const checked = snapshotRecord(value, AUDIT_KEYS, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
+    if (checked.schemaVersion !== SECRET_AUDIT_HEAD_VERSION) fail('KSTACK_SECRET_AUDIT_HEAD_INVALID');
+    opaque(checked.auditNamespaceRef, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
+    generation(checked.auditEpoch, false, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
+    generation(checked.ordinal, true, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
+    opaque(checked.writerLeaseRef, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
+    trustedInstant(checked.writerLeaseDeadline, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
+    if (checked.ordinal === 0) {
+      if (checked.eventDigest !== 'epoch-origin' || checked.lastUpdateId !== 'epoch-origin') fail('KSTACK_SECRET_AUDIT_HEAD_INVALID');
     } else {
-      digest(value.eventDigest, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
-      validateSecretUpdateId(value.lastUpdateId, { code: 'KSTACK_SECRET_AUDIT_HEAD_INVALID' });
+      digest(checked.eventDigest, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
+      validateSecretUpdateId(checked.lastUpdateId, { code: 'KSTACK_SECRET_AUDIT_HEAD_INVALID' });
     }
-    return frozen(value);
+    return Object.freeze(checked);
   } catch {
     fail('KSTACK_SECRET_AUDIT_HEAD_INVALID');
   }
