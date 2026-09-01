@@ -242,7 +242,7 @@ const CAPABILITY_TOKEN_MANIFEST = new Map([
   ['secret-broker/public-v1.mjs', {Buffer:11,crypto:3}],
   ['secret-broker/release-manifest-v1.mjs', {Buffer:4,crypto:4,fs:7,path:34}],
   ['secret-broker/release-provenance-v1.mjs', {Buffer:8,crypto:5}],
-  ['secret-broker/synthetic-protected-state-v1.mjs', {Buffer:3,crypto:5,fs:38,path:12,process:7}]
+  ['secret-broker/synthetic-protected-state-v1.mjs', {Buffer:3,Reflect:1,crypto:5,fs:38,path:12,process:7}]
 ]);
 const IMPORT_META_MANIFEST = new Map([
   ['kstack-citation-admin.mjs',1], ['kstack-citation-native.mjs',3], ['kstack-citation-runtime.mjs',2],
@@ -372,7 +372,7 @@ const CAPABILITY_USE_SITE_MANIFEST = new Map([
   ['secret-broker/public-v1.mjs','ecb74502734288a255af6d1e7b04b08fa04194924faf505b2fa226b1490685fd'],
   ['secret-broker/release-manifest-v1.mjs','d4ddb22d3c42ef794dcae5d644877aeed5e940f9761246abf9851c48e4929cdc'],
   ['secret-broker/release-provenance-v1.mjs','b5074ea04438cccfe2e0947dffe517128155814600fe68d52951331ebcc7f5e8'],
-  ['secret-broker/synthetic-protected-state-v1.mjs','7c12c3b69ceb1d094fea49840acbfd66620b6e68d298791918a2ace270df8757']
+  ['secret-broker/synthetic-protected-state-v1.mjs','f7a3ee6328b160e273b604ef825d3db1eab1fd46a69ac1619e451a5e4e04bed0']
 ]);
 
 const FROZEN_OFFLINE_SOURCE_SHA256 = new Map([

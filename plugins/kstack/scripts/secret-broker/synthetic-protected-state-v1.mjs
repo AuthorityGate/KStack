@@ -36,6 +36,19 @@ const OPEN_KEYS = Object.freeze(['root', 'clock']);
 const AUDIT_WRITER_KEYS = Object.freeze(['auditNamespaceRef', 'ttlMs']);
 const ADVANCE_OPTION_KEYS = Object.freeze(['crashCut', 'acknowledgementCut']);
 const MAX_CANONICAL_CLOCK_MS = Date.parse('9999-12-31T23:59:59.999Z');
+const APPLY = Reflect.apply;
+const SNAPSHOT_STATUS_ERROR_CODES = new Set([
+  'KSTACK_SECRET_PROTECTED_ROOT_UNAVAILABLE',
+  'KSTACK_SECRET_PROTECTED_ROOT_UNTRUSTED',
+  'KSTACK_SECRET_PROTECTED_IDENTITY_UNAVAILABLE',
+  'KSTACK_SECRET_PROTECTED_IDENTITY_INVALID',
+  'KSTACK_SECRET_PROTECTED_IDENTITY_DRIFT',
+  'KSTACK_SECRET_PROTECTED_STATE_LOST',
+  'KSTACK_SECRET_PROTECTED_STATE_INVALID',
+  'KSTACK_SECRET_PROTECTED_STATE_BYTES_EXCEEDED',
+  'KSTACK_SECRET_PROTECTED_STATE_LOCKED',
+  'KSTACK_SECRET_PROTECTED_STATE_LOCK_FENCED'
+]);
 
 class PossiblyCommittedError extends Error {
   constructor() { super('KSTACK_SECRET_PROTECTED_ACKNOWLEDGEMENT_UNKNOWN'); this.code = 'KSTACK_SECRET_PROTECTED_ACKNOWLEDGEMENT_UNKNOWN'; }
@@ -562,25 +575,27 @@ export class SyntheticProtectedStateAdapter {
   }
 }
 
+const SYNTHETIC_STATUS_BRAND_OPERATION = SyntheticProtectedStateAdapter.prototype.status;
+
 export function syntheticProtectedStateSnapshotBytes(adapter) {
-  let recognized;
-  try {
-    recognized = adapter instanceof SyntheticProtectedStateAdapter;
-  } catch {
-    fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
-  }
-  if (!recognized) fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
   let status;
   try {
-    status = SyntheticProtectedStateAdapter.prototype.status.call(adapter);
+    status = APPLY(SYNTHETIC_STATUS_BRAND_OPERATION, adapter, []);
   } catch (error) {
-    if (error instanceof SyntheticProtectedStateError) throw error;
+    let code;
+    try { code = error?.code; } catch {}
+    if (SNAPSHOT_STATUS_ERROR_CODES.has(code)) fail(code);
+    fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
+  }
+  if (!plain(status) || Object.keys(status).length !== 3
+      || status.profileId !== SYNTHETIC_PROTECTED_STATE_PROFILE
+      || status.productionEligible !== false || status.state !== 'SYNTHETIC_READY') {
     fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
   }
   return hostCanonicalBytes({
     schemaVersion: 'kstack-secret-protected-state-public-status-v1',
     profileId: SYNTHETIC_PROTECTED_STATE_PROFILE,
     productionEligible: false,
-    state: status.state
+    state: 'SYNTHETIC_READY'
   });
 }

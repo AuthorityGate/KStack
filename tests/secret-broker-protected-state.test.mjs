@@ -23,6 +23,7 @@ import {
   validateAuthorityHeadValue
 } from '../plugins/kstack/scripts/secret-broker/control-plane-v1.mjs';
 import {
+  SYNTHETIC_PROTECTED_STATE_PROFILE,
   SyntheticProtectedStateAdapter,
   SyntheticProtectedStateError,
   syntheticProtectedStateSnapshotBytes
@@ -253,6 +254,52 @@ test('authority and audit head codecs are closed, canonical, and exact', () => {
       () => syntheticProtectedStateSnapshotBytes(hostileAdapter),
       (error) => error?.code === 'KSTACK_SECRET_PROTECTED_ADAPTER_INVALID' && error.message === error.code
     );
+  }
+
+  const statusDescriptor = Object.getOwnPropertyDescriptor(SyntheticProtectedStateAdapter.prototype, 'status');
+  const statusCallDescriptor = Object.getOwnPropertyDescriptor(statusDescriptor.value, 'call');
+  const adapterHasInstanceDescriptor = Object.getOwnPropertyDescriptor(SyntheticProtectedStateAdapter, Symbol.hasInstance);
+  const errorHasInstanceDescriptor = Object.getOwnPropertyDescriptor(SyntheticProtectedStateError, Symbol.hasInstance);
+  try {
+    Object.defineProperty(statusDescriptor.value, 'call', {
+      configurable: true,
+      value() { return { profileId: SYNTHETIC_PROTECTED_STATE_PROFILE, productionEligible: false, state: 'FORGED_STATE' }; }
+    });
+    Object.defineProperty(SyntheticProtectedStateAdapter.prototype, 'status', {
+      configurable: true,
+      value() { return { profileId: SYNTHETIC_PROTECTED_STATE_PROFILE, productionEligible: false, state: 'FORGED_STATE' }; }
+    });
+    Object.defineProperty(SyntheticProtectedStateAdapter, Symbol.hasInstance, {
+      configurable: true,
+      value() { return true; }
+    });
+    assert.throws(
+      () => syntheticProtectedStateSnapshotBytes({}),
+      (error) => error?.code === 'KSTACK_SECRET_PROTECTED_ADAPTER_INVALID' && error.message === error.code
+    );
+    assert.deepEqual(JSON.parse(syntheticProtectedStateSnapshotBytes(state.adapter)), {
+      schemaVersion: 'kstack-secret-protected-state-public-status-v1',
+      profileId: SYNTHETIC_PROTECTED_STATE_PROFILE,
+      productionEligible: false,
+      state: 'SYNTHETIC_READY'
+    });
+
+    Object.defineProperty(SyntheticProtectedStateError, Symbol.hasInstance, {
+      configurable: true,
+      value() { return true; }
+    });
+    assert.throws(
+      () => syntheticProtectedStateSnapshotBytes(new Proxy(state.adapter, {})),
+      (error) => error?.code === 'KSTACK_SECRET_PROTECTED_ADAPTER_INVALID' && error.message === error.code
+    );
+  } finally {
+    Object.defineProperty(SyntheticProtectedStateAdapter.prototype, 'status', statusDescriptor);
+    if (statusCallDescriptor) Object.defineProperty(statusDescriptor.value, 'call', statusCallDescriptor);
+    else delete statusDescriptor.value.call;
+    if (adapterHasInstanceDescriptor) Object.defineProperty(SyntheticProtectedStateAdapter, Symbol.hasInstance, adapterHasInstanceDescriptor);
+    else delete SyntheticProtectedStateAdapter[Symbol.hasInstance];
+    if (errorHasInstanceDescriptor) Object.defineProperty(SyntheticProtectedStateError, Symbol.hasInstance, errorHasInstanceDescriptor);
+    else delete SyntheticProtectedStateError[Symbol.hasInstance];
   }
 });
 

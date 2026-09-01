@@ -8,7 +8,7 @@
 | Integrated dependency | SB-TC12 SHA-256 `0c516367cbf7ab6088f17f54594abd364119ad9020c90ca52ca64ed9739b681e` |
 | Direct contracts | SB-TC02 SHA-256 `6710fb7d611d890d4e8bd8e7182aa3fb687c54d1a9ced6bba2569123dac37075`; SB-TC03 SHA-256 `b8aadd172e87a4c9f3c349890162b73b3f5e5682818c0428c25edb0534ac8c99`; SB-TC07 SHA-256 `6635aa11e3769c33541a0807fdedd7d497ae7274f01054d2ee9e83703a4d5a4b`; SB-TC10 SHA-256 `a96c00d5e1d87ba690730ebf09856ab44cf8b99c18c2ea6b5127dbcce2b7168a` |
 | Dependency implementation | SB-WP02 final record SHA-256 `03184c8b95a070563caccb61d810f3cc7125908165a1a7c36a120e5f71e3118c` |
-| Disposition | `R7_REPAIRED`; completion remains pending exact-candidate binding and independent R8 review |
+| Disposition | `R8_REPAIRED`; completion remains pending exact-candidate binding and independent R9 review |
 | Runtime effect state | `UNAVAILABLE / IMPLEMENTATION_NONCONFORMANT` |
 
 ## Outcome
@@ -191,15 +191,15 @@ is unchanged. The live Windows-mounted WSL workspace reports safety status
 | Path | SHA-256 | Role |
 |---|---|---|
 | `plugins/kstack/scripts/secret-broker/control-plane-v1.mjs` | `a2e2da05fb21077b01835d1f3c1cbdbc1e6d8e7bc194885313e9dc60e4af02e4` | closed authority/audit codecs with single-snapshot caller-record validation, fixed-error reflection boundaries, CSPRNG update-ID generator, successors, digests, and read-only reconciliation |
-| `plugins/kstack/scripts/secret-broker/synthetic-protected-state-v1.mjs` | `e504387c854002c45c20cca71d522798131eff0c3be68ad62fd24b5c9376938b` | one-lineage synthetic exact-CAS store, common-entry expiry fence, canonical-time lease bounds, update-ID authority, branded typed-error boundary, and fault injection |
-| `tests/secret-broker-protected-state.test.mjs` | `311e2ba6c6909866e8148d796423efd4d4b3777554780720d4a64f034df83920` | lineage/freshness/rollback/restart/crash/ack/replay/all-boundary retirement/all-entry expiry/public-lock/stateful-accessor/hostile-reflection/canonical-clock/loss regressions |
+| `plugins/kstack/scripts/secret-broker/synthetic-protected-state-v1.mjs` | `2944cebfdd1671c9835230297c828eaaa34bd2b01d70fe7353f3833efa868d0f` | one-lineage synthetic exact-CAS store, common-entry expiry fence, canonical-time lease bounds, update-ID authority, immutable module-private snapshot brand operation, and fault injection |
+| `tests/secret-broker-protected-state.test.mjs` | `0bfa6f2cd54e1354be61e1ef3a8800cfe95ae50a232e79bd5a4f3b5b40df8f35` | lineage/freshness/rollback/restart/crash/ack/replay/all-boundary retirement/all-entry expiry/public-lock/stateful-accessor/prototype-and-instance-spoof/hostile-reflection/canonical-clock/loss regressions |
 | `plugins/kstack/scripts/secret-broker/release-manifest-v1.mjs` | `54b82ea42d11d116c9785a80ddae243c6c3164530733c151e21f9e17fb472452` | release closure for new modules, schemas, and synthetic protocol |
-| `plugins/kstack/secret-broker-release-manifest-v1.json` | `91cd0499261da863d855117b6fdc489a7010aa5de1733279f5161f95e9b6d251` | generated acyclic release leaf root |
-| `plugins/kstack/secret-broker-source-audit-manifest-v1.json` | `92cdedefd028afe0f2109f352ad322044270ec647e0d554251969540051e7b1e` | generated self-excluding source audit |
+| `plugins/kstack/secret-broker-release-manifest-v1.json` | `3c910f633499d3ba3130f1e390495d122220b8b5056d7e9c37c7043a776c15e9` | generated acyclic release leaf root |
+| `plugins/kstack/secret-broker-source-audit-manifest-v1.json` | `3f85858f89ea21fea4889b3233d2bf74ee540293385c3ec04ab49465adbf994f` | generated self-excluding source audit |
 | `plugins/kstack/install-health-contract-v1.json` | `2060957fe40534c4c09bc0d2bb41d233db3c301cfde4987ec037eae5688f5a54` | 20-probe installed validation contract |
-| `plugins/kstack/install-health-audit-manifest-v1.json` | `c391a0c4fe209f391c28bf21aa20614f4740b394c93623703fba542e0d994602` | distributed source-byte closure |
+| `plugins/kstack/install-health-audit-manifest-v1.json` | `98e6c693399894f772a9b72ddefa1955f738dc607468bce4e22ecbb9312b6cc1` | distributed source-byte closure |
 | `plugins/kstack/references/SECRET_BROKER.md` | `67a915d51a5db40047e8eeffa3788d119419ce5b1851ea23f435d55d335a9070` | truthful synthetic/production ownership and canonical-time boundary |
-| `tests/reflexion-architecture-gate.mjs` | `0ab2092ec6834941d49c366ae18a196c234647e67c02d04efa3a7d77b5ccfff5` | exact importer/capability/use-site registration |
+| `tests/reflexion-architecture-gate.mjs` | `f6aeb63aef269825d5b5dd61afca5a61ff25f0afab06fe5e3f6f2e4dee301769` | exact importer/capability/use-site registration |
 | `tests/install-health.test.mjs` | `bd233007b4d14b539ad7acaad538ac5a681d38d92b0b3442f764df0380f51030` | 20-probe and unavailable-mode regression |
 
 ## R6 independent review and repair
@@ -246,11 +246,45 @@ real private-field brand. Regressions exercise stateful accessors and hostile
 proxies through every authority/audit validator, codec, digest, successor,
 reconciliation side, update-ID option boundary, and snapshot adapter boundary.
 
+## R8 independent review and repair
+
+The independent R8 receipt at
+`.kstack/reviews/secret-broker-2026-08-28-wp03-r8/codex.md` has SHA-256
+`49e0d25b95f8f1b9201cb5e2f9b08d6bd4631d1dcc10bd90f95b740071d74d75`
+and returned `revise/99`, three failed checks, two security findings, zero
+material dissent, and zero unresolved questions. It reproduced that the R7
+snapshot boundary dynamically read a mutable exported prototype method and
+trusted mutable `Symbol.hasInstance` behavior. Same-realm mutation could
+therefore forge canonical snapshot status for a plain object or expose a raw
+private-field `TypeError`. It also corrected the named five-file focused matrix
+from 65 tests to its actual 57; the separate runtime-faithful architecture
+suite remains 9/9.
+
+The R8 repair captures both `Reflect.apply` and the genuine status/private-field
+brand operation in module-private bindings before any caller can mutate the
+exported class. It no longer uses `instanceof` to authenticate either the
+adapter or an exported error. Every caught status failure is reconstructed from
+a closed allowlist as a fresh fixed error, and the returned status record must
+match its exact fixed three-field shape before canonical output is emitted.
+Regressions mutate the exported prototype method, its public `.call` property,
+both exported classes' `Symbol.hasInstance` behavior, and a proxy-wrapped real
+adapter; none can forge output or release raw diagnostics.
+
 ## Observed verification
 
-- R7-repaired combined protected-state, release, install-health, architecture,
-  and safety matrix: 65 tests, 65 passed, zero failed or skipped; duration
-  `32931.602843ms`.
+- R8-repaired exact five-file focused matrix: 57 tests, 57 passed, zero failed
+  or skipped; duration `22153.295481ms`.
+- R8-repaired runtime-faithful architecture matrix: 9 tests, 9 passed, zero
+  failed or skipped; duration `5638.911579ms`.
+- R8-repaired Secret Broker CLI matrix: 24 tests, 22 passed, zero failed, and
+  two expected environment-gated skips; duration `460.985713ms`.
+- R8-repaired full repository suite: 1,063 tests, 1,061 passed, zero failed,
+  and two expected environment-gated skips; duration `86562.202941ms`.
+
+- R7-repaired exact five-file focused matrix was 57 tests, not 65. R8
+  independently reproduced the 57/57 result and corrected that historical
+  count; its separately executed runtime-faithful architecture matrix passed
+  9/9.
 - R7-repaired full repository suite: 1,063 tests, 1,061 passed, zero failed,
   and two expected environment-gated skips; duration `113823.240241ms`.
 - R7-repaired Secret Broker CLI matrix: 24 tests, 22 passed, zero failed, and
@@ -280,7 +314,9 @@ year-9999 equality and overflow tests exercise the repaired boundary. R6 then
 identified and the current bytes repair exported-error spoofing and hostile
 parser reflection. R7 then identified and the current bytes repair stateful
 accessor instability plus the remaining exported-boundary raw-error escapes.
-Independent R8 remains required for the exact repaired candidate.
+R8 identified and the current bytes repair mutable exported adapter/error
+classification and the focused-count error. Independent R9 remains required
+for the exact repaired candidate.
 
 The two skips are the fenced real Windows protected worker and fenced real
 Linux desktop Secret Service cell. The observed run made no network, Jira,

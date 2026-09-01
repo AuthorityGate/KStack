@@ -52,8 +52,10 @@ through hostile update-ID options and snapshot-adapter prototype reflection.
 ## Observed verification
 
 - Focused protected-state matrix: 11 tests, 11 passed, zero failed or skipped.
-- Combined WP03, release, install-health, architecture, and safety matrix: 65
-  tests, 65 passed, zero failed or skipped; duration `32931.602843ms`.
+- The exact five-file WP03, release, install-health, architecture-gate, and
+  safety command contains 57 tests, not the 65 originally recorded here. R8
+  independently reproduced 57/57 and retained its separate 9/9 runtime-faithful
+  architecture result; the original aggregate label is superseded.
 - Secret Broker CLI matrix: 24 tests, 22 passed, zero failed, and two expected
   environment-gated skips; duration `554.106372ms`.
 - Full repository suite: 1,063 tests, 1,061 passed, zero failed, and two
