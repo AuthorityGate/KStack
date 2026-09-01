@@ -359,6 +359,25 @@ codex_installed_cache_root() {
     "$listing" "$HOME"
 }
 
+list_codex_cache_roots() {
+  env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+    "$KSTACK_RUNTIME_NODE" -e '
+const fs = require("node:fs");
+const path = require("node:path");
+const home = process.argv[1];
+const parent = path.resolve(home, ".codex", "plugins", "cache", "kstack", "kstack");
+let names = [];
+try { names = fs.readdirSync(parent); } catch (error) { if (error?.code !== "ENOENT") throw error; }
+for (const name of names.sort()) {
+  if (!/^[A-Za-z0-9.+_-]+$/u.test(name)) process.exit(1);
+  const candidate = path.join(parent, name);
+  const stat = fs.lstatSync(candidate);
+  if (!stat.isDirectory() && !stat.isSymbolicLink()) process.exit(1);
+  process.stdout.write(`${candidate}\n`);
+}
+' "$HOME"
+}
+
 preserve_codex_cache_compatibility() {
   local retired_cache_root="$1" runtime_root="$2"
   [ -n "$retired_cache_root" ] || return 0
@@ -476,10 +495,16 @@ install_claude_plugin() {
 }
 
 install_codex_plugin_from_runtime() {
-  local runtime_root="$1" marketplace_root plugin_installed retired_cache_root="" compatibility_root=""
+  local runtime_root="$1" marketplace_root plugin_installed installed_cache_root="" compatibility_root="" retired_cache_root installed_cache_seen=0
+  local -a retired_cache_roots=()
   plugin_installed="$(codex_plugin_installed)" || return $?
   if [ "$plugin_installed" = "1" ]; then
-    retired_cache_root="$(codex_installed_cache_root)" || return $?
+    installed_cache_root="$(codex_installed_cache_root)" || return $?
+    mapfile -t retired_cache_roots < <(list_codex_cache_roots) || return $?
+    for retired_cache_root in "${retired_cache_roots[@]}"; do
+      if [ "$retired_cache_root" = "$installed_cache_root" ]; then installed_cache_seen=1; fi
+    done
+    if [ "$installed_cache_seen" = "0" ]; then retired_cache_roots+=("$installed_cache_root"); fi
   fi
   marketplace_root="$(codex_marketplace_root)" || return $?
   if [ -n "$marketplace_root" ] && [ "$marketplace_root" != "$runtime_root" ]; then
@@ -491,8 +516,10 @@ install_codex_plugin_from_runtime() {
   fi
   if [ "$plugin_installed" = "1" ]; then
     codex plugin remove kstack@kstack
-    compatibility_root="$(preserve_codex_cache_compatibility "$retired_cache_root" "$runtime_root")" || return $?
-    printf 'preserved active Codex session cache path: %s -> %s\n' "$compatibility_root" "$runtime_root"
+    for retired_cache_root in "${retired_cache_roots[@]}"; do
+      compatibility_root="$(preserve_codex_cache_compatibility "$retired_cache_root" "$runtime_root")" || return $?
+      printf 'preserved active Codex session cache path: %s -> %s\n' "$compatibility_root" "$runtime_root"
+    done
   fi
   codex plugin add kstack@kstack
   confirm_codex_plugin_cache "$runtime_root"

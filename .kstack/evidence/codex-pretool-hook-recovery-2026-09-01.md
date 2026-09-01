@@ -28,11 +28,13 @@ each tool call.
 
 ## Repair
 
-- Modern Codex setup records the installed cache path before removal and, after
-  removal, preserves that retired absolute path as a compatibility symlink to
-  the stable repaired runtime. Open threads therefore keep launching a valid,
-  current hook across plugin refreshes. A fork is needed only to refresh the
-  thread's skill catalog, not to stop hook failures.
+- Modern Codex setup records every KStack cache path before removal and, after
+  removal, preserves each retired absolute path as a compatibility symlink to
+  the stable repaired runtime. This is necessary because Codex plugin removal
+  clears the whole plugin cache family, not only the currently reported
+  version. Open threads therefore keep launching a valid, current hook across
+  plugin refreshes. A fork is needed only to refresh the thread's skill
+  catalog, not to stop hook failures.
 - Direct-broker detection is limited to Bash and PowerShell tool invocations.
   Non-shell tools such as `apply_patch` are no longer denied merely because
   their data mentions a KStack script path.
@@ -72,5 +74,8 @@ source repair still prevents the false denial when hooks are later enabled.
 The active KStack thread's deleted `...143355040` cache path was restored as a
 compatibility link to `.kstack-runtime`. Subsequent tools in that same thread
 completed without PreToolUse failures. Installer regression tests reproduce
-plugin removal, assert the retired cache path becomes that compatibility link,
-and preserve the new physical cache qualification independently.
+whole-family plugin cache removal, assert multiple retired cache paths become
+compatibility links, and preserve the new physical cache qualification
+independently. A retained-session inventory found 19 KStack cache versions in
+August/September Codex records; 18 missing paths were restored to the stable
+runtime and the current physical cache was retained.
