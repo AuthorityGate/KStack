@@ -8,7 +8,7 @@
 | Integrated dependency | SB-TC12 SHA-256 `0c516367cbf7ab6088f17f54594abd364119ad9020c90ca52ca64ed9739b681e` |
 | Direct contracts | SB-TC02 SHA-256 `6710fb7d611d890d4e8bd8e7182aa3fb687c54d1a9ced6bba2569123dac37075`; SB-TC03 SHA-256 `b8aadd172e87a4c9f3c349890162b73b3f5e5682818c0428c25edb0534ac8c99`; SB-TC07 SHA-256 `6635aa11e3769c33541a0807fdedd7d497ae7274f01054d2ee9e83703a4d5a4b`; SB-TC10 SHA-256 `a96c00d5e1d87ba690730ebf09856ab44cf8b99c18c2ea6b5127dbcce2b7168a` |
 | Dependency implementation | SB-WP02 final record SHA-256 `03184c8b95a070563caccb61d810f3cc7125908165a1a7c36a120e5f71e3118c` |
-| Disposition | `R10_REPAIRED`; completion remains pending exact-candidate binding and independent R11 review |
+| Disposition | `R11_REPAIRED`; completion remains pending exact-candidate binding and independent R12 review |
 | Runtime effect state | `UNAVAILABLE / IMPLEMENTATION_NONCONFORMANT` |
 
 ## Outcome
@@ -311,7 +311,38 @@ mutation regression proves that symbol and string extras, caller-selected error
 codes, and noncanonical update IDs remain fixed-error rejections, and that a
 rejected advance does not consume its update ID.
 
+## R11 independent review and repair
+
+The independent R11 receipt at
+`.kstack/reviews/secret-broker-2026-08-28-wp03-r11/codex.md` has SHA-256
+`1b27496cecd90f536bdfe1f67a97e5d9627ed14c95cefca2e499ad17a82ce023`
+and returned `revise/99`, four failed checks, three security findings, one
+material dissent, and zero unresolved questions. It reproduced post-import
+mutation of `Buffer.prototype.toString`, `Number.isSafeInteger`, `Date.parse`,
+`Array.prototype.find`, and `Buffer.prototype.equals` bypassing canonical ID
+and integer validation, the audit-writer expiry fence, stale-snapshot
+rejection, and unrelated-head reconciliation.
+
+The R11 repair captures every implicated intrinsic at module initialization
+and invokes it through the captured `Reflect.apply`, including the adjacent
+array transformation and ordering operations used by the same authority
+paths. Indexed module-private copies replace iterator and spread dependence in
+trust-bearing state transitions. Post-import mutation regressions prove that
+noncanonical IDs and fractional epochs remain rejected, expired writers cannot
+advance, stale snapshots cannot become ready, unrelated heads cannot become
+committed, and protected-state array transforms remain deterministic.
+
 ## Observed verification
+
+- R11-repaired exact five-file focused matrix: 57 tests, 57 passed, zero failed
+  or skipped; duration `21798.642886ms`.
+- R11-repaired runtime-faithful architecture matrix: 9 tests, 9 passed, zero
+  failed or skipped; duration `5492.328136ms`.
+- R11-repaired Secret Broker CLI matrix: 24 tests, 22 passed, zero failed, and
+  two expected environment-gated skips; duration `467.614082ms`.
+- R11-repaired full repository suite: 1,063 tests, 1,061 passed, zero failed,
+  and two expected environment-gated skips; duration `75757.979231ms`.
+- Both generated-manifest checks and `git diff --check` passed without output.
 
 - R9-repaired exact five-file focused matrix: 57 tests, 57 passed, zero failed
   or skipped; duration `21807.206871ms`.
@@ -381,7 +412,9 @@ bytes repair error-construction interception, remaining exported
 `Symbol.hasInstance` trust, and symbol/non-enumerable request fields. R10
 identified and the current bytes repair mutable array/set/regular-expression
 intrinsics in the closed-record and update-ID decisions. Independent R11
-remains required for the exact repaired candidate.
+identified and the current bytes repair the remaining Buffer conversion and
+comparison, integer, trusted-time, and array transformation/lookup intrinsics.
+Independent R12 remains required for the exact repaired candidate.
 
 The two skips are the fenced real Windows protected worker and fenced real
 Linux desktop Secret Service cell. The observed run made no network, Jira,

@@ -29,18 +29,26 @@ const APPLY = Reflect.apply;
 const ARRAY_INCLUDES = Array.prototype.includes;
 const ARRAY_SOME = Array.prototype.some;
 const ARRAY_IS_ARRAY = Array.isArray;
+const BUFFER_EQUALS = Buffer.prototype.equals;
+const BUFFER_FROM = Buffer.from;
+const BUFFER_IS_BUFFER = Buffer.isBuffer;
+const BUFFER_TO_STRING = Buffer.prototype.toString;
 const DEFINE_PROPERTY = Object.defineProperty;
 const DEFINE_PROPERTIES = Object.defineProperties;
+const FREEZE = Object.freeze;
 const GET_OWN_PROPERTY_DESCRIPTORS = Object.getOwnPropertyDescriptors;
 const GET_PROTOTYPE_OF = Object.getPrototypeOf;
 const HAS_OWN = Object.hasOwn;
 const OBJECT_PROTOTYPE = Object.prototype;
 const OWN_KEYS = Reflect.ownKeys;
+const NUMBER_IS_SAFE_INTEGER = Number.isSafeInteger;
 const REGEXP_TEST = RegExp.prototype.test;
 const SET_HAS = Set.prototype.has;
+const STRING_SLICE = String.prototype.slice;
 
 function arrayIncludes(values, value) { return APPLY(ARRAY_INCLUDES, values, [value]); }
 function arraySome(values, predicate) { return APPLY(ARRAY_SOME, values, [predicate]); }
+function bufferEquals(left, right) { return APPLY(BUFFER_EQUALS, left, [right]); }
 
 export class SecretControlPlaneError extends Error {
   constructor(code) {
@@ -68,7 +76,8 @@ function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
   if (arraySome(actual, (key) => typeof key !== 'string' || !arrayIncludes(keys, key))
       || requireAll && (actual.length !== keys.length || arraySome(keys, (key) => !HAS_OWN(descriptors, key)))) fail(code);
   const snapshot = {};
-  for (const key of actual) {
+  for (let index = 0; index < actual.length; index += 1) {
+    const key = actual[index];
     const descriptor = descriptors[key];
     if (!descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail(code);
     DEFINE_PROPERTY(snapshot, key, {
@@ -78,7 +87,7 @@ function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
   return snapshot;
 }
 function generation(value, allowZero, code) {
-  if (!Number.isSafeInteger(value) || value < (allowZero ? 0 : 1) || value > SECRET_GENERATION_MAX) fail(code);
+  if (!NUMBER_IS_SAFE_INTEGER(value) || value < (allowZero ? 0 : 1) || value > SECRET_GENERATION_MAX) fail(code);
   return value;
 }
 function opaque(value, code) {
@@ -102,15 +111,15 @@ export function validateSecretUpdateId(value, options = {}) {
   const code = selected.code ?? 'KSTACK_SECRET_UPDATE_ID_INVALID';
   if (allowOrigin && value === 'epoch-origin') return value;
   if (typeof value !== 'string' || !APPLY(REGEXP_TEST, UPDATE_ID, [value])) fail(code);
-  const encoded = value.slice(5);
+  const encoded = APPLY(STRING_SLICE, value, [5]);
   let decoded;
-  try { decoded = Buffer.from(encoded, 'base64url'); } catch { fail(code); }
-  if (decoded.length !== 32 || decoded.toString('base64url') !== encoded) fail(code);
+  try { decoded = BUFFER_FROM(encoded, 'base64url'); } catch { fail(code); }
+  if (decoded.length !== 32 || APPLY(BUFFER_TO_STRING, decoded, ['base64url']) !== encoded) fail(code);
   return value;
 }
 
 export function generateSecretUpdateId() {
-  return `ksu1_${crypto.randomBytes(32).toString('base64url')}`;
+  return `ksu1_${APPLY(BUFFER_TO_STRING, crypto.randomBytes(32), ['base64url'])}`;
 }
 function trustedInstant(value, code) {
   try { assertTimestamp(value); } catch { fail(code); }
@@ -137,7 +146,7 @@ export function validateAuthorityHeadValue(value) {
       digest(checked.priorAuthorityDigest, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
       validateSecretUpdateId(checked.lastUpdateId, { code: 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID' });
     }
-    return Object.freeze(checked);
+    return FREEZE(checked);
   } catch {
     fail('KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
   }
@@ -145,7 +154,7 @@ export function validateAuthorityHeadValue(value) {
 
 export function parseAuthorityHead(input) {
   let bytes;
-  try { bytes = Buffer.isBuffer(input) ? input : input instanceof Uint8Array ? Buffer.from(input) : null; }
+  try { bytes = BUFFER_IS_BUFFER(input) ? input : input instanceof Uint8Array ? BUFFER_FROM(input) : null; }
   catch { fail('KSTACK_SECRET_AUTHORITY_HEAD_ENCODING_INVALID'); }
   if (!bytes || bytes.length < 2 || bytes.length > SECRET_CONTROL_PLANE_MAX_BYTES) fail('KSTACK_SECRET_AUTHORITY_HEAD_ENCODING_INVALID');
   let value;
@@ -158,7 +167,7 @@ export function canonicalAuthorityHeadBytes(value) {
 }
 
 export function authorityHeadDigest(value) {
-  return `sha256:${crypto.createHash('sha256').update(Buffer.from('KSTACK-SECRET-AUTHORITY-HEAD-V1\0', 'ascii')).update(canonicalAuthorityHeadBytes(value)).digest('hex')}`;
+  return `sha256:${crypto.createHash('sha256').update(BUFFER_FROM('KSTACK-SECRET-AUTHORITY-HEAD-V1\0', 'ascii')).update(canonicalAuthorityHeadBytes(value)).digest('hex')}`;
 }
 
 export function authoritySuccessor(expected, nextUpdateId) {
@@ -178,8 +187,8 @@ export function reconcileAuthorityAdvance(expected, nextUpdateId, observed) {
   const current = validateAuthorityHeadValue(expected);
   const actual = validateAuthorityHeadValue(observed);
   const successor = authoritySuccessor(current, nextUpdateId);
-  if (hostCanonicalBytes(actual).equals(hostCanonicalBytes(successor))) return 'COMMITTED';
-  if (hostCanonicalBytes(actual).equals(hostCanonicalBytes(current))) return 'UNCOMMITTED';
+  if (bufferEquals(hostCanonicalBytes(actual), hostCanonicalBytes(successor))) return 'COMMITTED';
+  if (bufferEquals(hostCanonicalBytes(actual), hostCanonicalBytes(current))) return 'UNCOMMITTED';
   return 'UNCERTAIN';
 }
 
@@ -198,7 +207,7 @@ export function validateAuditHeadValue(value) {
       digest(checked.eventDigest, 'KSTACK_SECRET_AUDIT_HEAD_INVALID');
       validateSecretUpdateId(checked.lastUpdateId, { code: 'KSTACK_SECRET_AUDIT_HEAD_INVALID' });
     }
-    return Object.freeze(checked);
+    return FREEZE(checked);
   } catch {
     fail('KSTACK_SECRET_AUDIT_HEAD_INVALID');
   }
@@ -206,7 +215,7 @@ export function validateAuditHeadValue(value) {
 
 export function parseAuditHead(input) {
   let bytes;
-  try { bytes = Buffer.isBuffer(input) ? input : input instanceof Uint8Array ? Buffer.from(input) : null; }
+  try { bytes = BUFFER_IS_BUFFER(input) ? input : input instanceof Uint8Array ? BUFFER_FROM(input) : null; }
   catch { fail('KSTACK_SECRET_AUDIT_HEAD_ENCODING_INVALID'); }
   if (!bytes || bytes.length < 2 || bytes.length > SECRET_CONTROL_PLANE_MAX_BYTES) fail('KSTACK_SECRET_AUDIT_HEAD_ENCODING_INVALID');
   let value;
@@ -235,8 +244,8 @@ export function reconcileAuditAdvance(expected, eventDigest, nextUpdateId, obser
   const current = validateAuditHeadValue(expected);
   const actual = validateAuditHeadValue(observed);
   const successor = auditSuccessor(current, eventDigest, nextUpdateId);
-  if (hostCanonicalBytes(actual).equals(hostCanonicalBytes(successor))) return 'COMMITTED';
-  if (hostCanonicalBytes(actual).equals(hostCanonicalBytes(current))) return 'UNCOMMITTED';
+  if (bufferEquals(hostCanonicalBytes(actual), hostCanonicalBytes(successor))) return 'COMMITTED';
+  if (bufferEquals(hostCanonicalBytes(actual), hostCanonicalBytes(current))) return 'UNCOMMITTED';
   return 'UNCERTAIN';
 }
 

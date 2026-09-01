@@ -37,15 +37,31 @@ const ADVANCE_OPTION_KEYS = Object.freeze(['crashCut', 'acknowledgementCut']);
 const STATUS_KEYS = Object.freeze(['profileId', 'productionEligible', 'state']);
 const MAX_CANONICAL_CLOCK_MS = Date.parse('9999-12-31T23:59:59.999Z');
 const APPLY = Reflect.apply;
+const ARRAY_FILTER = Array.prototype.filter;
+const ARRAY_FIND = Array.prototype.find;
+const ARRAY_FIND_INDEX = Array.prototype.findIndex;
 const ARRAY_INCLUDES = Array.prototype.includes;
 const ARRAY_IS_ARRAY = Array.isArray;
+const ARRAY_MAP = Array.prototype.map;
 const ARRAY_SOME = Array.prototype.some;
+const ARRAY_SORT = Array.prototype.sort;
+const BUFFER_COMPARE = Buffer.compare;
+const BUFFER_EQUALS = Buffer.prototype.equals;
+const BUFFER_FROM = Buffer.from;
+const BUFFER_TO_STRING = Buffer.prototype.toString;
+const DATE_CONSTRUCTOR = Date;
+const DATE_PARSE = Date.parse;
+const DATE_TO_ISO_STRING = Date.prototype.toISOString;
 const DEFINE_PROPERTY = Object.defineProperty;
 const DEFINE_PROPERTIES = Object.defineProperties;
+const FREEZE = Object.freeze;
 const GET_OWN_PROPERTY_DESCRIPTORS = Object.getOwnPropertyDescriptors;
 const GET_OWN_PROPERTY_DESCRIPTOR = Object.getOwnPropertyDescriptor;
 const GET_PROTOTYPE_OF = Object.getPrototypeOf;
 const HAS_OWN = Object.hasOwn;
+const NUMBER_IS_SAFE_INTEGER = Number.isSafeInteger;
+const OBJECT_ENTRIES = Object.entries;
+const OBJECT_FROM_ENTRIES = Object.fromEntries;
 const OBJECT_PROTOTYPE = Object.prototype;
 const OWN_KEYS = Reflect.ownKeys;
 const WEAK_MAP_GET = WeakMap.prototype.get;
@@ -73,7 +89,22 @@ const SNAPSHOT_STATUS_ERROR_CODES = new Set([
 ]);
 
 function arrayIncludes(values, value) { return APPLY(ARRAY_INCLUDES, values, [value]); }
+function arrayFilter(values, predicate) { return APPLY(ARRAY_FILTER, values, [predicate]); }
+function arrayFind(values, predicate) { return APPLY(ARRAY_FIND, values, [predicate]); }
+function arrayFindIndex(values, predicate) { return APPLY(ARRAY_FIND_INDEX, values, [predicate]); }
+function arrayMap(values, predicate) { return APPLY(ARRAY_MAP, values, [predicate]); }
 function arraySome(values, predicate) { return APPLY(ARRAY_SOME, values, [predicate]); }
+function arraySort(values, predicate) { return APPLY(ARRAY_SORT, values, [predicate]); }
+function arrayCopy(values) {
+  const copy = [];
+  for (let index = 0; index < values.length; index += 1) copy[index] = values[index];
+  return copy;
+}
+function arrayAppend(values, value) {
+  const copy = arrayCopy(values);
+  copy[copy.length] = value;
+  return copy;
+}
 
 function defineError(error, name, code, kind) {
   DEFINE_PROPERTIES(error, {
@@ -135,7 +166,8 @@ function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
   if (arraySome(actual, (key) => typeof key !== 'string' || !arrayIncludes(keys, key))
       || requireAll && (actual.length !== keys.length || arraySome(keys, (key) => !HAS_OWN(descriptors, key)))) fail(code);
   const snapshot = {};
-  for (const key of actual) {
+  for (let index = 0; index < actual.length; index += 1) {
+    const key = actual[index];
     const descriptor = descriptors[key];
     if (!descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail(code);
     DEFINE_PROPERTY(snapshot, key, {
@@ -150,15 +182,15 @@ function exact(value, keys, code) {
 function opaque(value, code) {
   try { validateOpaqueRef(value); } catch { fail(code); }
 }
-function compare(left, right) { return Buffer.compare(Buffer.from(left, 'utf8'), Buffer.from(right, 'utf8')); }
-function randomOpaqueRef() { return `ksr1_${crypto.randomBytes(16).toString('base64url')}`; }
+function compare(left, right) { return BUFFER_COMPARE(BUFFER_FROM(left, 'utf8'), BUFFER_FROM(right, 'utf8')); }
+function randomOpaqueRef() { return `ksr1_${APPLY(BUFFER_TO_STRING, crypto.randomBytes(16), ['base64url'])}`; }
 function clone(value) { return parseHostCanonicalJson(hostCanonicalBytes(value)); }
 function frozen(value) {
-  if (Array.isArray(value)) return Object.freeze(value.map(frozen));
-  if (plain(value)) return Object.freeze(Object.fromEntries(Object.entries(value).map(([key, item]) => [key, frozen(item)])));
+  if (ARRAY_IS_ARRAY(value)) return FREEZE(arrayMap(value, frozen));
+  if (plain(value)) return FREEZE(OBJECT_FROM_ENTRIES(arrayMap(OBJECT_ENTRIES(value), (entry) => [entry[0], frozen(entry[1])])));
   return value;
 }
-function exactBytes(left, right) { return hostCanonicalBytes(left).equals(hostCanonicalBytes(right)); }
+function exactBytes(left, right) { return APPLY(BUFFER_EQUALS, hostCanonicalBytes(left), [hostCanonicalBytes(right)]); }
 
 function validateIdentity(value) {
   const checked = exact(value, IDENTITY_KEYS, 'KSTACK_SECRET_PROTECTED_IDENTITY_INVALID');
@@ -187,12 +219,18 @@ function validateState(value, identity) {
       || checkedValue.issuedUpdateIds.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS
       || checkedValue.retiredUpdateIds.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS
       || checkedValue.retiredWriterLeaseRefs.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  const authorityHeads = checkedValue.authorityHeads.map((entry) => validateAuthorityHeadValue(entry));
-  const auditHeads = checkedValue.auditHeads.map((entry) => validateAuditHeadValue(entry));
-  for (const id of [...checkedValue.issuedUpdateIds, ...checkedValue.retiredUpdateIds]) {
-    try { validateSecretUpdateId(id); } catch { fail('KSTACK_SECRET_PROTECTED_STATE_INVALID'); }
+  const authorityHeads = arrayMap(checkedValue.authorityHeads, (entry) => validateAuthorityHeadValue(entry));
+  const auditHeads = arrayMap(checkedValue.auditHeads, (entry) => validateAuditHeadValue(entry));
+  const updateIdSets = [checkedValue.issuedUpdateIds, checkedValue.retiredUpdateIds];
+  for (let setIndex = 0; setIndex < updateIdSets.length; setIndex += 1) {
+    const ids = updateIdSets[setIndex];
+    for (let index = 0; index < ids.length; index += 1) {
+      try { validateSecretUpdateId(ids[index]); } catch { fail('KSTACK_SECRET_PROTECTED_STATE_INVALID'); }
+    }
   }
-  for (const reference of checkedValue.retiredWriterLeaseRefs) opaque(reference, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  for (let index = 0; index < checkedValue.retiredWriterLeaseRefs.length; index += 1) {
+    opaque(checkedValue.retiredWriterLeaseRefs[index], 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  }
   validateSortedUnique(authorityHeads, (entry) => entry.authorityNamespaceRef, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   validateSortedUnique(auditHeads, (entry) => entry.auditNamespaceRef, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   validateSortedUnique(checkedValue.issuedUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
@@ -337,7 +375,7 @@ function validateAuditWriterRequest(request) {
     const selected = snapshotRecord(request, AUDIT_WRITER_KEYS, 'KSTACK_SECRET_AUDIT_WRITER_REQUEST_INVALID');
     auditNamespaceRef = selected.auditNamespaceRef;
     ttlMs = selected.ttlMs;
-    if (!Number.isSafeInteger(ttlMs) || ttlMs < 1 || ttlMs > 60_000) throw new Error();
+    if (!NUMBER_IS_SAFE_INTEGER(ttlMs) || ttlMs < 1 || ttlMs > 60_000) throw new Error();
   } catch { fail('KSTACK_SECRET_AUDIT_WRITER_REQUEST_INVALID'); }
   opaque(auditNamespaceRef, 'KSTACK_SECRET_AUDIT_NAMESPACE_INVALID');
   return { auditNamespaceRef, ttlMs };
@@ -363,17 +401,17 @@ function validateClock(clock) {
 function clockNow(clock) {
   let now;
   try { now = clock(); } catch { fail('KSTACK_SECRET_PROTECTED_CLOCK_INVALID'); }
-  if (!Number.isSafeInteger(now) || now < 0 || now > MAX_CANONICAL_CLOCK_MS) fail('KSTACK_SECRET_PROTECTED_CLOCK_INVALID');
+  if (!NUMBER_IS_SAFE_INTEGER(now) || now < 0 || now > MAX_CANONICAL_CLOCK_MS) fail('KSTACK_SECRET_PROTECTED_CLOCK_INVALID');
   return now;
 }
 
 function leaseDeadline(now, ttlMs) {
   if (now > MAX_CANONICAL_CLOCK_MS - ttlMs) fail('KSTACK_SECRET_PROTECTED_CLOCK_INVALID');
-  return new Date(now + ttlMs).toISOString();
+  return APPLY(DATE_TO_ISO_STRING, new DATE_CONSTRUCTOR(now + ttlMs), []);
 }
 
 function assertAuditLeaseCurrent(state, clock) {
-  if (state.auditHeads.length !== 0 && Date.parse(state.auditHeads[0].writerLeaseDeadline) <= clockNow(clock)) {
+  if (state.auditHeads.length !== 0 && APPLY(DATE_PARSE, DATE_CONSTRUCTOR, [state.auditHeads[0].writerLeaseDeadline]) <= clockNow(clock)) {
     throw new StateFenceRequiredError();
   }
 }
@@ -508,8 +546,8 @@ export class SyntheticProtectedStateAdapter {
     if (!arrayIncludes(state.issuedUpdateIds, updateId)) fail('KSTACK_SECRET_PROTECTED_UPDATE_ID_NOT_ISSUED');
     return {
       ...state,
-      issuedUpdateIds: state.issuedUpdateIds.filter((id) => id !== updateId),
-      retiredUpdateIds: [...state.retiredUpdateIds, updateId].sort(compare)
+      issuedUpdateIds: arrayFilter(state.issuedUpdateIds, (id) => id !== updateId),
+      retiredUpdateIds: arraySort(arrayAppend(state.retiredUpdateIds, updateId), compare)
     };
   }
 
@@ -524,7 +562,7 @@ export class SyntheticProtectedStateAdapter {
         if (!arrayIncludes(state.issuedUpdateIds, candidate) && !arrayIncludes(state.retiredUpdateIds, candidate)) { updateId = candidate; break; }
       }
       if (!updateId) fail('KSTACK_SECRET_PROTECTED_ID_COLLISION_EXHAUSTED');
-      this.#writeState({ ...state, issuedUpdateIds: [...state.issuedUpdateIds, updateId].sort(compare) });
+      this.#writeState({ ...state, issuedUpdateIds: arraySort(arrayAppend(state.issuedUpdateIds, updateId), compare) });
       return frozen({ result: 'ISSUED', updateId });
     });
   }
@@ -534,7 +572,7 @@ export class SyntheticProtectedStateAdapter {
     return this.#mutation((state) => {
       if (state.authorityHeads.length !== 0) fail('KSTACK_SECRET_AUTHORITY_ALREADY_INITIALIZED');
       const head = authorityOrigin(authorityNamespaceRef);
-      const authorityHeads = [...state.authorityHeads, head].sort((left, right) => compare(left.authorityNamespaceRef, right.authorityNamespaceRef));
+      const authorityHeads = arraySort(arrayAppend(state.authorityHeads, head), (left, right) => compare(left.authorityNamespaceRef, right.authorityNamespaceRef));
       this.#writeState({ ...state, authorityHeads });
       return frozen({ result: 'INITIALIZED', head });
     });
@@ -543,7 +581,7 @@ export class SyntheticProtectedStateAdapter {
   readAuthorityHead(authorityNamespaceRef) {
     opaque(authorityNamespaceRef, 'KSTACK_SECRET_AUTHORITY_NAMESPACE_INVALID');
     return this.#read((state) => {
-      const head = state.authorityHeads.find((entry) => entry.authorityNamespaceRef === authorityNamespaceRef);
+      const head = arrayFind(state.authorityHeads, (entry) => entry.authorityNamespaceRef === authorityNamespaceRef);
       if (!head) fail('KSTACK_SECRET_AUTHORITY_UNAVAILABLE');
       return head;
     });
@@ -556,13 +594,13 @@ export class SyntheticProtectedStateAdapter {
     return this.#mutation((state) => {
       const attempted = this.#retireAttempt(state, updateId);
       this.#writeState(attempted);
-      const index = state.authorityHeads.findIndex((entry) => entry.authorityNamespaceRef === checkedExpected.authorityNamespaceRef);
+      const index = arrayFindIndex(state.authorityHeads, (entry) => entry.authorityNamespaceRef === checkedExpected.authorityNamespaceRef);
       if (index < 0) fail('KSTACK_SECRET_AUTHORITY_UNAVAILABLE');
       if (!exactBytes(state.authorityHeads[index], checkedExpected)) return frozen({ result: 'EXPECTATION_MISMATCH' });
       if (checkedOptions.crashCut === 'BEFORE_COMMIT') {
         fail('KSTACK_SECRET_PROTECTED_CRASH_BEFORE_COMMIT');
       }
-      const authorityHeads = [...state.authorityHeads];
+      const authorityHeads = arrayCopy(state.authorityHeads);
       authorityHeads[index] = successor;
       this.#writeState({ ...attempted, authorityHeads });
       if (checkedOptions.crashCut === 'AFTER_COMMIT') throw new PossiblyCommittedError();
@@ -581,9 +619,9 @@ export class SyntheticProtectedStateAdapter {
     const { auditNamespaceRef, ttlMs } = validateAuditWriterRequest(request);
     return this.#mutation((state) => {
       const now = this.#now();
-      const index = state.auditHeads.findIndex((entry) => entry.auditNamespaceRef === auditNamespaceRef);
+      const index = arrayFindIndex(state.auditHeads, (entry) => entry.auditNamespaceRef === auditNamespaceRef);
       if (index < 0 && state.auditHeads.length !== 0) fail('KSTACK_SECRET_AUDIT_NAMESPACE_MISMATCH');
-      if (index >= 0 && Date.parse(state.auditHeads[index].writerLeaseDeadline) > now) return frozen({ result: 'WRITER_UNAVAILABLE' });
+      if (index >= 0 && APPLY(DATE_PARSE, DATE_CONSTRUCTOR, [state.auditHeads[index].writerLeaseDeadline]) > now) return frozen({ result: 'WRITER_UNAVAILABLE' });
       if (index >= 0) throw new StateFenceRequiredError();
       if (state.retiredWriterLeaseRefs.length >= SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS) fail('KSTACK_SECRET_PROTECTED_RETIRED_IDS_EXHAUSTED');
       let writerLeaseRef;
@@ -596,10 +634,10 @@ export class SyntheticProtectedStateAdapter {
       const head = index < 0
         ? auditOrigin(auditNamespaceRef, 1, writerLeaseRef, writerLeaseDeadline)
         : validateAuditHeadValue({ ...state.auditHeads[index], writerLeaseRef, writerLeaseDeadline });
-      const auditHeads = [...state.auditHeads];
-      if (index < 0) auditHeads.push(head); else auditHeads[index] = head;
-      auditHeads.sort((left, right) => compare(left.auditNamespaceRef, right.auditNamespaceRef));
-      const retiredWriterLeaseRefs = [...state.retiredWriterLeaseRefs, writerLeaseRef].sort(compare);
+      const auditHeads = arrayCopy(state.auditHeads);
+      if (index < 0) auditHeads[auditHeads.length] = head; else auditHeads[index] = head;
+      arraySort(auditHeads, (left, right) => compare(left.auditNamespaceRef, right.auditNamespaceRef));
+      const retiredWriterLeaseRefs = arraySort(arrayAppend(state.retiredWriterLeaseRefs, writerLeaseRef), compare);
       this.#writeState({ ...state, auditHeads, retiredWriterLeaseRefs });
       return frozen({ result: 'ACQUIRED', head });
     });
@@ -608,7 +646,7 @@ export class SyntheticProtectedStateAdapter {
   readAuditHead(auditNamespaceRef) {
     opaque(auditNamespaceRef, 'KSTACK_SECRET_AUDIT_NAMESPACE_INVALID');
     return this.#read((state) => {
-      const head = state.auditHeads.find((entry) => entry.auditNamespaceRef === auditNamespaceRef);
+      const head = arrayFind(state.auditHeads, (entry) => entry.auditNamespaceRef === auditNamespaceRef);
       if (!head) fail('KSTACK_SECRET_AUDIT_HEAD_UNAVAILABLE');
       return head;
     });
@@ -621,15 +659,15 @@ export class SyntheticProtectedStateAdapter {
     return this.#mutation((state) => {
       const attempted = this.#retireAttempt(state, updateId);
       this.#writeState(attempted);
-      const index = state.auditHeads.findIndex((entry) => entry.auditNamespaceRef === checkedExpected.auditNamespaceRef);
+      const index = arrayFindIndex(state.auditHeads, (entry) => entry.auditNamespaceRef === checkedExpected.auditNamespaceRef);
       if (index < 0) fail('KSTACK_SECRET_AUDIT_HEAD_UNAVAILABLE');
       const current = state.auditHeads[index];
       if (!exactBytes(current, checkedExpected)) return frozen({ result: 'EXPECTATION_MISMATCH' });
-      if (Date.parse(current.writerLeaseDeadline) <= this.#now()) throw new StateFenceRequiredError();
+      if (APPLY(DATE_PARSE, DATE_CONSTRUCTOR, [current.writerLeaseDeadline]) <= this.#now()) throw new StateFenceRequiredError();
       if (checkedOptions.crashCut === 'BEFORE_COMMIT') {
         fail('KSTACK_SECRET_PROTECTED_CRASH_BEFORE_COMMIT');
       }
-      const auditHeads = [...state.auditHeads];
+      const auditHeads = arrayCopy(state.auditHeads);
       auditHeads[index] = successor;
       this.#writeState({ ...attempted, auditHeads });
       if (checkedOptions.crashCut === 'AFTER_COMMIT') throw new PossiblyCommittedError();

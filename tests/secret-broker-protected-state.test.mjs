@@ -599,6 +599,106 @@ test('prospective requests are closed and validated before update-ID consumption
   });
   assert.equal(intrinsicState.adapter.compareAndAdvanceAuthority(intrinsicOrigin, intrinsicUpdateId).result, 'ADVANCED');
 
+  const canonicalZeroId = `ksu1_${Buffer.alloc(32).toString('base64url')}`;
+  const noncanonicalZeroId = `${canonicalZeroId.slice(0, -1)}B`;
+  const originalBufferToString = Buffer.prototype.toString;
+  let noncanonicalError;
+  try {
+    Buffer.prototype.toString = function toString(encoding, ...args) {
+      if (encoding === 'base64url' && this.length === 32) return noncanonicalZeroId.slice(5);
+      return Reflect.apply(originalBufferToString, this, [encoding, ...args]);
+    };
+    try { validateSecretUpdateId(noncanonicalZeroId); } catch (error) { noncanonicalError = error; }
+  } finally {
+    Buffer.prototype.toString = originalBufferToString;
+  }
+  assert.equal(noncanonicalError?.code, 'KSTACK_SECRET_UPDATE_ID_INVALID');
+
+  const originalSafeInteger = Number.isSafeInteger;
+  let fractionalGenerationError;
+  try {
+    Number.isSafeInteger = () => true;
+    try {
+      validateAuthorityHeadValue({
+        schemaVersion: 'kstack-secret-authority-head-v1',
+        authorityNamespaceRef: REF_A,
+        authorityEpoch: 1.5,
+        priorAuthorityDigest: EVENT_A,
+        lastUpdateId: UPDATE_1
+      });
+    } catch (error) { fractionalGenerationError = error; }
+  } finally {
+    Number.isSafeInteger = originalSafeInteger;
+  }
+  assert.equal(fractionalGenerationError?.code, 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
+
+  const reconciliationOrigin = authorityOrigin(REF_A);
+  const unrelatedOrigin = authorityOrigin(REF_B);
+  const originalBufferEquals = Buffer.prototype.equals;
+  let reconciliation;
+  try {
+    Buffer.prototype.equals = () => true;
+    reconciliation = reconcileAuthorityAdvance(reconciliationOrigin, UPDATE_1, unrelatedOrigin);
+  } finally {
+    Buffer.prototype.equals = originalBufferEquals;
+  }
+  assert.equal(reconciliation, 'UNCERTAIN');
+
+  const staleState = fixture();
+  const staleOrigin = staleState.adapter.initializeAuthority(REF_A).head;
+  const staleUpdateId = issue(staleState.adapter);
+  assert.equal(staleState.adapter.compareAndAdvanceAuthority(staleOrigin, staleUpdateId).result, 'ADVANCED');
+  const originalFind = Array.prototype.find;
+  let staleDisposition;
+  try {
+    Array.prototype.find = () => staleOrigin;
+    staleDisposition = staleState.adapter.verifyAuthoritySnapshot(staleOrigin);
+  } finally {
+    Array.prototype.find = originalFind;
+  }
+  assert.equal(staleDisposition, 'EPOCH_MISMATCH');
+
+  const expiredIntrinsicState = fixture();
+  const expiredWriter = expiredIntrinsicState.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 1 }).head;
+  const expiredUpdateId = issue(expiredIntrinsicState.adapter);
+  expiredIntrinsicState.advance(2);
+  const originalDateParse = Date.parse;
+  let expiredDisposition;
+  try {
+    Date.parse = () => Number.POSITIVE_INFINITY;
+    expiredDisposition = expiredIntrinsicState.adapter.compareAndAdvanceAudit(expiredWriter, EVENT_A, expiredUpdateId);
+  } finally {
+    Date.parse = originalDateParse;
+  }
+  assert.deepEqual(expiredDisposition, { result: 'ACKNOWLEDGEMENT_UNKNOWN' });
+
+  const transformState = fixture();
+  const transformOrigin = transformState.adapter.initializeAuthority(REF_A).head;
+  const transformUpdateId = issue(transformState.adapter);
+  const arrayOriginals = {
+    filter: Array.prototype.filter,
+    findIndex: Array.prototype.findIndex,
+    sort: Array.prototype.sort
+  };
+  let transformDisposition;
+  try {
+    Array.prototype.filter = function filter(callback, thisArg) {
+      if (this.length === 1 && this[0] === transformUpdateId) return this;
+      return Reflect.apply(arrayOriginals.filter, this, [callback, thisArg]);
+    };
+    Array.prototype.findIndex = () => -1;
+    Array.prototype.sort = function sort(compareFunction) {
+      if (this.length > 0 && typeof this[0] === 'string' && this[0].startsWith('ksu1_')) return this;
+      return Reflect.apply(arrayOriginals.sort, this, [compareFunction]);
+    };
+    transformDisposition = transformState.adapter.compareAndAdvanceAuthority(transformOrigin, transformUpdateId);
+  } finally {
+    Array.prototype.filter = arrayOriginals.filter;
+    Array.prototype.findIndex = arrayOriginals.findIndex;
+    Array.prototype.sort = arrayOriginals.sort;
+  }
+  assert.equal(transformDisposition.result, 'ADVANCED');
+
   assert.equal(state.adapter.compareAndAdvanceAuthority(origin, updateId).result, 'ADVANCED');
   assert.throws(
     () => state.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 1_000, auditEpoch: 9 }),
