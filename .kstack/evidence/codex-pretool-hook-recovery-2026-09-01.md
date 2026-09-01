@@ -106,6 +106,13 @@ the native-hook repair: Watlow `01a04da4-73c1-72f3-85f3-bee6d1715827` on
 Codex host 0.150.1 and VitalWhy `01a05a9f-f8d4-7773-864a-b00d1070bf83` on an
 initial KStack cache predating the native manifest. Both were forked into new
 Windows Terminal tabs without deleting their transcripts or repository files.
+The first VitalWhy tab launch incorrectly passed a quoted
+`exec codex fork ...` string as the Windows executable and Windows Terminal
+returned `0x80070002`; that tab did not create a session. The corrected launch
+passed `wsl.exe`, the working directory, the absolute WSL Codex executable,
+`fork`, and the session ID as separate arguments. It created the replacement
+successfully, so the failed launch did not alter the original or replacement
+transcript.
 The replacements are Watlow `01a05e4b-c5ad-7d13-b421-4f8d0708e540` and
 VitalWhy `01a05e50-41ce-7ec2-acec-a0bd684e0f25`; the latter runs Codex 0.152.0.
 After both replacements were persisted, only the two exact obsolete Codex TUI
