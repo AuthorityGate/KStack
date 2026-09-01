@@ -32,9 +32,15 @@ each tool call.
   removal, preserves each retired absolute path as a compatibility symlink to
   the stable repaired runtime. This is necessary because Codex plugin removal
   clears the whole plugin cache family, not only the currently reported
-  version. Open threads therefore keep launching a valid, current hook across
-  plugin refreshes. A fork is needed only to refresh the thread's skill
-  catalog, not to stop hook failures.
+  version. The inventory is also retained in a closed, value-free registry
+  outside the cache family, so a path remains recoverable even if an earlier
+  refresh already removed it. Setup snapshots that registry before invoking
+  any Codex plugin command because even a capability probe may reconcile the
+  cache. It restores the compatibility links only after the final plugin
+  installation and physical-cache verification, because later plugin commands
+  may prune them again. Open threads therefore keep launching a valid, current
+  hook across plugin refreshes. A fork is needed only to refresh the thread's
+  skill catalog, not to stop hook failures.
 - Direct-broker detection is limited to Bash and PowerShell tool invocations.
   Non-shell tools such as `apply_patch` are no longer denied merely because
   their data mentions a KStack script path.

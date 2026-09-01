@@ -359,23 +359,52 @@ codex_installed_cache_root() {
     "$listing" "$HOME"
 }
 
-list_codex_cache_roots() {
+snapshot_codex_cache_roots() {
+  local installed_cache_root="${1:-}"
   env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
     "$KSTACK_RUNTIME_NODE" -e '
 const fs = require("node:fs");
 const path = require("node:path");
-const home = process.argv[1];
+const [home, installedArgument] = process.argv.slice(1);
 const parent = path.resolve(home, ".codex", "plugins", "cache", "kstack", "kstack");
+const registry = path.resolve(home, ".codex", "skills", ".kstack-cache-compatibility-v1.json");
+const roots = new Set();
+const admit = (candidate) => {
+  const resolved = path.resolve(candidate);
+  if (path.dirname(resolved) !== parent || !/^[A-Za-z0-9.+_-]+$/u.test(path.basename(resolved))) process.exit(1);
+  roots.add(resolved);
+};
 let names = [];
 try { names = fs.readdirSync(parent); } catch (error) { if (error?.code !== "ENOENT") throw error; }
 for (const name of names.sort()) {
-  if (!/^[A-Za-z0-9.+_-]+$/u.test(name)) process.exit(1);
   const candidate = path.join(parent, name);
+  admit(candidate);
   const stat = fs.lstatSync(candidate);
   if (!stat.isDirectory() && !stat.isSymbolicLink()) process.exit(1);
-  process.stdout.write(`${candidate}\n`);
 }
-' "$HOME"
+try {
+  const stat = fs.lstatSync(registry);
+  if (!stat.isFile() || stat.isSymbolicLink()) process.exit(1);
+  const saved = JSON.parse(fs.readFileSync(registry, "utf8"));
+  if (saved?.schemaVersion !== 1 || saved?.kind !== "kstack-codex-cache-compatibility-v1"
+    || !Array.isArray(saved.paths) || Object.keys(saved).sort().join(",") !== "kind,paths,schemaVersion") process.exit(1);
+  for (const candidate of saved.paths) {
+    if (typeof candidate !== "string") process.exit(1);
+    admit(candidate);
+  }
+} catch (error) { if (error?.code !== "ENOENT") throw error; }
+if (installedArgument) admit(installedArgument);
+const paths = [...roots].sort((left, right) => Buffer.compare(Buffer.from(left), Buffer.from(right)));
+fs.mkdirSync(path.dirname(registry), { recursive: true });
+const temporary = `${registry}.${process.pid}.tmp`;
+const descriptor = fs.openSync(temporary, "wx", 0o600);
+try {
+  fs.writeFileSync(descriptor, `${JSON.stringify({ schemaVersion: 1, kind: "kstack-codex-cache-compatibility-v1", paths }, null, 2)}\n`);
+  fs.fsyncSync(descriptor);
+} finally { fs.closeSync(descriptor); }
+fs.renameSync(temporary, registry);
+for (const candidate of paths) process.stdout.write(`${candidate}\n`);
+' "$HOME" "$installed_cache_root"
 }
 
 preserve_codex_cache_compatibility() {
@@ -495,43 +524,47 @@ install_claude_plugin() {
 }
 
 install_codex_plugin_from_runtime() {
-  local runtime_root="$1" marketplace_root plugin_installed installed_cache_root="" compatibility_root="" retired_cache_root installed_cache_seen=0
+  local runtime_root="$1" marketplace_root plugin_installed installed_cache_root="" compatibility_root="" retired_cache_root cache_snapshot=""
   local -a retired_cache_roots=()
+  cache_snapshot="$(snapshot_codex_cache_roots)" || return $?
   plugin_installed="$(codex_plugin_installed)" || return $?
   if [ "$plugin_installed" = "1" ]; then
     installed_cache_root="$(codex_installed_cache_root)" || return $?
-    mapfile -t retired_cache_roots < <(list_codex_cache_roots) || return $?
-    for retired_cache_root in "${retired_cache_roots[@]}"; do
-      if [ "$retired_cache_root" = "$installed_cache_root" ]; then installed_cache_seen=1; fi
-    done
-    if [ "$installed_cache_seen" = "0" ]; then retired_cache_roots+=("$installed_cache_root"); fi
+    cache_snapshot="$(snapshot_codex_cache_roots "$installed_cache_root")" || return $?
+    if [ -n "$cache_snapshot" ]; then mapfile -t retired_cache_roots <<< "$cache_snapshot"; fi
   fi
   marketplace_root="$(codex_marketplace_root)" || return $?
+  if [ "$plugin_installed" = "1" ]; then
+    codex plugin remove kstack@kstack || return $?
+  fi
   if [ -n "$marketplace_root" ] && [ "$marketplace_root" != "$runtime_root" ]; then
-    codex plugin marketplace remove kstack
+    codex plugin marketplace remove kstack || return $?
     marketplace_root=""
   fi
   if [ -z "$marketplace_root" ]; then
-    codex plugin marketplace add "$runtime_root"
+    codex plugin marketplace add "$runtime_root" || return $?
   fi
+  codex plugin add kstack@kstack || return $?
+  confirm_codex_plugin_cache "$runtime_root" || return $?
   if [ "$plugin_installed" = "1" ]; then
-    codex plugin remove kstack@kstack
     for retired_cache_root in "${retired_cache_roots[@]}"; do
+      if [ "$retired_cache_root" = "$KSTACK_CODEX_CACHE_ROOT" ]; then continue; fi
       compatibility_root="$(preserve_codex_cache_compatibility "$retired_cache_root" "$runtime_root")" || return $?
       printf 'preserved active Codex session cache path: %s -> %s\n' "$compatibility_root" "$runtime_root"
     done
   fi
-  codex plugin add kstack@kstack
-  confirm_codex_plugin_cache "$runtime_root"
 }
 
 install_host() {
   local host="$1" dst_root skill runtime_root=""
   if [ "$SCOPE" = "user" ]; then
     if [ "$host" = "codex" ]; then
+      dst_root="$HOME/.codex/skills"
+      runtime_root="$dst_root/.kstack-runtime"
+      # Codex may reconcile and prune its cache even for a capability probe.
+      # Persist every retained session path before invoking any plugin command.
+      snapshot_codex_cache_roots >/dev/null || return $?
       if command -v codex >/dev/null 2>&1 && codex plugin --help >/dev/null 2>&1; then
-        dst_root="$HOME/.codex/skills"
-        runtime_root="$dst_root/.kstack-runtime"
         install_runtime "$dst_root" 1
         prepare_reflexion_root "$runtime_root" || return $?
         install_codex_plugin_from_runtime "$runtime_root" || return $?
@@ -543,7 +576,6 @@ install_host() {
         KSTACK_SHARED_USER_RUNTIME_ROOT="$runtime_root"
         return
       fi
-      dst_root="$HOME/.codex/skills"
       printf '%s\n' "Codex plugin commands are unavailable; using the legacy user skill directory and leaving Codex safety hooks inactive." >&2
     else
       dst_root="$HOME/.claude/skills"

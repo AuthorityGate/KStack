@@ -64,7 +64,9 @@ exec /usr/bin/timeout "$@"
 printf 'CODEX %s\\n' "$*" >> "$KSTACK_SETUP_TEST_LOG"
 if [ "$KSTACK_CODEX_MODE" = "unavailable" ]; then exit 1; fi
 case "$*" in
-  'plugin --help') exit 0 ;;
+  'plugin --help')
+    rm -rf "$HOME/.codex/plugins/cache/kstack/kstack"
+    exit 0 ;;
   'plugin marketplace list --json')
     if [ -s "$KSTACK_CODEX_MARKETPLACE_MARKER" ]; then
       printf '{"marketplaces":[{"name":"kstack","root":"%s"}]}\\n' "$(cat "$KSTACK_CODEX_MARKETPLACE_MARKER")"
@@ -91,6 +93,7 @@ case "$*" in
     kstack_source="$(cat "$KSTACK_CODEX_MARKETPLACE_MARKER")"
     kstack_version="$($KSTACK_REAL_NODE -e 'const fs = require("node:fs"); process.stdout.write(JSON.parse(fs.readFileSync(process.argv[1], "utf8")).version);' "$kstack_source/.codex-plugin/plugin.json")"
     kstack_cache="$HOME/.codex/plugins/cache/kstack/kstack/$kstack_version"
+    rm -rf "$HOME/.codex/plugins/cache/kstack/kstack"
     if [ "$KSTACK_CODEX_MODE" != "broken" ]; then
       mkdir -p "$kstack_cache"
       cp -R "$kstack_source/." "$kstack_cache/"
@@ -148,6 +151,13 @@ function runSetupFixture(args, failMatch, {
     fs.writeFileSync(path.join(staleCache, 'stale-only.txt'), 'marketplace refresh must not update this cache\n');
     const historicalCache = path.join(home, '.codex', 'plugins', 'cache', 'kstack', 'kstack', '0.0.9+codex.20260801000000000');
     fs.symlinkSync(path.join(home, '.codex', 'skills', '.kstack-runtime'), historicalCache, 'dir');
+    const registeredMissingCache = path.join(home, '.codex', 'plugins', 'cache', 'kstack', 'kstack', '0.0.8+codex.20260701000000000');
+    fs.mkdirSync(path.join(home, '.codex', 'skills'), { recursive: true });
+    fs.writeFileSync(path.join(home, '.codex', 'skills', '.kstack-cache-compatibility-v1.json'), `${JSON.stringify({
+      schemaVersion: 1,
+      kind: 'kstack-codex-cache-compatibility-v1',
+      paths: [registeredMissingCache]
+    }, null, 2)}\n`, { mode: 0o600 });
   }
   const result = spawnSync(path.join(root, 'setup'), [...args, '--target', target], { cwd: root, env: environment, encoding: 'utf8', timeout: setupTimeoutMs, maxBuffer: 4 * 1024 * 1024, shell: false });
   const calls = fs.existsSync(fixture.log) ? fs.readFileSync(fixture.log, 'utf8').trim().split('\n').filter(Boolean) : [];
@@ -305,6 +315,7 @@ test('--host all user plugin mode covers first install and already-installed pro
   assert.equal(existing.calls.some((line) => line.startsWith('CODEX plugin marketplace add ')), false);
   assert.equal(existing.calls.includes('CODEX plugin remove kstack@kstack'), true);
   assert.equal(existing.calls.includes('CODEX plugin add kstack@kstack'), true);
+  assert.equal(existing.calls[0], 'CODEX plugin --help');
   assert.match(existing.result.stderr, /KSTACK_CODEX_SESSION_COMPATIBILITY_ACTIVE/u);
   assert.match(existing.result.stderr, /codex fork SESSION_ID/u);
   const retiredCache = path.join(existing.home, '.codex', 'plugins', 'cache', 'kstack', 'kstack', '0.1.0+codex.20260812133549');
@@ -313,6 +324,13 @@ test('--host all user plugin mode covers first install and already-installed pro
   const historicalCache = path.join(existing.home, '.codex', 'plugins', 'cache', 'kstack', 'kstack', '0.0.9+codex.20260801000000000');
   assert.equal(fs.lstatSync(historicalCache).isSymbolicLink(), true);
   assert.equal(fs.realpathSync(historicalCache), path.join(existing.home, '.codex', 'skills', '.kstack-runtime'));
+  const registeredMissingCache = path.join(existing.home, '.codex', 'plugins', 'cache', 'kstack', 'kstack', '0.0.8+codex.20260701000000000');
+  assert.equal(fs.lstatSync(registeredMissingCache).isSymbolicLink(), true);
+  assert.equal(fs.realpathSync(registeredMissingCache), path.join(existing.home, '.codex', 'skills', '.kstack-runtime'));
+  const registry = JSON.parse(fs.readFileSync(path.join(existing.home, '.codex', 'skills', '.kstack-cache-compatibility-v1.json'), 'utf8'));
+  assert.equal(registry.paths.includes(registeredMissingCache), true);
+  assert.equal(registry.paths.includes(historicalCache), true);
+  assert.equal(registry.paths.includes(retiredCache), true);
   assert.equal(existing.calls.filter((line) => line.includes('verify-runtime')).length, 1);
   assertCurrentCodexCache(existing);
   assert.equal(existing.calls.filter((line) => line.includes('kstack-install-health.mjs')).length, 1);
