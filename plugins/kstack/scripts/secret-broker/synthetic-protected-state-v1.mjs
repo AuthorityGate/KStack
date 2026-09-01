@@ -5,7 +5,6 @@ import path from 'node:path';
 import { hostCanonicalBytes, parseHostCanonicalJson } from '../kstack-host-contract.mjs';
 import { validateOpaqueRef } from './public-v1.mjs';
 import {
-  SecretControlPlaneError,
   auditOrigin,
   auditSuccessor,
   authorityOrigin,
@@ -35,8 +34,29 @@ const STATE_KEYS = Object.freeze([
 const OPEN_KEYS = Object.freeze(['root', 'clock']);
 const AUDIT_WRITER_KEYS = Object.freeze(['auditNamespaceRef', 'ttlMs']);
 const ADVANCE_OPTION_KEYS = Object.freeze(['crashCut', 'acknowledgementCut']);
+const STATUS_KEYS = Object.freeze(['profileId', 'productionEligible', 'state']);
 const MAX_CANONICAL_CLOCK_MS = Date.parse('9999-12-31T23:59:59.999Z');
 const APPLY = Reflect.apply;
+const ARRAY_IS_ARRAY = Array.isArray;
+const DEFINE_PROPERTY = Object.defineProperty;
+const DEFINE_PROPERTIES = Object.defineProperties;
+const GET_OWN_PROPERTY_DESCRIPTORS = Object.getOwnPropertyDescriptors;
+const GET_OWN_PROPERTY_DESCRIPTOR = Object.getOwnPropertyDescriptor;
+const GET_PROTOTYPE_OF = Object.getPrototypeOf;
+const HAS_OWN = Object.hasOwn;
+const OBJECT_PROTOTYPE = Object.prototype;
+const OWN_KEYS = Reflect.ownKeys;
+const WEAK_MAP_GET = WeakMap.prototype.get;
+const WEAK_MAP_SET = WeakMap.prototype.set;
+const SET_HAS = Set.prototype.has;
+const INTERNAL_ERROR_TOKEN = Symbol('synthetic-protected-state-internal-error');
+const INTERNAL_ERROR_RECORDS = new WeakMap();
+const ERROR_KIND = Object.freeze({
+  FIXED: 'FIXED',
+  POSSIBLY_COMMITTED: 'POSSIBLY_COMMITTED',
+  STATE_WRITE_UNCERTAIN: 'STATE_WRITE_UNCERTAIN',
+  STATE_FENCE_REQUIRED: 'STATE_FENCE_REQUIRED'
+});
 const SNAPSHOT_STATUS_ERROR_CODES = new Set([
   'KSTACK_SECRET_PROTECTED_ROOT_UNAVAILABLE',
   'KSTACK_SECRET_PROTECTED_ROOT_UNTRUSTED',
@@ -50,31 +70,77 @@ const SNAPSHOT_STATUS_ERROR_CODES = new Set([
   'KSTACK_SECRET_PROTECTED_STATE_LOCK_FENCED'
 ]);
 
+function defineError(error, name, code, kind) {
+  DEFINE_PROPERTIES(error, {
+    name: { value: name, enumerable: true, configurable: true, writable: true },
+    message: { value: code, enumerable: false, configurable: true, writable: true },
+    code: { value: code, enumerable: true, configurable: true, writable: true }
+  });
+  if (kind) APPLY(WEAK_MAP_SET, INTERNAL_ERROR_RECORDS, [error, { kind, code }]);
+}
+
+function internalErrorRecord(error) {
+  if (error === null || (typeof error !== 'object' && typeof error !== 'function')) return undefined;
+  return APPLY(WEAK_MAP_GET, INTERNAL_ERROR_RECORDS, [error]);
+}
+
 class PossiblyCommittedError extends Error {
-  constructor() { super('KSTACK_SECRET_PROTECTED_ACKNOWLEDGEMENT_UNKNOWN'); this.code = 'KSTACK_SECRET_PROTECTED_ACKNOWLEDGEMENT_UNKNOWN'; }
-}
-
-class StateWriteUncertainError extends Error {
-  constructor() { super('KSTACK_SECRET_PROTECTED_STATE_WRITE_UNCERTAIN'); this.code = 'KSTACK_SECRET_PROTECTED_STATE_WRITE_UNCERTAIN'; }
-}
-
-class StateFenceRequiredError extends Error {
-  constructor() { super('KSTACK_SECRET_PROTECTED_STATE_FENCE_REQUIRED'); this.code = 'KSTACK_SECRET_PROTECTED_STATE_FENCE_REQUIRED'; }
-}
-
-export class SyntheticProtectedStateError extends Error {
-  constructor(code) {
-    super(code);
-    this.name = 'SyntheticProtectedStateError';
-    this.code = code;
+  constructor() {
+    super();
+    defineError(this, 'PossiblyCommittedError', 'KSTACK_SECRET_PROTECTED_ACKNOWLEDGEMENT_UNKNOWN', ERROR_KIND.POSSIBLY_COMMITTED);
   }
 }
 
-function fail(code) { throw new SyntheticProtectedStateError(code); }
-function plain(value) { return value !== null && typeof value === 'object' && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype; }
+class StateWriteUncertainError extends Error {
+  constructor() {
+    super();
+    defineError(this, 'StateWriteUncertainError', 'KSTACK_SECRET_PROTECTED_STATE_WRITE_UNCERTAIN', ERROR_KIND.STATE_WRITE_UNCERTAIN);
+  }
+}
+
+class StateFenceRequiredError extends Error {
+  constructor() {
+    super();
+    defineError(this, 'StateFenceRequiredError', 'KSTACK_SECRET_PROTECTED_STATE_FENCE_REQUIRED', ERROR_KIND.STATE_FENCE_REQUIRED);
+  }
+}
+
+export class SyntheticProtectedStateError extends Error {
+  constructor(code, token) {
+    super();
+    defineError(this, 'SyntheticProtectedStateError', code, token === INTERNAL_ERROR_TOKEN ? ERROR_KIND.FIXED : undefined);
+  }
+}
+
+function fail(code) { throw new SyntheticProtectedStateError(code, INTERNAL_ERROR_TOKEN); }
+function plain(value) {
+  try {
+    return value !== null && typeof value === 'object' && !ARRAY_IS_ARRAY(value)
+      && GET_PROTOTYPE_OF(value) === OBJECT_PROTOTYPE;
+  } catch { return false; }
+}
+function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
+  let descriptors;
+  let actual;
+  try {
+    if (!plain(value)) fail(code);
+    descriptors = GET_OWN_PROPERTY_DESCRIPTORS(value);
+    actual = OWN_KEYS(descriptors);
+  } catch { fail(code); }
+  if (actual.some((key) => typeof key !== 'string' || !keys.includes(key))
+      || requireAll && (actual.length !== keys.length || keys.some((key) => !HAS_OWN(descriptors, key)))) fail(code);
+  const snapshot = {};
+  for (const key of actual) {
+    const descriptor = descriptors[key];
+    if (!descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail(code);
+    DEFINE_PROPERTY(snapshot, key, {
+      value: descriptor.value, enumerable: true, configurable: true, writable: true
+    });
+  }
+  return snapshot;
+}
 function exact(value, keys, code) {
-  if (!plain(value) || Object.keys(value).length !== keys.length || keys.some((key) => !Object.hasOwn(value, key))
-      || Object.keys(value).some((key) => !keys.includes(key))) fail(code);
+  return snapshotRecord(value, keys, code);
 }
 function opaque(value, code) {
   try { validateOpaqueRef(value); } catch { fail(code); }
@@ -90,13 +156,13 @@ function frozen(value) {
 function exactBytes(left, right) { return hostCanonicalBytes(left).equals(hostCanonicalBytes(right)); }
 
 function validateIdentity(value) {
-  exact(value, IDENTITY_KEYS, 'KSTACK_SECRET_PROTECTED_IDENTITY_INVALID');
-  if (value.schemaVersion !== SYNTHETIC_PROTECTED_STATE_IDENTITY_VERSION
-      || value.profileId !== SYNTHETIC_PROTECTED_STATE_PROFILE || value.productionEligible !== false) {
+  const checked = exact(value, IDENTITY_KEYS, 'KSTACK_SECRET_PROTECTED_IDENTITY_INVALID');
+  if (checked.schemaVersion !== SYNTHETIC_PROTECTED_STATE_IDENTITY_VERSION
+      || checked.profileId !== SYNTHETIC_PROTECTED_STATE_PROFILE || checked.productionEligible !== false) {
     fail('KSTACK_SECRET_PROTECTED_IDENTITY_INVALID');
   }
-  opaque(value.storeInstanceRef, 'KSTACK_SECRET_PROTECTED_IDENTITY_INVALID');
-  return frozen(clone(value));
+  opaque(checked.storeInstanceRef, 'KSTACK_SECRET_PROTECTED_IDENTITY_INVALID');
+  return frozen(clone(checked));
 }
 
 function validateSortedUnique(values, selector, code) {
@@ -106,29 +172,29 @@ function validateSortedUnique(values, selector, code) {
 }
 
 function validateState(value, identity) {
-  exact(value, STATE_KEYS, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  if (value.schemaVersion !== SYNTHETIC_PROTECTED_STATE_VERSION || value.storeInstanceRef !== identity.storeInstanceRef
-      || !Array.isArray(value.authorityHeads) || !Array.isArray(value.auditHeads)
-      || !Array.isArray(value.issuedUpdateIds)
-      || !Array.isArray(value.retiredUpdateIds) || !Array.isArray(value.retiredWriterLeaseRefs)
-      || value.authorityHeads.length > SYNTHETIC_PROTECTED_STATE_MAX_NAMESPACES
-      || value.auditHeads.length > SYNTHETIC_PROTECTED_STATE_MAX_NAMESPACES
-      || value.issuedUpdateIds.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS
-      || value.retiredUpdateIds.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS
-      || value.retiredWriterLeaseRefs.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  const authorityHeads = value.authorityHeads.map((entry) => validateAuthorityHeadValue(entry));
-  const auditHeads = value.auditHeads.map((entry) => validateAuditHeadValue(entry));
-  for (const id of [...value.issuedUpdateIds, ...value.retiredUpdateIds]) {
+  const checkedValue = exact(value, STATE_KEYS, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  if (checkedValue.schemaVersion !== SYNTHETIC_PROTECTED_STATE_VERSION || checkedValue.storeInstanceRef !== identity.storeInstanceRef
+      || !ARRAY_IS_ARRAY(checkedValue.authorityHeads) || !ARRAY_IS_ARRAY(checkedValue.auditHeads)
+      || !ARRAY_IS_ARRAY(checkedValue.issuedUpdateIds)
+      || !ARRAY_IS_ARRAY(checkedValue.retiredUpdateIds) || !ARRAY_IS_ARRAY(checkedValue.retiredWriterLeaseRefs)
+      || checkedValue.authorityHeads.length > SYNTHETIC_PROTECTED_STATE_MAX_NAMESPACES
+      || checkedValue.auditHeads.length > SYNTHETIC_PROTECTED_STATE_MAX_NAMESPACES
+      || checkedValue.issuedUpdateIds.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS
+      || checkedValue.retiredUpdateIds.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS
+      || checkedValue.retiredWriterLeaseRefs.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  const authorityHeads = checkedValue.authorityHeads.map((entry) => validateAuthorityHeadValue(entry));
+  const auditHeads = checkedValue.auditHeads.map((entry) => validateAuditHeadValue(entry));
+  for (const id of [...checkedValue.issuedUpdateIds, ...checkedValue.retiredUpdateIds]) {
     try { validateSecretUpdateId(id); } catch { fail('KSTACK_SECRET_PROTECTED_STATE_INVALID'); }
   }
-  for (const reference of value.retiredWriterLeaseRefs) opaque(reference, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  for (const reference of checkedValue.retiredWriterLeaseRefs) opaque(reference, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   validateSortedUnique(authorityHeads, (entry) => entry.authorityNamespaceRef, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   validateSortedUnique(auditHeads, (entry) => entry.auditNamespaceRef, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  validateSortedUnique(value.issuedUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  validateSortedUnique(value.retiredUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  validateSortedUnique(value.retiredWriterLeaseRefs, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  if (value.issuedUpdateIds.some((id) => value.retiredUpdateIds.includes(id))) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  const checked = frozen({ ...value, authorityHeads, auditHeads });
+  validateSortedUnique(checkedValue.issuedUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  validateSortedUnique(checkedValue.retiredUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  validateSortedUnique(checkedValue.retiredWriterLeaseRefs, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  if (checkedValue.issuedUpdateIds.some((id) => checkedValue.retiredUpdateIds.includes(id))) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  const checked = frozen({ ...checkedValue, authorityHeads, auditHeads });
   if (hostCanonicalBytes(checked).length > SYNTHETIC_PROTECTED_STATE_MAX_BYTES) fail('KSTACK_SECRET_PROTECTED_STATE_BYTES_EXCEEDED');
   return checked;
 }
@@ -164,8 +230,13 @@ function readPrivateCanonical(file, maximum, unavailableCode, invalidCode) {
     if (descriptor !== undefined) {
       try { fs.closeSync(descriptor); } catch {}
     }
-    if (error instanceof SyntheticProtectedStateError) throw error;
-    if (error?.code === 'ENOENT') fail(unavailableCode);
+    if (internalErrorRecord(error)?.kind === ERROR_KIND.FIXED) throw error;
+    let errorCode;
+    try {
+      const descriptor = GET_OWN_PROPERTY_DESCRIPTOR(error, 'code');
+      if (descriptor && HAS_OWN(descriptor, 'value')) errorCode = descriptor.value;
+    } catch {}
+    if (errorCode === 'ENOENT') fail(unavailableCode);
     fail(invalidCode);
   }
 }
@@ -231,11 +302,11 @@ function releaseLock(paths, owner) {
 
 function validateAdvanceOptions(options) {
   try {
-    if (!plain(options) || Object.keys(options).some((key) => !ADVANCE_OPTION_KEYS.includes(key))) throw new Error();
-    const hasCrashCut = Object.hasOwn(options, 'crashCut');
-    const hasAcknowledgementCut = Object.hasOwn(options, 'acknowledgementCut');
-    const crashCut = hasCrashCut ? options.crashCut : undefined;
-    const acknowledgementCut = hasAcknowledgementCut ? options.acknowledgementCut : undefined;
+    const selected = snapshotRecord(options, ADVANCE_OPTION_KEYS, 'KSTACK_SECRET_PROTECTED_ADVANCE_OPTIONS_INVALID', { requireAll: false });
+    const hasCrashCut = HAS_OWN(selected, 'crashCut');
+    const hasAcknowledgementCut = HAS_OWN(selected, 'acknowledgementCut');
+    const crashCut = hasCrashCut ? selected.crashCut : undefined;
+    const acknowledgementCut = hasAcknowledgementCut ? selected.acknowledgementCut : undefined;
     if ((hasCrashCut && !['BEFORE_COMMIT', 'AFTER_COMMIT'].includes(crashCut))
         || (hasAcknowledgementCut && acknowledgementCut !== 'AFTER_COMMIT')
         || (hasCrashCut && hasAcknowledgementCut)) throw new Error();
@@ -245,9 +316,10 @@ function validateAdvanceOptions(options) {
 
 function validateOpenOptions(options, code) {
   try {
-    if (!plain(options) || !Object.hasOwn(options, 'root') || Object.keys(options).some((key) => !OPEN_KEYS.includes(key))) throw new Error();
-    const root = options.root;
-    const clock = Object.hasOwn(options, 'clock') ? options.clock : Date.now;
+    const selected = snapshotRecord(options, OPEN_KEYS, code, { requireAll: false });
+    if (!HAS_OWN(selected, 'root')) throw new Error();
+    const root = selected.root;
+    const clock = HAS_OWN(selected, 'clock') ? selected.clock : Date.now;
     if (typeof root !== 'string') throw new Error();
     return { root, clock };
   } catch { fail(code); }
@@ -257,11 +329,9 @@ function validateAuditWriterRequest(request) {
   let auditNamespaceRef;
   let ttlMs;
   try {
-    if (!plain(request) || Object.keys(request).length !== AUDIT_WRITER_KEYS.length
-        || AUDIT_WRITER_KEYS.some((key) => !Object.hasOwn(request, key))
-        || Object.keys(request).some((key) => !AUDIT_WRITER_KEYS.includes(key))) throw new Error();
-    auditNamespaceRef = request.auditNamespaceRef;
-    ttlMs = request.ttlMs;
+    const selected = snapshotRecord(request, AUDIT_WRITER_KEYS, 'KSTACK_SECRET_AUDIT_WRITER_REQUEST_INVALID');
+    auditNamespaceRef = selected.auditNamespaceRef;
+    ttlMs = selected.ttlMs;
     if (!Number.isSafeInteger(ttlMs) || ttlMs < 1 || ttlMs > 60_000) throw new Error();
   } catch { fail('KSTACK_SECRET_AUDIT_WRITER_REQUEST_INVALID'); }
   opaque(auditNamespaceRef, 'KSTACK_SECRET_AUDIT_NAMESPACE_INVALID');
@@ -304,19 +374,11 @@ function assertAuditLeaseCurrent(state, clock) {
 }
 
 function checkedAuthorityHead(value) {
-  try { return validateAuthorityHeadValue(value); }
-  catch (error) {
-    if (error instanceof SecretControlPlaneError) throw error;
-    fail('KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
-  }
+  return validateAuthorityHeadValue(value);
 }
 
 function checkedAuditHead(value) {
-  try { return validateAuditHeadValue(value); }
-  catch (error) {
-    if (error instanceof SecretControlPlaneError) throw error;
-    fail('KSTACK_SECRET_AUDIT_HEAD_INVALID');
-  }
+  return validateAuditHeadValue(value);
 }
 
 export class SyntheticProtectedStateAdapter {
@@ -354,7 +416,7 @@ export class SyntheticProtectedStateAdapter {
     }, identity);
     try { durableCreate(paths.identity, identity); durableCreate(paths.state, state); }
     catch (error) {
-      if (error instanceof SyntheticProtectedStateError) throw error;
+      if (internalErrorRecord(error)?.kind === ERROR_KIND.FIXED) throw error;
       fail('KSTACK_SECRET_PROTECTED_INITIALIZATION_FAILED');
     }
     return new SyntheticProtectedStateAdapter(CONSTRUCTOR, paths, identity, clock);
@@ -373,7 +435,7 @@ export class SyntheticProtectedStateAdapter {
       const state = validateState(readPrivateCanonical(paths.state, SYNTHETIC_PROTECTED_STATE_MAX_BYTES, 'KSTACK_SECRET_PROTECTED_STATE_LOST', 'KSTACK_SECRET_PROTECTED_STATE_INVALID'), identity);
       assertAuditLeaseCurrent(state, clock);
     } catch (error) { openError = error; }
-    if (openError instanceof StateFenceRequiredError) fail('KSTACK_SECRET_PROTECTED_STATE_LOCKED');
+    if (internalErrorRecord(openError)?.kind === ERROR_KIND.STATE_FENCE_REQUIRED) fail('KSTACK_SECRET_PROTECTED_STATE_LOCKED');
     try { releaseLock(paths, owner); }
     catch { fail('KSTACK_SECRET_PROTECTED_STATE_LOCK_FENCED'); }
     if (openError) throw openError;
@@ -402,7 +464,8 @@ export class SyntheticProtectedStateAdapter {
       assertAuditLeaseCurrent(state, this.#clock);
       result = action(state);
     } catch (error) { actionError = error; }
-    if (actionError instanceof StateWriteUncertainError || actionError instanceof StateFenceRequiredError) throw actionError;
+    const actionErrorKind = internalErrorRecord(actionError)?.kind;
+    if (actionErrorKind === ERROR_KIND.STATE_WRITE_UNCERTAIN || actionErrorKind === ERROR_KIND.STATE_FENCE_REQUIRED) throw actionError;
     releaseLock(this.#paths, owner);
     if (actionError) throw actionError;
     return result;
@@ -417,7 +480,8 @@ export class SyntheticProtectedStateAdapter {
   #mutation(action) {
     try { return this.#withLock(action); }
     catch (error) {
-      if (error instanceof PossiblyCommittedError || error instanceof StateWriteUncertainError || error instanceof StateFenceRequiredError) {
+      const kind = internalErrorRecord(error)?.kind;
+      if (kind === ERROR_KIND.POSSIBLY_COMMITTED || kind === ERROR_KIND.STATE_WRITE_UNCERTAIN || kind === ERROR_KIND.STATE_FENCE_REQUIRED) {
         return frozen({ result: 'ACKNOWLEDGEMENT_UNKNOWN' });
       }
       throw error;
@@ -427,8 +491,9 @@ export class SyntheticProtectedStateAdapter {
   #read(action) {
     try { return this.#withLock(action); }
     catch (error) {
-      if (error instanceof PossiblyCommittedError) fail('KSTACK_SECRET_PROTECTED_STATE_LOCK_FENCED');
-      if (error instanceof StateFenceRequiredError) fail('KSTACK_SECRET_PROTECTED_STATE_LOCKED');
+      const kind = internalErrorRecord(error)?.kind;
+      if (kind === ERROR_KIND.POSSIBLY_COMMITTED) fail('KSTACK_SECRET_PROTECTED_STATE_LOCK_FENCED');
+      if (kind === ERROR_KIND.STATE_FENCE_REQUIRED) fail('KSTACK_SECRET_PROTECTED_STATE_LOCKED');
       throw error;
     }
   }
@@ -582,14 +647,15 @@ export function syntheticProtectedStateSnapshotBytes(adapter) {
   try {
     status = APPLY(SYNTHETIC_STATUS_BRAND_OPERATION, adapter, []);
   } catch (error) {
-    let code;
-    try { code = error?.code; } catch {}
-    if (SNAPSHOT_STATUS_ERROR_CODES.has(code)) fail(code);
+    const record = internalErrorRecord(error);
+    if (record?.kind === ERROR_KIND.FIXED && APPLY(SET_HAS, SNAPSHOT_STATUS_ERROR_CODES, [record.code])) fail(record.code);
     fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
   }
-  if (!plain(status) || Object.keys(status).length !== 3
-      || status.profileId !== SYNTHETIC_PROTECTED_STATE_PROFILE
-      || status.productionEligible !== false || status.state !== 'SYNTHETIC_READY') {
+  let checkedStatus;
+  try { checkedStatus = snapshotRecord(status, STATUS_KEYS, 'KSTACK_SECRET_PROTECTED_ADAPTER_INVALID'); }
+  catch { fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID'); }
+  if (checkedStatus.profileId !== SYNTHETIC_PROTECTED_STATE_PROFILE
+      || checkedStatus.productionEligible !== false || checkedStatus.state !== 'SYNTHETIC_READY') {
     fail('KSTACK_SECRET_PROTECTED_ADAPTER_INVALID');
   }
   return hostCanonicalBytes({

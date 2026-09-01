@@ -25,28 +25,45 @@ const UPDATE_ERROR_CODES = new Set([
   'KSTACK_SECRET_AUDIT_HEAD_INVALID',
   'KSTACK_SECRET_AUDIT_UPDATE_ID_INVALID'
 ]);
+const ARRAY_IS_ARRAY = Array.isArray;
+const DEFINE_PROPERTY = Object.defineProperty;
+const DEFINE_PROPERTIES = Object.defineProperties;
+const GET_OWN_PROPERTY_DESCRIPTORS = Object.getOwnPropertyDescriptors;
+const GET_PROTOTYPE_OF = Object.getPrototypeOf;
+const HAS_OWN = Object.hasOwn;
+const OBJECT_PROTOTYPE = Object.prototype;
+const OWN_KEYS = Reflect.ownKeys;
 
 export class SecretControlPlaneError extends Error {
   constructor(code) {
-    super(code);
-    this.name = 'SecretControlPlaneError';
-    this.code = code;
+    super();
+    DEFINE_PROPERTIES(this, {
+      name: { value: 'SecretControlPlaneError', enumerable: true, configurable: true, writable: true },
+      message: { value: code, enumerable: false, configurable: true, writable: true },
+      code: { value: code, enumerable: true, configurable: true, writable: true }
+    });
   }
 }
 
 function fail(code) { throw new SecretControlPlaneError(code); }
 function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)
-      || Object.getPrototypeOf(value) !== Object.prototype) fail(code);
-  const descriptors = Object.getOwnPropertyDescriptors(value);
-  const actual = Reflect.ownKeys(descriptors);
+  let prototype;
+  let descriptors;
+  let actual;
+  try {
+    if (value === null || typeof value !== 'object' || ARRAY_IS_ARRAY(value)) fail(code);
+    prototype = GET_PROTOTYPE_OF(value);
+    descriptors = GET_OWN_PROPERTY_DESCRIPTORS(value);
+    actual = OWN_KEYS(descriptors);
+  } catch { fail(code); }
+  if (prototype !== OBJECT_PROTOTYPE) fail(code);
   if (actual.some((key) => typeof key !== 'string' || !keys.includes(key))
-      || requireAll && (actual.length !== keys.length || keys.some((key) => !Object.hasOwn(descriptors, key)))) fail(code);
+      || requireAll && (actual.length !== keys.length || keys.some((key) => !HAS_OWN(descriptors, key)))) fail(code);
   const snapshot = {};
   for (const key of actual) {
     const descriptor = descriptors[key];
-    if (!descriptor.enumerable || !Object.hasOwn(descriptor, 'value')) fail(code);
-    Object.defineProperty(snapshot, key, {
+    if (!descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail(code);
+    DEFINE_PROPERTY(snapshot, key, {
       value: descriptor.value, enumerable: true, configurable: true, writable: true
     });
   }
@@ -68,8 +85,8 @@ export function validateSecretUpdateId(value, options = {}) {
   let selected;
   try {
     selected = snapshotRecord(options, UPDATE_OPTION_KEYS, 'KSTACK_SECRET_UPDATE_ID_INVALID', { requireAll: false });
-    if (Object.hasOwn(selected, 'allowOrigin') && typeof selected.allowOrigin !== 'boolean') fail('KSTACK_SECRET_UPDATE_ID_INVALID');
-    if (Object.hasOwn(selected, 'code') && !UPDATE_ERROR_CODES.has(selected.code)) fail('KSTACK_SECRET_UPDATE_ID_INVALID');
+    if (HAS_OWN(selected, 'allowOrigin') && typeof selected.allowOrigin !== 'boolean') fail('KSTACK_SECRET_UPDATE_ID_INVALID');
+    if (HAS_OWN(selected, 'code') && !UPDATE_ERROR_CODES.has(selected.code)) fail('KSTACK_SECRET_UPDATE_ID_INVALID');
   } catch {
     fail('KSTACK_SECRET_UPDATE_ID_INVALID');
   }

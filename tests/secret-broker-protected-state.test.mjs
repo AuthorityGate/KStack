@@ -260,6 +260,7 @@ test('authority and audit head codecs are closed, canonical, and exact', () => {
   const statusCallDescriptor = Object.getOwnPropertyDescriptor(statusDescriptor.value, 'call');
   const adapterHasInstanceDescriptor = Object.getOwnPropertyDescriptor(SyntheticProtectedStateAdapter, Symbol.hasInstance);
   const errorHasInstanceDescriptor = Object.getOwnPropertyDescriptor(SyntheticProtectedStateError, Symbol.hasInstance);
+  const originalReadFileSync = fs.readFileSync;
   try {
     Object.defineProperty(statusDescriptor.value, 'call', {
       configurable: true,
@@ -292,7 +293,21 @@ test('authority and audit head codecs are closed, canonical, and exact', () => {
       () => syntheticProtectedStateSnapshotBytes(new Proxy(state.adapter, {})),
       (error) => error?.code === 'KSTACK_SECRET_PROTECTED_ADAPTER_INVALID' && error.message === error.code
     );
+    let injected = false;
+    fs.readFileSync = (...args) => {
+      if (!injected) {
+        injected = true;
+        throw new Error('CALLER_RAW_STORAGE_DIAGNOSTIC');
+      }
+      return originalReadFileSync(...args);
+    };
+    assert.throws(
+      () => Reflect.apply(statusDescriptor.value, state.adapter, []),
+      (error) => error?.code === 'KSTACK_SECRET_PROTECTED_IDENTITY_INVALID' && error.message === error.code
+    );
+    assert.equal(injected, true);
   } finally {
+    fs.readFileSync = originalReadFileSync;
     Object.defineProperty(SyntheticProtectedStateAdapter.prototype, 'status', statusDescriptor);
     if (statusCallDescriptor) Object.defineProperty(statusDescriptor.value, 'call', statusCallDescriptor);
     else delete statusDescriptor.value.call;
@@ -300,6 +315,28 @@ test('authority and audit head codecs are closed, canonical, and exact', () => {
     else delete SyntheticProtectedStateAdapter[Symbol.hasInstance];
     if (errorHasInstanceDescriptor) Object.defineProperty(SyntheticProtectedStateError, Symbol.hasInstance, errorHasInstanceDescriptor);
     else delete SyntheticProtectedStateError[Symbol.hasInstance];
+  }
+
+  for (const [ErrorClass, action, expectedCode] of [
+    [SyntheticProtectedStateError, () => syntheticProtectedStateSnapshotBytes({}), 'KSTACK_SECRET_PROTECTED_ADAPTER_INVALID'],
+    [SecretControlPlaneError, () => validateAuthorityHeadValue({}), 'KSTACK_SECRET_AUTHORITY_HEAD_INVALID']
+  ]) {
+    for (const property of ['name', 'code']) {
+      const descriptor = Object.getOwnPropertyDescriptor(ErrorClass.prototype, property);
+      try {
+        Object.defineProperty(ErrorClass.prototype, property, {
+          configurable: true,
+          set() { throw new Error(`CALLER_RAW_${property.toUpperCase()}_SETTER`); }
+        });
+        assert.throws(
+          action,
+          (error) => error?.code === expectedCode && error.message === error.code
+        );
+      } finally {
+        if (descriptor) Object.defineProperty(ErrorClass.prototype, property, descriptor);
+        else delete ErrorClass.prototype[property];
+      }
+    }
   }
 });
 
@@ -495,6 +532,15 @@ test('prospective requests are closed and validated before update-ID consumption
     () => state.adapter.compareAndAdvanceAuthority(origin, updateId, { acknowledgementCut: 'AFTER_COMMIT', extra: true }),
     (error) => error?.code === 'KSTACK_SECRET_PROTECTED_ADVANCE_OPTIONS_INVALID'
   );
+  for (const options of [
+    { [Symbol('unknown-advance-field')]: true },
+    Object.defineProperty({}, 'unknownAdvanceField', { value: true, enumerable: false })
+  ]) {
+    assert.throws(
+      () => state.adapter.compareAndAdvanceAuthority(origin, updateId, options),
+      (error) => error?.code === 'KSTACK_SECRET_PROTECTED_ADVANCE_OPTIONS_INVALID' && error.message === error.code
+    );
+  }
   assert.equal(state.adapter.compareAndAdvanceAuthority(origin, updateId).result, 'ADVANCED');
   assert.throws(
     () => state.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 1_000, auditEpoch: 9 }),
@@ -504,6 +550,15 @@ test('prospective requests are closed and validated before update-ID consumption
     () => SyntheticProtectedStateAdapter.open({ root: state.root, clock: state.clock, extra: true }),
     (error) => error?.code === 'KSTACK_SECRET_PROTECTED_OPEN_OPTIONS_INVALID'
   );
+  for (const options of [
+    { root: state.root, clock: state.clock, [Symbol('unknown-open-field')]: true },
+    Object.defineProperty({ root: state.root, clock: state.clock }, 'unknownOpenField', { value: true, enumerable: false })
+  ]) {
+    assert.throws(
+      () => SyntheticProtectedStateAdapter.open(options),
+      (error) => error?.code === 'KSTACK_SECRET_PROTECTED_OPEN_OPTIONS_INVALID' && error.message === error.code
+    );
+  }
   assert.throws(
     () => SyntheticProtectedStateAdapter.create({ root: {} }),
     (error) => error?.code === 'KSTACK_SECRET_PROTECTED_CREATE_OPTIONS_INVALID'
@@ -524,6 +579,17 @@ test('prospective requests are closed and validated before update-ID consumption
     () => state.adapter.acquireAuditWriter(throwingProperty({ ttlMs: 1_000 }, 'auditNamespaceRef')),
     (error) => error?.code === 'KSTACK_SECRET_AUDIT_WRITER_REQUEST_INVALID' && error.message === error.code
   );
+  const writerState = fixture();
+  for (const request of [
+    { auditNamespaceRef: REF_B, ttlMs: 1_000, [Symbol('unknown-writer-field')]: true },
+    Object.defineProperty({ auditNamespaceRef: REF_B, ttlMs: 1_000 }, 'unknownWriterField', { value: true, enumerable: false })
+  ]) {
+    assert.throws(
+      () => writerState.adapter.acquireAuditWriter(request),
+      (error) => error?.code === 'KSTACK_SECRET_AUDIT_WRITER_REQUEST_INVALID' && error.message === error.code
+    );
+  }
+  assert.equal(writerState.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 1_000 }).result, 'ACQUIRED');
   assert.throws(
     () => SyntheticProtectedStateAdapter.create({ root: path.join(state.parent, 'throwing-clock'), clock() { throw new Error('raw-clock-text'); } }),
     (error) => error?.code === 'KSTACK_SECRET_PROTECTED_CLOCK_INVALID' && error.message === error.code
