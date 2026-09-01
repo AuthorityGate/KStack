@@ -16,7 +16,7 @@ import { assertOutboundSecretScan, sanitize } from './kstack-provider-runner.mjs
 
 export const TRACKING_EVENT_SCHEMA = 'kstack-jira-outbox-event-v1';
 export const TRACKING_EVENT_KINDS = Object.freeze(new Set([
-  'IMPORTED_BASELINE', 'ITEM_CREATED', 'ITEM_ACTIVE', 'ITEM_UPDATED',
+  'IMPORTED_BASELINE', 'ITEM_CREATED', 'ITEM_PLANNED', 'ITEM_ACTIVE', 'ITEM_UPDATED',
   'REVIEW_COMPLETED', 'DESIGN_VALIDATED', 'IMPLEMENTATION_VALIDATED',
   'BUG_FOUND', 'BUG_FIXED', 'QC_VALIDATED', 'ITEM_BLOCKED', 'ITEM_REOPENED',
   'ITEM_DONE', 'ITEM_RELEASED'
@@ -171,6 +171,7 @@ export function normalizeTrackingInput(input, options = {}) {
   const allowedStates = {
     IMPORTED_BASELINE: TRACKING_STATES,
     ITEM_CREATED: new Set(['planned']),
+    ITEM_PLANNED: new Set(['planned']),
     ITEM_ACTIVE: new Set(['active']),
     ITEM_UPDATED: new Set(['active', 'blocked']),
     REVIEW_COMPLETED: new Set(['active', 'blocked']),

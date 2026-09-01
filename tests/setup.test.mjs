@@ -304,6 +304,8 @@ test('--host all user plugin mode covers first install and already-installed pro
   assert.equal(existing.calls.some((line) => line.startsWith('CODEX plugin marketplace add ')), false);
   assert.equal(existing.calls.includes('CODEX plugin remove kstack@kstack'), true);
   assert.equal(existing.calls.includes('CODEX plugin add kstack@kstack'), true);
+  assert.match(existing.result.stderr, /KSTACK_CODEX_SESSION_REFRESH_REQUIRED/u);
+  assert.match(existing.result.stderr, /codex fork SESSION_ID/u);
   assert.equal(existing.calls.filter((line) => line.includes('verify-runtime')).length, 1);
   assertCurrentCodexCache(existing);
   assert.equal(existing.calls.filter((line) => line.includes('kstack-install-health.mjs')).length, 1);
@@ -318,6 +320,7 @@ test('modern Codex user install migrates a live-checkout marketplace to the admi
   assert.equal(migrated.calls.includes('CODEX plugin remove kstack@kstack'), true);
   assert.equal(migrated.calls.includes('CODEX plugin add kstack@kstack'), true);
   assert.match(migrated.result.stdout, /verified Codex plugin cache:/u);
+  assert.match(migrated.result.stderr, /KSTACK_CODEX_SESSION_REFRESH_REQUIRED/u);
   assert.equal(JSON.parse(fs.readFileSync(path.join(runtime, '.agents', 'plugins', 'marketplace.json'), 'utf8')).plugins[0].source.path, './');
   assertCurrentCodexCache(migrated);
 });

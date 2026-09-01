@@ -473,6 +473,7 @@ install_host() {
         install_runtime "$dst_root" 1
         prepare_reflexion_root "$runtime_root" || return $?
         install_codex_plugin_from_runtime "$runtime_root" || return $?
+        printf '%s\n' 'KSTACK_CODEX_SESSION_REFRESH_REQUIRED: existing Codex threads retain the hook commands registered when each thread was created; fork any pre-refresh thread with `codex fork SESSION_ID` instead of resuming it.' >&2
         KSTACK_CODEX_MODERN=1
         register_health_root codex-native "$runtime_root" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" provisioning
         register_health_root codex-cache "$KSTACK_CODEX_CACHE_ROOT" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" execution

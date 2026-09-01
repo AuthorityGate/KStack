@@ -265,8 +265,8 @@
     {
       "path": "references/JIRA_TRACKING.md",
       "executable": false,
-      "size": 6199,
-      "sha256": "5f886e74739f36048d45cdb6cd099ff570e26a85708e204c20017450d3c37594"
+      "size": 6359,
+      "sha256": "ad5af94018d29fcf5006a7ecf88040d7f703fecdc8a8898700b9fb1468053371"
     },
     {
       "path": "references/LINUX_QUALIFICATION.md",
@@ -631,8 +631,8 @@
     {
       "path": "scripts/kstack-jira-tracking.mjs",
       "executable": true,
-      "size": 65419,
-      "sha256": "8b9114af0679e3b75336e3a93a0ec8c06a577e802990df4af298c146934f0304"
+      "size": 65475,
+      "sha256": "dd090abe91584e6aed6e21767150e5330ead9c4f200bd18c0f0caa18c4894908"
     },
     {
       "path": "scripts/kstack-jira-wsl-config.mjs",
@@ -805,8 +805,8 @@
     {
       "path": "scripts/kstack-safety-hook.mjs",
       "executable": true,
-      "size": 18256,
-      "sha256": "e83e9596208c8d0e53c043f2d9623be60cf294cf57fdb1fda2f464961c8babe1"
+      "size": 18297,
+      "sha256": "c8aa5fa6c0695027bf99d3b69607afe529076523b16722befc27300bc6ab4709"
     },
     {
       "path": "scripts/kstack-safety-matchers.mjs",

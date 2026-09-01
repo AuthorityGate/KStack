@@ -834,6 +834,12 @@ test('host hook exposes Jira ask authority on each host, preserves hard deny, di
     assert.equal(direct.hookSpecificOutput.permissionDecision, 'deny');
     assert.match(direct.hookSpecificOutput.permissionDecisionReason, /BROKER-DIRECT/u);
   }
+  const mentionedOnly = await evaluateSafetyHook({
+    ...base, prompt_id: 'p', tool_name: 'apply_patch',
+    tool_input: { patch: 'Update tests that mention plugins/kstack/scripts/kstack-safety-hook.mjs without executing it.' }
+  });
+  assert.equal(mentionedOnly.hookSpecificOutput, undefined);
+  assert.match(mentionedOnly.systemMessage, /detect-only/u);
 
   const changedAuthority = { ...TEST_AUTHORITY, deploy: 'ask', deviceInstall: 'ask' };
   const changedRoot = activeRoot(changedAuthority);

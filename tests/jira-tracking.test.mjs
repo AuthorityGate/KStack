@@ -224,6 +224,12 @@ test('calendar, future-time, review, state, and canonical-form constraints are c
     release: { name: 'v1.0.0', releaseDate: '2026-02-30', receiptSha256: 'b'.repeat(64) }
   })), /releaseDate/u);
   await assert.rejects(appendTrackingEvent(state, input({ kind: 'ITEM_CREATED', localState: 'active' })), /incompatible/u);
+  const planned = await appendTrackingEvent(state, input({
+    sourceEventId: 'returned-to-backlog', kind: 'ITEM_PLANNED', localState: 'planned',
+    occurredAt: '2026-08-28T12:00:01.000Z', summary: 'Return dormant work to the planned backlog'
+  }));
+  assert.equal(planned.event.localState, 'planned');
+  await assert.rejects(appendTrackingEvent(state, input({ kind: 'ITEM_PLANNED', localState: 'active' })), /incompatible/u);
   await assert.rejects(appendTrackingEvent(state, input({
     kind: 'REVIEW_COMPLETED', localState: 'active',
     review: { decision: 'approve', confidence: 93, failed: 1, security: 0, dissent: 0, questions: 0 }

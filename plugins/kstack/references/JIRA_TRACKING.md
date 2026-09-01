@@ -28,6 +28,8 @@ When `jira.tracking.mode` is not `off`:
    actionable item, append a separate `ITEM_CREATED` before advancing it.
 2. Append a new event after every material state change. Use:
    - `ITEM_ACTIVE` when work starts;
+   - `ITEM_PLANNED` when accepted work returns to the backlog because execution
+     is no longer underway, without implying completion or creating a new item;
    - `ITEM_UPDATED` for a material scope or implementation change;
    - `REVIEW_COMPLETED` for each scored review, including failed reviews;
    - `DESIGN_VALIDATED`, `IMPLEMENTATION_VALIDATED`, and `QC_VALIDATED` only

@@ -85,7 +85,7 @@ export function classifySafetyAction(input) {
   const tool = typeof input?.tool_name === 'string' ? input.tool_name : '';
   const text = shellText(input);
   if (tool === 'mcp__kstack_safety__execute') return 'broker-execute';
-  if (DIRECT_BROKER.test(text)) return 'broker-direct';
+  if (['Bash', 'PowerShell'].includes(tool) && DIRECT_BROKER.test(text)) return 'broker-direct';
   if (SECRET_NAMES.test(text) || SECRET_PATHS.test(text)) return 'credential-access';
   if (/(?:^|[;&|]\s*|\b)(?:adb\s+(?:install|uninstall)|xcrun\s+simctl\s+install)\b/iu.test(text)) return 'device-install';
   if (/(?:^|[;&|]\s*|\b)(?:kubectl\s+(?:apply|delete|replace|patch)|terraform\s+(?:apply|destroy)|wrangler\s+deploy|npm\s+publish)\b/iu.test(text)) return 'deploy';
