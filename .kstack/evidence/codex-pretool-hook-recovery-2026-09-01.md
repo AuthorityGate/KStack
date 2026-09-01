@@ -98,3 +98,16 @@ replayed through both installed user and project hook entrypoints from the
 Watlow working directory: all eight launches exited 0 with zero stderr. The
 full suite again passed 1,061 of 1,063 tests with zero failures and two
 intentional skips.
+
+## Live legacy-session replacement
+
+The final live-process audit found two sessions that had remained open across
+the native-hook repair: Watlow `01a04da4-73c1-72f3-85f3-bee6d1715827` on
+Codex host 0.150.1 and VitalWhy `01a05a9f-f8d4-7773-864a-b00d1070bf83` on an
+initial KStack cache predating the native manifest. Both were forked into new
+Windows Terminal tabs without deleting their transcripts or repository files.
+The replacements are Watlow `01a05e4b-c5ad-7d13-b421-4f8d0708e540` and
+VitalWhy `01a05e50-41ce-7ec2-acec-a0bd684e0f25`; the latter runs Codex 0.152.0.
+After both replacements were persisted, only the two exact obsolete Codex TUI
+processes were terminated. A final process audit found no remaining 0.150.1
+host and no original failing session still live.
