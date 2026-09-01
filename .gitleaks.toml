@@ -37,3 +37,45 @@ regexes = ['''^ghp_validated1234567890abcdefghijklmnop$''']
 description = "Non-secret token-budget pseudocode identifier"
 targetRules = ["generic-api-key"]
 regexes = ['''^totalRenderedUtf8Bytes$''']
+
+[[allowlists]]
+description = "Architecture filename inventory in the exact native-foundation commit"
+condition = "AND"
+commits = ["8cc60400f244bd94e6a0ee3d822fd8cbc37d5cd5"]
+paths = ['^tests/reflexion-architecture-gate\.mjs$']
+targetRules = ["generic-api-key"]
+
+[[allowlists]]
+description = "Secret Broker identifiers in the exact runtime-expansion commit"
+condition = "AND"
+commits = ["30a9ec8a507166d08d3d9bab20db7dc844e1cb2a"]
+paths = ['^(plugins/kstack/scripts/kstack-secret-broker\.mjs|tests/reflexion-architecture-gate\.mjs)$']
+targetRules = ["generic-api-key"]
+
+[[allowlists]]
+description = "Synthetic upstream commit fixture in the exact runtime-expansion commit"
+condition = "AND"
+commits = ["30a9ec8a507166d08d3d9bab20db7dc844e1cb2a"]
+paths = ['^tests/opencode-candidate\.test\.mjs$']
+targetRules = ["sourcegraph-access-token"]
+
+[[allowlists]]
+description = "Synthetic tokenizer fixtures in the exact runtime-expansion commit"
+condition = "AND"
+commits = ["30a9ec8a507166d08d3d9bab20db7dc844e1cb2a"]
+paths = ['^tests/domain-schema\.test\.mjs$']
+targetRules = ["generic-api-key"]
+
+[[allowlists]]
+description = "Documented token-budget identifier in the exact domain-design commit"
+condition = "AND"
+commits = ["5cd8877181940463767434a161e6ca433c2e7b83"]
+paths = ['^\.kstack/decisions/domain-breadth-packs-2026-08-27-d6-budget-applicability\.md$']
+targetRules = ["generic-api-key"]
+
+[[allowlists]]
+description = "Synthetic redaction and rotation fixtures in the exact safety implementation commit"
+condition = "AND"
+commits = ["3aaddedcd992bff51a44d71a34802c94d108577e"]
+paths = ['^tests/(provider-runner|safety-hooks)\.test\.mjs$']
+targetRules = ["generic-api-key"]

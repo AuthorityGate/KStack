@@ -351,6 +351,36 @@ codex_plugin_installed() {
     "$listing"
 }
 
+codex_installed_cache_root() {
+  local listing
+  listing="$(codex plugin list --json 2>/dev/null)" || return 1
+  env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+    "$KSTACK_RUNTIME_NODE" -e 'const path = require("node:path"); const [listing, home] = process.argv.slice(1); const item = JSON.parse(listing).installed.find((entry) => entry.pluginId === "kstack@kstack" && entry.installed === true); if (!item || typeof item.version !== "string" || !/^[A-Za-z0-9.+_-]+$/u.test(item.version)) process.exit(1); process.stdout.write(path.resolve(home, ".codex", "plugins", "cache", "kstack", "kstack", item.version));' \
+    "$listing" "$HOME"
+}
+
+preserve_codex_cache_compatibility() {
+  local retired_cache_root="$1" runtime_root="$2"
+  [ -n "$retired_cache_root" ] || return 0
+  env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
+    "$KSTACK_RUNTIME_NODE" -e '
+const fs = require("node:fs");
+const path = require("node:path");
+const [retiredArgument, runtimeArgument, home] = process.argv.slice(1);
+const cacheParent = path.resolve(home, ".codex", "plugins", "cache", "kstack", "kstack");
+const retired = path.resolve(retiredArgument);
+const runtime = fs.realpathSync.native(runtimeArgument);
+if (path.dirname(retired) !== cacheParent || retired === runtime) process.exit(1);
+let stat = null;
+try { stat = fs.lstatSync(retired); } catch (error) { if (error?.code !== "ENOENT") throw error; }
+if (stat === null) {
+  fs.mkdirSync(cacheParent, { recursive: true });
+  fs.symlinkSync(runtime, retired, "dir");
+} else if (!stat.isDirectory() && !(stat.isSymbolicLink() && fs.realpathSync.native(retired) === runtime)) process.exit(1);
+process.stdout.write(retired);
+' "$retired_cache_root" "$runtime_root" "$HOME"
+}
+
 confirm_codex_plugin_cache() {
   local runtime_root="$1" cache_root
   if ! cache_root="$(env -u NODE_OPTIONS -u NODE_PATH -u NODE_ICU_DATA \
@@ -446,8 +476,11 @@ install_claude_plugin() {
 }
 
 install_codex_plugin_from_runtime() {
-  local runtime_root="$1" marketplace_root plugin_installed
+  local runtime_root="$1" marketplace_root plugin_installed retired_cache_root="" compatibility_root=""
   plugin_installed="$(codex_plugin_installed)" || return $?
+  if [ "$plugin_installed" = "1" ]; then
+    retired_cache_root="$(codex_installed_cache_root)" || return $?
+  fi
   marketplace_root="$(codex_marketplace_root)" || return $?
   if [ -n "$marketplace_root" ] && [ "$marketplace_root" != "$runtime_root" ]; then
     codex plugin marketplace remove kstack
@@ -458,6 +491,8 @@ install_codex_plugin_from_runtime() {
   fi
   if [ "$plugin_installed" = "1" ]; then
     codex plugin remove kstack@kstack
+    compatibility_root="$(preserve_codex_cache_compatibility "$retired_cache_root" "$runtime_root")" || return $?
+    printf 'preserved active Codex session cache path: %s -> %s\n' "$compatibility_root" "$runtime_root"
   fi
   codex plugin add kstack@kstack
   confirm_codex_plugin_cache "$runtime_root"
@@ -473,7 +508,7 @@ install_host() {
         install_runtime "$dst_root" 1
         prepare_reflexion_root "$runtime_root" || return $?
         install_codex_plugin_from_runtime "$runtime_root" || return $?
-        printf '%s\n' 'KSTACK_CODEX_SESSION_REFRESH_REQUIRED: existing Codex threads retain the hook commands registered when each thread was created; fork any pre-refresh thread with `codex fork SESSION_ID` instead of resuming it.' >&2
+        printf '%s\n' 'KSTACK_CODEX_SESSION_COMPATIBILITY_ACTIVE: existing Codex threads retain their registered hook command path; setup preserves that retired cache path as a link to the repaired stable runtime. Fork with `codex fork SESSION_ID` only when the thread also needs the refreshed skill catalog.' >&2
         KSTACK_CODEX_MODERN=1
         register_health_root codex-native "$runtime_root" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" provisioning
         register_health_root codex-cache "$KSTACK_CODEX_CACHE_ROOT" "${KSTACK_REFLEXION_ROOT_RESULTS[$runtime_root]}" execution

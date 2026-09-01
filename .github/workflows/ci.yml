@@ -26,6 +26,13 @@ jobs:
         run: npm ci
         working-directory: plugins/kstack
 
+      - name: Prepare lockfile-pinned Rust oracle dependencies
+        shell: bash
+        run: |
+          while IFS= read -r manifest; do
+            cargo fetch --locked --manifest-path "$manifest"
+          done < <(find plugins/kstack/native -name Cargo.toml -type f | sort)
+
       - name: Run tests
         run: npm test
 
@@ -55,4 +62,4 @@ jobs:
           gitleaks version
 
       - name: Scan full Git history
-        run: gitleaks git --redact --verbose .
+        run: gitleaks git --redact --verbose --log-opts="$GITHUB_SHA" .

@@ -14,21 +14,32 @@ Codex threads retain the hook commands registered when the thread is created;
 refreshing KStack does not rewrite that registry inside an already-running or
 resumed thread.
 
+A second failure was reproduced in the active KStack thread after the first
+repair. That thread retained absolute hook commands under cache build
+`0.2.0-rc.1+codex.20260901143355040`. Plugin refresh removed that cache
+directory while the thread was still open, so both retained PreToolUse command
+paths became nonexistent and exited 1 before every tool call. Disabling the
+project registration could not help because the executable itself could no
+longer launch.
+
 The image files and `view_image` operation were not the cause. The failures
 appeared beside image views because the stale PreToolUse command ran before
 each tool call.
 
 ## Repair
 
-- Modern Codex setup now states that pre-refresh threads must be forked with
-  `codex fork SESSION_ID` instead of resumed.
+- Modern Codex setup records the installed cache path before removal and, after
+  removal, preserves that retired absolute path as a compatibility symlink to
+  the stable repaired runtime. Open threads therefore keep launching a valid,
+  current hook across plugin refreshes. A fork is needed only to refresh the
+  thread's skill catalog, not to stop hook failures.
 - Direct-broker detection is limited to Bash and PowerShell tool invocations.
   Non-shell tools such as `apply_patch` are no longer denied merely because
   their data mentions a KStack script path.
 - Regression tests cover both behaviors.
 
-The affected thread can retain its context and load the repaired hook registry
-with:
+An older installation that predates cache compatibility can retain its context
+and load the complete current registry with:
 
 ```text
 cd /mnt/e/Source/Projects/Watlow
@@ -57,3 +68,9 @@ Watlow and completed with `HOOK_CANARY_OK` without hook warnings.
 Project safety-hook registration was left disabled through KStack's supported
 administration command, consistent with the owner's current trust policy. The
 source repair still prevents the false denial when hooks are later enabled.
+
+The active KStack thread's deleted `...143355040` cache path was restored as a
+compatibility link to `.kstack-runtime`. Subsequent tools in that same thread
+completed without PreToolUse failures. Installer regression tests reproduce
+plugin removal, assert the retired cache path becomes that compatibility link,
+and preserve the new physical cache qualification independently.

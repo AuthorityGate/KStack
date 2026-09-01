@@ -126,8 +126,9 @@ function artifactRole(relativePath) {
     return relativePath.endsWith('runtime-maturity-focused-2026-08-28-status.md') ? 'deferred-status-report' : 'governing-decision';
   }
   if (relativePath.startsWith('tests/')) return 'verification';
-  if (relativePath === '.gitignore' || relativePath === 'AGENTS.md' || relativePath === 'README.md' || relativePath === 'package.json' || relativePath === 'setup'
+  if (relativePath === '.gitignore' || relativePath === '.gitleaks.toml' || relativePath === 'AGENTS.md' || relativePath === 'README.md' || relativePath === 'package.json' || relativePath === 'setup'
     || relativePath === 'setup.ps1'
+    || relativePath.startsWith('.github/workflows/')
     || relativePath.startsWith('.claude-plugin/') || relativePath.includes('/.claude-plugin/')
     || relativePath.includes('/.codex-plugin/')) return 'distribution-contract';
   if (relativePath.startsWith('plugins/kstack/')) return 'production';

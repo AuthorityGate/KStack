@@ -451,7 +451,16 @@ test('verbose evidence counts projection slots and prompt assembly positively ad
   const project = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-evidence-projection-'));
   const kstack = path.join(project, '.kstack');
   fs.mkdirSync(kstack, { mode: 0o700 });
-  fs.copyFileSync(path.join(root, '.kstack', 'config.json'), path.join(kstack, 'config.json'));
+  const isolatedConfig = JSON.parse(fs.readFileSync(path.join(root, '.kstack', 'config.json'), 'utf8'));
+  isolatedConfig.jira.enabled = false;
+  isolatedConfig.jira.siteUrl = null;
+  isolatedConfig.jira.apiBaseUrl = null;
+  isolatedConfig.jira.credentialSource = { type: 'env', emailEnvVar: 'JIRA_EMAIL', tokenEnvVar: 'JIRA_API_TOKEN' };
+  isolatedConfig.jira.tracking = {
+    mode: 'off', required: false, repositoryNamespace: null, projectKey: null,
+    automaticVersionAssignment: false, releaseVersions: []
+  };
+  fs.writeFileSync(path.join(kstack, 'config.json'), JSON.stringify(isolatedConfig), { mode: 0o600 });
   fs.writeFileSync(path.join(kstack, 'reflexion-lessons.json'), corpusBytes([lesson('api_key=abcdefghijklmnop', { taskSignature: ['safe token'], rule: 'ALWAYS keep safe output', why: 'Safe reason', sourceFailure: 'Safe failure' })]), { mode: 0o600 });
   const result = runReflexionCommand(Object.freeze({ command: 'lookup', approved: new Set(), all: false, 'verbose-evidence': true, keywords: 'safe token', 'project-root': project }));
   assert.match(result.warning.bytes, /redactedFieldCount=1 affectedLessonCount=1/u);
