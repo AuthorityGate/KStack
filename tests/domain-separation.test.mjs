@@ -25,6 +25,10 @@ function hash(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 
+function domainHash(domain, value) {
+  return crypto.createHash('sha256').update(Buffer.from(domain, 'utf8')).update(hostCanonicalBytes(value)).digest('hex');
+}
+
 function code(expected, action) {
   assert.throws(action, (error) => error?.code === expected, `expected ${expected}`);
 }
@@ -380,4 +384,51 @@ test('D3 point-of-use rejects forged provenance, substituted bindings, and malfo
     { authorizedAt: 'not-an-instant' },
     { expiresAt: 'not-an-instant' }
   ]) code('WEAKENING_AUTHORIZATION_INVALID', () => validateWeakeningTransitionUse(forge(changes)));
+});
+
+test('D3 rejects a byte-identical but non-provenanced classifier receipt', async () => {
+  const value = fixture();
+  const cloned = JSON.parse(JSON.stringify(value.classifier));
+  await asyncCode('WEAKENING_CLASSIFIER_PROVENANCE_INVALID', () => authorizeWeakening({
+    ...authorizationInput(value), classifier: cloned
+  }));
+});
+
+test('D3 rejects a hand-forged classifier receipt that relabels a quarantine reversal as ordinary policy weakening', async () => {
+  const beforeBytes = hostCanonicalBytes(state());
+  const afterBytes = hostCanonicalBytes(state({ quarantinedPacks: [] }));
+  const genuine = classifyWeakeningTransition(beforeBytes, afterBytes);
+  assert.equal(genuine.receipt.action, 'quarantine-reversal');
+  assert.equal(genuine.receipt.reasonCodes.includes('QUARANTINE_REVERSED'), true);
+
+  const forgedReceipt = {
+    ...genuine.receipt,
+    action: 'policy-weakening',
+    affectedPackIds: [],
+    reasonCodes: ['CONFIDENCE_REDUCED']
+  };
+  const forgedClassifier = {
+    receipt: forgedReceipt,
+    classifierReceiptDigest: domainHash('KSTACK-WEAKENING-CLASSIFIER-RECEIPT-V1\n', forgedReceipt)
+  };
+  const policy = separationPolicy();
+  const policyResult = validateSeparationPolicy(policy);
+  const request = createWeakeningRequest({
+    projectId: PROJECT, repositoryImmutableId: REPOSITORY,
+    action: forgedReceipt.action, beforeDigest: forgedReceipt.beforeDigest,
+    afterDigest: forgedReceipt.afterDigest, affectedPackIds: forgedReceipt.affectedPackIds,
+    classifierVersion: 1, classifierReceiptDigest: forgedClassifier.classifierReceiptDigest,
+    reasonCode: 'POLICY_THRESHOLD_CHANGE', notBefore: '2026-08-29T16:55:00.000Z',
+    expiresAt: '2026-08-29T17:05:00.000Z', nonce: 'b'.repeat(32)
+  });
+  const identityRequest = createIdentityActionRequest({
+    projectId: PROJECT, repositoryImmutableId: REPOSITORY, action: request.request.action,
+    targetDigest: request.weakeningRequestDigest, policyDigest: policyResult.separationPolicyDigest,
+    nonce: request.request.nonce, notBefore: request.request.notBefore, expiresAt: request.request.expiresAt
+  });
+  const value = {
+    classifier: forgedClassifier, policy, policyResult, request, identityRequest,
+    allowedActions: ['policy-weakening']
+  };
+  await asyncCode('WEAKENING_CLASSIFIER_PROVENANCE_INVALID', () => authorizeWeakening(authorizationInput(value)));
 });

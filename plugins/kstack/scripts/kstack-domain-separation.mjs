@@ -20,6 +20,7 @@ const FAILURE_MODES = Object.freeze(['closed', 'continue', 'degrade']);
 const FAILURE_MODE_OPENNESS = Object.freeze({ closed: 0, degrade: 1, continue: 2 });
 const MAX_STATE_BYTES = 1024 * 1024;
 const ISSUED_WEAKENING_AUTHORIZATIONS = new WeakSet();
+const CLASSIFIED_WEAKENING_RECEIPTS = new WeakSet();
 
 function fail(code) {
   const error = new Error(code);
@@ -230,6 +231,27 @@ function setAdded(before, after) {
   return after.filter((value) => !prior.has(value));
 }
 
+function mintClassifierReceipt(input) {
+  const code = 'WEAKENING_CLASSIFIER_RECEIPT_INVALID';
+  exact(input, ['beforeDigest', 'afterDigest', 'classification', 'action', 'affectedPackIds', 'reasonCodes'], code);
+  if (!['weakening', 'non-weakening'].includes(input.classification) || !WEAKENING_ACTIONS.includes(input.action)) fail(code);
+  const beforeDigest = digest(input.beforeDigest, code);
+  const afterDigest = digest(input.afterDigest, code);
+  if (beforeDigest === afterDigest) fail(code);
+  const affectedPackIds = sortedUnique(input.affectedPackIds, (value) => string(value, PACK_ID, code, 64), code, 256, true);
+  const reasonCodes = sortedUnique(input.reasonCodes, (value) => string(value, REASON_CODE, code, 128), code, 32, true);
+  if ((input.classification === 'weakening') !== (reasonCodes.length > 0)) fail(code);
+  const receipt = {
+    artifactType: 'kstack-weakening-classifier-receipt', schemaVersion: 1,
+    classifierVersion: WEAKENING_CLASSIFIER_VERSION,
+    beforeDigest, afterDigest, classification: input.classification, action: input.action,
+    affectedPackIds, reasonCodes
+  };
+  const result = immutable({ receipt, classifierReceiptDigest: domainDigest('KSTACK-WEAKENING-CLASSIFIER-RECEIPT-V1\n', receipt) });
+  CLASSIFIED_WEAKENING_RECEIPTS.add(result);
+  return result;
+}
+
 function classifierReceipt(beforeBytes, afterBytes) {
   let before;
   let after;
@@ -237,15 +259,12 @@ function classifierReceipt(beforeBytes, afterBytes) {
     before = validatePolicyState(parseCanonical(beforeBytes, 'WEAKENING_STATE_INVALID'));
     after = validatePolicyState(parseCanonical(afterBytes, 'WEAKENING_STATE_INVALID'));
   } catch {
-    const receipt = {
-      artifactType: 'kstack-weakening-classifier-receipt', schemaVersion: 1,
-      classifierVersion: WEAKENING_CLASSIFIER_VERSION,
+    return mintClassifierReceipt({
       beforeDigest: rawDomainDigest('KSTACK-POLICY-STATE-V1\n', Buffer.from(beforeBytes)),
       afterDigest: rawDomainDigest('KSTACK-POLICY-STATE-V1\n', Buffer.from(afterBytes)),
       classification: 'weakening', action: 'policy-weakening', affectedPackIds: [],
       reasonCodes: ['UNKNOWN_OR_INVALID_TRANSITION']
-    };
-    return immutable({ receipt, classifierReceiptDigest: domainDigest('KSTACK-WEAKENING-CLASSIFIER-RECEIPT-V1\n', receipt) });
+    });
   }
   const reasons = [];
   const affected = new Set();
@@ -276,16 +295,13 @@ function classifierReceipt(beforeBytes, afterBytes) {
     : reasons.includes('CATALOG_DOWNGRADED') ? 'catalog-downgrade'
       : reasons.includes('REQUIRED_PACK_REMOVED') || reasons.includes('WAIVER_BROADENED') ? 'required-pack-waiver'
         : 'policy-weakening';
-  const receipt = {
-    artifactType: 'kstack-weakening-classifier-receipt', schemaVersion: 1,
-    classifierVersion: WEAKENING_CLASSIFIER_VERSION,
+  return mintClassifierReceipt({
     beforeDigest: domainDigest('KSTACK-POLICY-STATE-V1\n', before),
     afterDigest: domainDigest('KSTACK-POLICY-STATE-V1\n', after),
     classification: reasons.length ? 'weakening' : 'non-weakening', action,
     affectedPackIds: [...affected].sort(compareUtf8),
     reasonCodes: reasons.sort(compareUtf8)
-  };
-  return immutable({ receipt, classifierReceiptDigest: domainDigest('KSTACK-WEAKENING-CLASSIFIER-RECEIPT-V1\n', receipt) });
+  });
 }
 
 export function classifyWeakeningTransition(beforeBytes, afterBytes) {
@@ -347,6 +363,7 @@ function validateClassifierBinding(classifier, request) {
   const code = 'WEAKENING_CLASSIFIER_BINDING_INVALID';
   exact(classifier, ['receipt', 'classifierReceiptDigest'], code);
   exact(classifier.receipt, ['artifactType', 'schemaVersion', 'classifierVersion', 'beforeDigest', 'afterDigest', 'classification', 'action', 'affectedPackIds', 'reasonCodes'], code);
+  if (!CLASSIFIED_WEAKENING_RECEIPTS.has(classifier)) fail('WEAKENING_CLASSIFIER_PROVENANCE_INVALID');
   const recomputed = domainDigest('KSTACK-WEAKENING-CLASSIFIER-RECEIPT-V1\n', classifier.receipt);
   sameDigest(recomputed, classifier.classifierReceiptDigest, code);
   sameDigest(classifier.classifierReceiptDigest, request.classifierReceiptDigest, code);
@@ -357,13 +374,20 @@ function validateClassifierBinding(classifier, request) {
       || !hostCanonicalBytes(classifier.receipt.affectedPackIds).equals(hostCanonicalBytes(request.affectedPackIds))) fail(code);
 }
 
+const KNOWN_POLICY_WEAKENING_REASONS = new Set([
+  'REQUIRED_LANE_REMOVED', 'REVIEWER_COUNT_REDUCED', 'CONFIDENCE_REDUCED', 'EVIDENCE_REDUCED',
+  'FRESHNESS_EXTENDED', 'SECURITY_BLOCK_DISABLED', 'AUTHORITY_REDUCED', 'ROLLBACK_DISABLED',
+  'RETENTION_REDUCED', 'FAILURE_MODE_OPENED'
+]);
+
 function weakeningActionsForReasons(reasonCodes) {
   const actions = new Set();
   for (const reason of reasonCodes) {
     if (reason === 'QUARANTINE_REVERSED') actions.add('quarantine-reversal');
     else if (reason === 'CATALOG_DOWNGRADED') actions.add('catalog-downgrade');
     else if (reason === 'REQUIRED_PACK_REMOVED' || reason === 'WAIVER_BROADENED') actions.add('required-pack-waiver');
-    else actions.add('policy-weakening');
+    else if (KNOWN_POLICY_WEAKENING_REASONS.has(reason)) actions.add('policy-weakening');
+    else for (const weakeningAction of WEAKENING_ACTIONS) actions.add(weakeningAction);
   }
   return [...actions].sort(compareUtf8);
 }

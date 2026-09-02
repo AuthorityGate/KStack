@@ -415,8 +415,8 @@
     {
       "path": "scripts/kstack-domain-catalog.mjs",
       "executable": true,
-      "size": 10450,
-      "sha256": "d331f5bb0e6a46fcd283973b8f129c078c92ddd78d30b4a15a20a4d7baf6825d"
+      "size": 10621,
+      "sha256": "950131e5374a23108def3358c1b23fdf4cfa0da0b34ec159fc966df3b784931c"
     },
     {
       "path": "scripts/kstack-domain-evaluation.mjs",
@@ -463,8 +463,8 @@
     {
       "path": "scripts/kstack-domain-separation.mjs",
       "executable": true,
-      "size": 29940,
-      "sha256": "2dc51215178e020e19ec8a61fd4a7339d5c2d12a43460a4c29dd19cd57b351bb"
+      "size": 31342,
+      "sha256": "fd856379ee11958aef48b1fe46391ac111ac7a754879c14bcfcd170b281ced61"
     },
     {
       "path": "scripts/kstack-domain-time-binding.mjs",

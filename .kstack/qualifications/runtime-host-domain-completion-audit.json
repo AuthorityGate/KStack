@@ -1,10 +1,10 @@
 {
   "schema": "kstack-runtime-host-domain-completion-audit-v1",
-  "generatedAt": "2026-08-31T01:18:53.983Z",
+  "generatedAt": "2026-09-02T18:30:38.246Z",
   "roadmapDigest": "ee4f4566dfdc258c3b71eb78144047e072928e176964e0f2a8ef32638e4f5824",
   "bindings": {
     "hostImplementationEvidenceDigest": "00ae912aebbca8feb76f8541ae5893bedb732bf546bbcaef52a300474666ad5d",
-    "domainImplementationEvidenceDigest": "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
+    "domainImplementationEvidenceDigest": "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
     "secondHostEvidenceDigest": "c50364e9677cd2caa66ab2f30cb4b8d14727f901d9fc6f441afbabdbc754c5f4",
     "openCodeEvidenceDigest": "sha256:8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f",
     "gooseEvidenceDigest": "sha256:4b14bddf46e0cf52a1e93d057b79542affbc4fdec2653698a9507ceae3f0bb7f",
@@ -416,9 +416,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
-        "0481463cb0392085494493954c274d07463f421b3ce4b37f8f34d7e06f2d2ffe",
-        "42c876e0769b8ac264974251d936f216856e879c5bb61afa804116712e02fc10"
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
+        "335a26f1f5ffe35943c594b460e6af6a78707b1e878d62be1401ebb84c6676e9",
+        "aa6840464601cafd7c8b3a18d569575b5a66c6b1a1fdd65bf6b638f5172d0003"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -431,9 +431,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
-        "d3ecf3f9b77b78cc94bfac04550436b8e60b45473897b003edb791c2ed551d52",
-        "b1bfd4d82f97ab513e39accd7e203d027e0853a0c5aa76b2049fd14ad568409c"
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
+        "2776042cb08e8dfe60edef8adf44d16a6304fc9777f301d472075c098b00a408",
+        "371f3bf434d0559ea5cd925b426e8850009e8c21c84dff30c889c0c19126bb6d"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -446,9 +446,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
-        "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
-        "423d5470ec9579999249d8d863e9eeac04339cfbb76a6b7c442bd8d7590caa03"
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
+        "3a27580862a1e36e27d1ac901960b9085af4dfcf26dca170f954bb689b4b6193",
+        "12c7e5331cc79376ef91da92420fb499a9ed14c3b945ddd7906c5e5753e29750"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -461,9 +461,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
-        "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
-        "99bb825c0d4b0cae8a71700a8c56bf02d399de11100cb15bd2b1ed69da6912f6"
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
+        "3a27580862a1e36e27d1ac901960b9085af4dfcf26dca170f954bb689b4b6193",
+        "fa3cd614b313e47892791d977f13232c4bd1f26d77388e782b8b6d6256052e64"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -476,9 +476,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
-        "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
-        "99b74870fef02f723f88da4f3b8ab0afdf7edaa8d11d1e6cbed9797189023f45"
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
+        "3a27580862a1e36e27d1ac901960b9085af4dfcf26dca170f954bb689b4b6193",
+        "18ea0d86b0816895857a6bbfeee16b1fc1f8cf4cb8e9dcefdfd242c0ebabc7e8"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -491,9 +491,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
-        "24be07b6d930c35bcc9478c2dc21b1f4ca561ec715ec92d8cdd73400df4160c1",
-        "acfbb13258f72471c1a8788ab308c78bc87195069ba6d98e284452b2c8650ea5"
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
+        "1173fbf1da32fa5fe6ced369bf87ca2a1a0180ab5c0b68437f6fc1184e35bce3",
+        "c62a6fce0914fa61ae00d5a2fc28dae6fa171dd6f5da91922cef9e9f1cf6a956"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -506,9 +506,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
-        "4f166b9e7a267fe1ead15a7c4decf8fd90974a18212b96013d16d37d33f0c93d",
-        "8275b685f5d9e6af45d4d7d047dbfd87ccea2959931ca238f2367d13dcb20906"
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
+        "44d21fc027595473b8e9c8e7f845b709b4cb258517f4c568fefed3b1791508e1",
+        "d60b298b5c4e45ee5b18103916b61fd2cd0cdd8fd038046eea6106cf8d1c591a"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -521,9 +521,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
         "a5792fd14d1a67ab2212ed37a9b3dcd5a73f0ded75a57f250582fd0dad6f038b",
-        "907673177a72fb94ade8111e65cf92b59f466c233f6a781b01a0686b7ad6e25c"
+        "d700d10aba74bb473f1352d228705572388658cbed46973b3c8de9bd2de6b2b2"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -536,9 +536,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
-        "ad3966b4b2ae739220fd3c2f8b2fee2f0bfe8080933ca176e6e97ceb50489c00",
-        "f1943e1a1dbd5d7041b47cbbe128041e1d98d7d49e7be19a34f1737365127c68"
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
+        "ec159d66c9e2ac0b8b7924c7533a0e03ea8415a3d99550d56b98041d06f0a2e3",
+        "87ba11b9f22d8a02bc252457f31903f41d68ece11d6aa18b6e7c6e55a0c64b9b"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -551,9 +551,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
-        "64807878e845980b9204ce87a5e83e9bd0f3032c8bac9ef73cc91c4c15f40436",
-        "f6a8a5bf6d1822a8b826a7990a9d3fdb4554e6abe74a29b7ad089d5a3f65200e"
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
+        "35ac23b4925292b0d1d022db75a933d9302399f038794f6f2fe818ec70ef4477",
+        "164b59c30a73ccf0ad2cd18b4dd8b588a58fed914429f315dcadaa550085c37b"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -566,9 +566,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
         "1ac8465b752c5e25709e8eeb993833f267b46599d9d34cbe74d6d12cc21a0ab9",
-        "9a5e4498f7b6641839a8d505ca1332bb30a4c5082670d39a0054196121b5d43e"
+        "65984b25d0da02bda2180032e34190e16f53fd12396a64a681221e2657d7b961"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -581,9 +581,9 @@
       "technicalState": "IMPLEMENTED_VALIDATED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
         "fc398be477a03d18d85bc43cbe48463f51d4d79bb06d1bd9cd253bc0f0238eea",
-        "20bdd657d05ca5f8ce497955e4d3cefd71b63c281e28081176c77222d10069bd"
+        "cf1c20fffb79bc64bbbbaa01dad453529853926b3315f53f1e9181290fb02a53"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -596,9 +596,9 @@
       "technicalState": "CANONICAL_CANDIDATE_VALIDATED",
       "completionState": "PACK_QUALIFICATION_AND_ACTIVATION_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
         "716e1b498d0efaefcfdac64fe6e174bb287c779e02171dbe0f103cd460cd59c6",
-        "5d6e11e5f2e5f33c36960edc53751cc490eac91879d916578f4d0934ae73a168"
+        "15048f5804eb720cc2b069e0225f214f8efba20bcb78377eb3108a5cee526835"
       ],
       "remainingRequirements": [
         "held-out-incremental-evaluation",
@@ -615,9 +615,9 @@
       "technicalState": "CANONICAL_CANDIDATE_VALIDATED",
       "completionState": "PACK_QUALIFICATION_AND_ACTIVATION_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
         "e8e7785c5d0b878a72ce9153a12faea5cc1ec3fdd41607cd2f9f065727ba2a7b",
-        "befcde3cd2f0a3811e76938f7465481ae78159d408ef7792fb451e2eb11770b0"
+        "4406618264bba98d1c981bc71a08867398b019dd72755f11a4b600d5e3914e70"
       ],
       "remainingRequirements": [
         "held-out-incremental-evaluation",
@@ -634,9 +634,9 @@
       "technicalState": "CANONICAL_CANDIDATE_VALIDATED",
       "completionState": "PACK_QUALIFICATION_AND_ACTIVATION_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
         "fc7b682baaafcdcd8bf2d57f93137195b8eb45b2106dbf8df78751cfd06cac2e",
-        "65a7ca09963a49633168aab3ebc8fe4d079e5404faf44abcaa366935082cd4b3"
+        "33389d7c39e1cedcbf8fbc7ce2c676512e6f831a9e649f458d46a731d4d751d9"
       ],
       "remainingRequirements": [
         "held-out-incremental-evaluation",
@@ -653,9 +653,9 @@
       "technicalState": "CANONICAL_CANDIDATE_VALIDATED",
       "completionState": "PACK_QUALIFICATION_AND_ACTIVATION_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
         "069eae5978b4d25851dc7147826aa6f4292e94b5a6df199f40e91c41259d5ed5",
-        "7d985e671e2d54084450dd54ce84c034493d567c05d134d8f6266853d602263f"
+        "0b80604e1af70811b3c1470b94987498dc7fb1e5578f4acb26616fd93224140d"
       ],
       "remainingRequirements": [
         "held-out-incremental-evaluation",
@@ -672,9 +672,9 @@
       "technicalState": "OFFLINE_ACQUISITION_TRIAL_IMPLEMENTED",
       "completionState": "INDEPENDENT_FINAL_REVIEW_PENDING",
       "evidenceDigests": [
-        "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f",
+        "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a",
         "30235799aecab11e164525a025d89b4a2fbefcbec677a615740e30e4d1519bc2",
-        "c81b0ef2f71de9c9c1482b72a11bb78d9825e44a3aafdf1549dabc921abc9a06"
+        "1b765ca8ddf33f85ef52ef57094c31a91949b806802b312c79ac02f02942c2a1"
       ],
       "remainingRequirements": [
         "independent-final-review",
@@ -709,5 +709,5 @@
     "externalExecutionPending": 43
   },
   "formalRuntimeReportUpdated": false,
-  "evidenceDigest": "6038974f14ac3c2a77f6447649c9c61e4ec294d208d5b689fed780255911f602"
+  "evidenceDigest": "a885b0bd9fdae5b80af6843f2897d0d7f6f895ab26d27da079ae8578feac5d6f"
 }

@@ -59,6 +59,24 @@ bytes.
 
 ## Item ledger
 
+**Naming note (added 2026-09-02):** "D0" names two different things depending
+on which document is read, and this has caused real confusion during
+implementation (KSTK-57). The row below is this ledger's D0: the Option C
+closed declarative catalog/bundle/compatibility mechanism from the round-1
+decision brief, implemented under the `domain-d5f1-schemas` and
+`domain-d5f2-activation` labels (`kstack-domain-schema.mjs`,
+`kstack-domain-activation.mjs`) per
+`.kstack/qualifications/domain-implementation-inventory.mjs`. Separately,
+`.kstack/roadmaps/runtime-maturity-focused-2026-08-28.json` defines its own,
+narrower `domain-d0-catalog-runtime` roadmap item: "the closed declarative
+catalog and safe native rendering for legacy host-neutral analysis methods
+only," explicitly not D2 pack admission or D5 activation. That item is
+implemented in `plugins/kstack/scripts/kstack-domain-catalog.mjs`, whose own
+exported `DOMAIN_RENDERING_SCOPE` constant states the same boundary. Jira
+ticket KSTK-57 tracks the roadmap item, not this ledger row. When "D0" comes
+up, check which document is the source before assuming they mean the same
+artifact.
+
 | ID | Item | Status | Evidence | Next action |
 |---|---|---|---|---|
 | D0 | Option C closed declarative catalog; four-pack roadmap; independent pack lifecycle | `VALIDATED` | Round 1 Codex and Opus both selected Option C and rejected reopening A/B/D. | Preserve; do not redesign the full mechanism. |

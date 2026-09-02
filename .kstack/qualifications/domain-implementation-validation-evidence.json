@@ -1,7 +1,7 @@
 {
   "schema": "kstack-domain-implementation-validation-v1",
-  "startedAt": "2026-08-31T00:20:16.003Z",
-  "completedAt": "2026-08-31T00:21:26.038Z",
+  "startedAt": "2026-09-02T18:29:29.910Z",
+  "completedAt": "2026-09-02T18:30:37.246Z",
   "inventory": [
     {
       "itemId": "domain-d0-catalog-runtime",
@@ -9,7 +9,7 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-catalog.mjs",
-          "sha256": "d331f5bb0e6a46fcd283973b8f129c078c92ddd78d30b4a15a20a4d7baf6825d"
+          "sha256": "950131e5374a23108def3358c1b23fdf4cfa0da0b34ec159fc966df3b784931c"
         },
         {
           "file": "plugins/kstack/scripts/kstack-host-profile.mjs",
@@ -46,7 +46,7 @@
         },
         {
           "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
-          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+          "sha256": "0a66cf235b9bbc62ed1f1d066439eaff65ede865a4300c091167b8109ecd1c41"
         }
       ],
       "validationFiles": [
@@ -81,7 +81,7 @@
         },
         {
           "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
-          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+          "sha256": "0a66cf235b9bbc62ed1f1d066439eaff65ede865a4300c091167b8109ecd1c41"
         }
       ],
       "validationFiles": [
@@ -113,7 +113,7 @@
         },
         {
           "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
-          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+          "sha256": "0a66cf235b9bbc62ed1f1d066439eaff65ede865a4300c091167b8109ecd1c41"
         }
       ],
       "validationFiles": [
@@ -144,7 +144,7 @@
         },
         {
           "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
-          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+          "sha256": "0a66cf235b9bbc62ed1f1d066439eaff65ede865a4300c091167b8109ecd1c41"
         }
       ],
       "validationFiles": [
@@ -163,7 +163,7 @@
       "implementationFiles": [
         {
           "file": "plugins/kstack/scripts/kstack-domain-separation.mjs",
-          "sha256": "2dc51215178e020e19ec8a61fd4a7339d5c2d12a43460a4c29dd19cd57b351bb"
+          "sha256": "fd856379ee11958aef48b1fe46391ac111ac7a754879c14bcfcd170b281ced61"
         },
         {
           "file": "plugins/kstack/scripts/kstack-domain-identity.mjs",
@@ -175,13 +175,13 @@
         },
         {
           "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
-          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+          "sha256": "0a66cf235b9bbc62ed1f1d066439eaff65ede865a4300c091167b8109ecd1c41"
         }
       ],
       "validationFiles": [
         {
           "file": "tests/domain-separation.test.mjs",
-          "sha256": "ee2f32c5d024cd696a48b1552dcdd2d2cf165975b9b667e3bd4c24910d95c79e"
+          "sha256": "80e2883757e570aca4804d0ed52857a25e34e78ae3ce453e697cf6c41d014d42"
         }
       ],
       "validationCasePrefixes": [
@@ -214,7 +214,7 @@
         },
         {
           "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
-          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+          "sha256": "0a66cf235b9bbc62ed1f1d066439eaff65ede865a4300c091167b8109ecd1c41"
         },
         {
           "file": "plugins/kstack/scripts/kstack-domain-schema.mjs",
@@ -258,7 +258,7 @@
       "validationFiles": [
         {
           "file": "tests/domain-schema.test.mjs",
-          "sha256": "f8371b5f9e6f986ec492dfb62e6bc8aaca588cf5b3f374d528a4875e26429871"
+          "sha256": "364d527ffb15386098ede0950337287cf046e483c15b1ff37c764bc285b9f672"
         }
       ],
       "validationCasePrefixes": [
@@ -288,11 +288,11 @@
         },
         {
           "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
-          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+          "sha256": "0a66cf235b9bbc62ed1f1d066439eaff65ede865a4300c091167b8109ecd1c41"
         },
         {
           "file": "plugins/kstack/scripts/kstack-domain-separation.mjs",
-          "sha256": "2dc51215178e020e19ec8a61fd4a7339d5c2d12a43460a4c29dd19cd57b351bb"
+          "sha256": "fd856379ee11958aef48b1fe46391ac111ac7a754879c14bcfcd170b281ced61"
         },
         {
           "file": "plugins/kstack/scripts/kstack-domain-selection.mjs",
@@ -310,7 +310,7 @@
       "validationFiles": [
         {
           "file": "tests/domain-schema.test.mjs",
-          "sha256": "f8371b5f9e6f986ec492dfb62e6bc8aaca588cf5b3f374d528a4875e26429871"
+          "sha256": "364d527ffb15386098ede0950337287cf046e483c15b1ff37c764bc285b9f672"
         }
       ],
       "validationCasePrefixes": [
@@ -339,7 +339,7 @@
         },
         {
           "file": "plugins/kstack/scripts/kstack-host-contract.mjs",
-          "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+          "sha256": "0a66cf235b9bbc62ed1f1d066439eaff65ede865a4300c091167b8109ecd1c41"
         },
         {
           "file": "plugins/kstack/scripts/kstack-domain-schema.mjs",
@@ -353,7 +353,7 @@
       "validationFiles": [
         {
           "file": "tests/domain-schema.test.mjs",
-          "sha256": "f8371b5f9e6f986ec492dfb62e6bc8aaca588cf5b3f374d528a4875e26429871"
+          "sha256": "364d527ffb15386098ede0950337287cf046e483c15b1ff37c764bc285b9f672"
         }
       ],
       "validationCasePrefixes": [
@@ -651,28 +651,28 @@
     "status": 0,
     "signal": null,
     "errorCode": null,
-    "testCount": 64,
-    "tapAssertionCount": 64,
-    "passCount": 64,
+    "testCount": 66,
+    "tapAssertionCount": 66,
+    "passCount": 66,
     "failCount": 0,
     "cancelledCount": 0,
     "skippedCount": 0,
     "todoCount": 0,
-    "stdoutSha256": "2710e8edcd98de1021ed2d17280e99a255042403e2437982736a302b8eeb6561",
+    "stdoutSha256": "1b29670747096ca3eecc4b7b3441b17a1396728c174908fed73e9f1125719d4b",
     "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
-  "testExecutionDigest": "14cb148675841ff02dc6f89c0089d598cf30dd1cb08c5c3feacd3952cc153692",
+  "testExecutionDigest": "be783711bb4cdc38ce0f94568c18a54c58802f3ea55f820d471ada3945600652",
   "rows": [
     {
       "itemId": "domain-d0-catalog-runtime",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "0481463cb0392085494493954c274d07463f421b3ce4b37f8f34d7e06f2d2ffe",
+      "implementationDigest": "335a26f1f5ffe35943c594b460e6af6a78707b1e878d62be1401ebb84c6676e9",
       "validationCaseNames": [
         "catalog and pack schemas are closed, deterministic, and content bound",
         "selection is exact, applicability bound, and digest protected",
         "one host-neutral selection renders natively for Hermes and OpenClaw without authority"
       ],
-      "validationReceiptDigest": "42c876e0769b8ac264974251d936f216856e879c5bb61afa804116712e02fc10",
+      "validationReceiptDigest": "aa6840464601cafd7c8b3a18d569575b5a66c6b1a1fdd65bf6b638f5172d0003",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -681,7 +681,7 @@
     {
       "itemId": "domain-d1-identity",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "d3ecf3f9b77b78cc94bfac04550436b8e60b45473897b003edb791c2ed551d52",
+      "implementationDigest": "2776042cb08e8dfe60edef8adf44d16a6304fc9777f301d472075c098b00a408",
       "validationCaseNames": [
         "D1 canonical requests and external trust roots are exact, closed, and domain bound",
         "GitHub protected review binds repository, commit, fixed blob, ruleset, principal, completeness, and raw evidence",
@@ -689,7 +689,7 @@
         "concurrent reuse has exactly one winner and action or target substitution cannot reuse approval bytes",
         "missing trusted time, protected retention, or healthy rollback witness fails closed with no receipt"
       ],
-      "validationReceiptDigest": "b1bfd4d82f97ab513e39accd7e203d027e0853a0c5aa76b2049fd14ad568409c",
+      "validationReceiptDigest": "371f3bf434d0559ea5cd925b426e8850009e8c21c84dff30c889c0c19126bb6d",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -698,12 +698,12 @@
     {
       "itemId": "domain-d2f1-inventory",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
+      "implementationDigest": "3a27580862a1e36e27d1ac901960b9085af4dfcf26dca170f954bb689b4b6193",
       "validationCaseNames": [
         "D2-F1 resolves only the closed inventory and enforces every cross-tier equality",
         "D2 inventory and artifact parsing reject duplicate keys, wrong types, bytes, and unknown fields"
       ],
-      "validationReceiptDigest": "423d5470ec9579999249d8d863e9eeac04339cfbb76a6b7c442bd8d7590caa03",
+      "validationReceiptDigest": "12c7e5331cc79376ef91da92420fb499a9ed14c3b945ddd7906c5e5753e29750",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -712,11 +712,11 @@
     {
       "itemId": "domain-d2f2-policy",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
+      "implementationDigest": "3a27580862a1e36e27d1ac901960b9085af4dfcf26dca170f954bb689b4b6193",
       "validationCaseNames": [
         "D2-F2 uses distinct policy domains and refuses valid artifacts that violate policy"
       ],
-      "validationReceiptDigest": "99bb825c0d4b0cae8a71700a8c56bf02d399de11100cb15bd2b1ed69da6912f6",
+      "validationReceiptDigest": "fa3cd614b313e47892791d977f13232c4bd1f26d77388e782b8b6d6256052e64",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -725,12 +725,12 @@
     {
       "itemId": "domain-d2f3-selection",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "1a1f953f36fc524eb0adba6e02d6a0315757aa323d84f9bd21bc49853c34a278",
+      "implementationDigest": "3a27580862a1e36e27d1ac901960b9085af4dfcf26dca170f954bb689b4b6193",
       "validationCaseNames": [
         "D2-F3 admits one exact selection and binds it into composition and dispatch receipts",
         "D2-F3 rejects stale guards, substitutions, expired time, and fabricated owner acceptance"
       ],
-      "validationReceiptDigest": "99b74870fef02f723f88da4f3b8ab0afdf7edaa8d11d1e6cbed9797189023f45",
+      "validationReceiptDigest": "18ea0d86b0816895857a6bbfeee16b1fc1f8cf4cb8e9dcefdfd242c0ebabc7e8",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -739,7 +739,7 @@
     {
       "itemId": "domain-d3-separation",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "24be07b6d930c35bcc9478c2dc21b1f4ca561ec715ec92d8cdd73400df4160c1",
+      "implementationDigest": "1173fbf1da32fa5fe6ced369bf87ca2a1a0180ab5c0b68437f6fc1184e35bce3",
       "validationCaseNames": [
         "D3 classifier makes every weakening class and unknown transition fail into the quorum path",
         "D3 failure modes have an explicit openness order and non-closed weakening cannot bypass quorum",
@@ -749,9 +749,11 @@
         "D3 compound transitions require every represented weakening action",
         "D3 gridlock rejects one person, one group, role substitution, and receipt disagreement",
         "D3 pair consumption is atomic/replay closed and stale or widened downstream use fails",
-        "D3 point-of-use rejects forged provenance, substituted bindings, and malformed timestamps"
+        "D3 point-of-use rejects forged provenance, substituted bindings, and malformed timestamps",
+        "D3 rejects a byte-identical but non-provenanced classifier receipt",
+        "D3 rejects a hand-forged classifier receipt that relabels a quarantine reversal as ordinary policy weakening"
       ],
-      "validationReceiptDigest": "acfbb13258f72471c1a8788ab308c78bc87195069ba6d98e284452b2c8650ea5",
+      "validationReceiptDigest": "c62a6fce0914fa61ae00d5a2fc28dae6fa171dd6f5da91922cef9e9f1cf6a956",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -760,7 +762,7 @@
     {
       "itemId": "domain-d4d10-evidence",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "4f166b9e7a267fe1ead15a7c4decf8fd90974a18212b96013d16d37d33f0c93d",
+      "implementationDigest": "44d21fc027595473b8e9c8e7f845b709b4cb258517f4c568fefed3b1791508e1",
       "validationCaseNames": [
         "producer trust keys bind the declared Ed25519 algorithm to the actual SPKI key type",
         "D4 composition and dispatch are branded, immutable, and stale-guarded before any result exists",
@@ -773,7 +775,7 @@
         "commit recovery rejects a stored receipt substitution and recovers an exact post-commit crash",
         "coordinator rejects stale policy, nonce conflict, expired decision, and decision substitution"
       ],
-      "validationReceiptDigest": "8275b685f5d9e6af45d4d7d047dbfd87ccea2959931ca238f2367d13dcb20906",
+      "validationReceiptDigest": "d60b298b5c4e45ee5b18103916b61fd2cd0cdd8fd038046eea6106cf8d1c591a",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -791,7 +793,7 @@
         "D5 schema documents and canonicalizer limits reject adversarial near misses",
         "D5 catalog graph proves the complete available-pack tuple from one closed inventory"
       ],
-      "validationReceiptDigest": "907673177a72fb94ade8111e65cf92b59f466c233f6a781b01a0686b7ad6e25c",
+      "validationReceiptDigest": "d700d10aba74bb473f1352d228705572388658cbed46973b3c8de9bd2de6b2b2",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -800,12 +802,12 @@
     {
       "itemId": "domain-d5f2-activation",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "ad3966b4b2ae739220fd3c2f8b2fee2f0bfe8080933ca176e6e97ceb50489c00",
+      "implementationDigest": "ec159d66c9e2ac0b8b7924c7533a0e03ea8415a3d99550d56b98041d06f0a2e3",
       "validationCaseNames": [
         "D5 activation classifies every transition and refuses stale, untrusted, or non-durable inputs",
         "D5 activation challenge, staging, authenticated CAS, and exact recovery are fail closed"
       ],
-      "validationReceiptDigest": "f1943e1a1dbd5d7041b47cbbe128041e1d98d7d49e7be19a34f1737365127c68",
+      "validationReceiptDigest": "87ba11b9f22d8a02bc252457f31903f41d68ece11d6aa18b6e7c6e55a0c64b9b",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -814,12 +816,12 @@
     {
       "itemId": "domain-d6-budgets",
       "maturity": "CORE_IMPLEMENTED",
-      "implementationDigest": "64807878e845980b9204ce87a5e83e9bd0f3032c8bac9ef73cc91c4c15f40436",
+      "implementationDigest": "35ac23b4925292b0d1d022db75a933d9302399f038794f6f2fe818ec70ef4477",
       "validationCaseNames": [
         "D6 exact budget binds catalog applicability, whole-request tokens, all caps, and dispatch recheck",
         "D6 fallback uses the qualified one-byte upper bound and rejects proof/profile ambiguity"
       ],
-      "validationReceiptDigest": "f6a8a5bf6d1822a8b826a7990a9d3fdb4554e6abe74a29b7ad089d5a3f65200e",
+      "validationReceiptDigest": "164b59c30a73ccf0ad2cd18b4dd8b588a58fed914429f315dcadaa550085c37b",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -836,7 +838,7 @@
         "D7 exact safety bounds, 100k stratified bootstrap, Holm gates, and qualification-only disposition are executable",
         "D7 independently exercises every failing analysis gate and both refusal dispositions"
       ],
-      "validationReceiptDigest": "9a5e4498f7b6641839a8d505ca1332bb30a4c5082670d39a0054196121b5d43e",
+      "validationReceiptDigest": "65984b25d0da02bda2180032e34190e16f53fd12396a64a681221e2657d7b961",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -854,7 +856,7 @@
         "D8 recovers only the exact pending genesis after one namespace was created",
         "D8 conservative temporal predicates close equality and one-nanosecond boundaries"
       ],
-      "validationReceiptDigest": "20bdd657d05ca5f8ce497955e4d3cefd71b63c281e28081176c77222d10069bd",
+      "validationReceiptDigest": "cf1c20fffb79bc64bbbbaa01dad453529853926b3315f53f1e9181290fb02a53",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -870,7 +872,7 @@
         "candidate regeneration is byte-stable and never activates or executes a pack",
         "every evaluation corpus is bound to the exact checked-in candidate bundle and pack profile"
       ],
-      "validationReceiptDigest": "5d6e11e5f2e5f33c36960edc53751cc490eac91879d916578f4d0934ae73a168",
+      "validationReceiptDigest": "15048f5804eb720cc2b069e0225f214f8efba20bcb78377eb3108a5cee526835",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -886,7 +888,7 @@
         "candidate regeneration is byte-stable and never activates or executes a pack",
         "every evaluation corpus is bound to the exact checked-in candidate bundle and pack profile"
       ],
-      "validationReceiptDigest": "befcde3cd2f0a3811e76938f7465481ae78159d408ef7792fb451e2eb11770b0",
+      "validationReceiptDigest": "4406618264bba98d1c981bc71a08867398b019dd72755f11a4b600d5e3914e70",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -902,7 +904,7 @@
         "candidate regeneration is byte-stable and never activates or executes a pack",
         "every evaluation corpus is bound to the exact checked-in candidate bundle and pack profile"
       ],
-      "validationReceiptDigest": "65a7ca09963a49633168aab3ebc8fe4d079e5404faf44abcaa366935082cd4b3",
+      "validationReceiptDigest": "33389d7c39e1cedcbf8fbc7ce2c676512e6f831a9e649f458d46a731d4d751d9",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -918,7 +920,7 @@
         "candidate regeneration is byte-stable and never activates or executes a pack",
         "every evaluation corpus is bound to the exact checked-in candidate bundle and pack profile"
       ],
-      "validationReceiptDigest": "7d985e671e2d54084450dd54ce84c034493d567c05d134d8f6266853d602263f",
+      "validationReceiptDigest": "0b80604e1af70811b3c1470b94987498dc7fb1e5578f4acb26616fd93224140d",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -936,7 +938,7 @@
         "offline verification refuses substituted bytes and symlinked corpus files",
         "qualification is all-required, preserves native fallback, and never activates"
       ],
-      "validationReceiptDigest": "c81b0ef2f71de9c9c1482b72a11bb78d9825e44a3aafdf1549dabc921abc9a06",
+      "validationReceiptDigest": "1b765ca8ddf33f85ef52ef57094c31a91949b806802b312c79ac02f02942c2a1",
       "implemented": true,
       "current": true,
       "qualified": false,
@@ -944,5 +946,5 @@
     }
   ],
   "aggregate": "PASS",
-  "evidenceDigest": "d9bdfc59a3ebe8f7c01597a80628484e7c57e49a983a30acda027666d8d5641f"
+  "evidenceDigest": "18974399376fbbef32ad3a89538d331f215545e816dff03371e900ef9b05937a"
 }

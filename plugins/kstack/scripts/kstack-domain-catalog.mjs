@@ -10,6 +10,11 @@ const CONTROL_OR_BIDI = /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u2
 const VALIDATED_DOMAIN_SELECTIONS = new WeakSet();
 export const DOMAIN_RENDERING_SCOPE = 'D0_ANALYSIS_METHOD_RENDERING_ONLY_NOT_D2_PACK_ADMISSION_OR_ACTIVATION';
 
+function immutable(value) {
+  if (value && typeof value === 'object') { for (const child of Object.values(value)) immutable(child); Object.freeze(value); }
+  return value;
+}
+
 function fail(code, detail = '') {
   const error = new Error(`${code}${detail ? `: ${detail}` : ''}`);
   error.code = code;
@@ -118,7 +123,7 @@ export function selectDomainMethods(catalogInput, selectionInput) {
   const selection = { catalogDigest: catalog.catalogDigest, packIds, applicability, methods };
   const result = { ...selection, selectionDigest: digest('KSTACK-DOMAIN-SELECTION-V1', selection) };
   VALIDATED_DOMAIN_SELECTIONS.add(result);
-  return Object.freeze(result);
+  return immutable(result);
 }
 
 export function renderDomainSelection(selectionInput, profileInput) {

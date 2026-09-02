@@ -12,6 +12,12 @@
       "cycleNumber": 6,
       "cycleId": "19de904f-f8fc-4470-8fa2-4e05b56fadaf",
       "startedAt": "2026-09-02T10:58:49.665Z"
+    },
+    {
+      "threadId": "virtual-engineering-team-2026-08-24",
+      "cycleNumber": 1,
+      "cycleId": "50c42036-4c1b-4117-9ead-b20dcdcd1e8d",
+      "startedAt": "2026-09-02T16:54:59.908Z"
     }
   ]
 }
