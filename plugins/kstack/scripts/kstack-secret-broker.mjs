@@ -32,6 +32,9 @@ const SAFE_LABEL = /^[\p{L}\p{N}][\p{L}\p{N} ._()\/+:-]{0,159}$/u;
 const SHA256 = /^[a-f0-9]{64}$/u;
 const CONTROL_OR_BIDI = /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/u;
 const ACCEPTED_ITEM_IDS = Object.freeze(Array.from({ length: 13 }, (_, index) => `SB-TC${String(index).padStart(2, '0')}`));
+// Mirrors the protected Linux worker's own admitted-mode constant; a regression test binds the
+// two, so both change together by a reviewed implementation item and never by configuration.
+const LINUX_DEV_SYNTHETIC_MODES = Object.freeze(['Probe', 'SyntheticJiraAdapter', 'SyntheticLifecycle']);
 const DESIGN_REGISTRY_FILE = fileURLToPath(new URL('../secret-broker-accepted-design-v1.json', import.meta.url));
 const PUBLIC_SCHEMA_FILES = Object.freeze({
   request: fileURLToPath(new URL('../schemas/secret-broker/v1/public-request.schema.json', import.meta.url)),
@@ -95,6 +98,22 @@ export function loadSecretBrokerDesignRegistry() {
   return Object.freeze({ registry: immutable(clone(registry)), canonical, sha256: digest(canonical) });
 }
 
+// The cell's closed boundary, from source constants only. This deliberately measures nothing
+// about the host: SB-TC10 section 9 makes present platform/session prerequisites the DISCOVERED
+// predicate, and section 5 forbids deriving qualification from a mutable index, so publishing a
+// freshly computed prerequisite check here would be exactly that index. Evidence comes only from
+// the external authority, which does not exist yet, so no level above NONE is reportable.
+export function secretBrokerCellBoundary() {
+  return Object.freeze([Object.freeze({
+    cellId: 'linux-secret-service-v1:jira-cloud-auth-v1',
+    backendId: 'linux-secret-service-v1',
+    adapterId: 'jira-cloud-auth-v1',
+    admittedModes: LINUX_DEV_SYNTHETIC_MODES,
+    evidenceLevel: 'NONE',
+    claim: 'BOUNDARY_ONLY_NOT_AUTHORITATIVE'
+  })]);
+}
+
 export function secretBrokerBaselineStatus() {
   const accepted = loadSecretBrokerDesignRegistry();
   return Object.freeze({
@@ -102,7 +121,8 @@ export function secretBrokerBaselineStatus() {
     status: SECRET_IMPLEMENTATION_STATE,
     reason: SECRET_IMPLEMENTATION_REASON,
     acceptedItems: accepted.registry.acceptedItems.length,
-    acceptedDesignRegistrySha256: accepted.sha256
+    acceptedDesignRegistrySha256: accepted.sha256,
+    cells: secretBrokerCellBoundary()
   });
 }
 

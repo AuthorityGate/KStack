@@ -17,6 +17,11 @@ const TARGET = /^https:\/\/[a-z0-9-]+[.]atlassian[.]net$/u;
 const EMAIL = /^[^:@\s]+@[^:@\s]+[.][^:@\s]+$/u;
 const MODES = new Set(['Probe', 'SyntheticLifecycle', 'SyntheticJiraAdapter', 'EnrollInteractive', 'RotateInteractive', 'Revoke', 'Inventory', 'JiraAuthCheck']);
 const SYNTHETIC_MODES = new Set(['SyntheticLifecycle', 'SyntheticJiraAdapter']);
+// SB-TC10 section 10 DEV_SYNTHETIC admits only isolated generated fixtures. This set is a
+// code constant on purpose: a file or environment variable naming the admitted modes would be
+// the caller-selected authority SB-TC10 section 5 forbids. Every mode that can reach an owner
+// value or the persistent handle root stays fenced until a reviewed OWNER_PILOT item admits it.
+const DEV_SYNTHETIC_MODES = new Set(['Probe', 'SyntheticLifecycle', 'SyntheticJiraAdapter']);
 const SECRET_TOOL = '/usr/bin/secret-tool';
 const MAX_SECRET_BYTES = 4096;
 
@@ -87,8 +92,14 @@ function ensurePrivateDirectory(directory) {
 function stateRoot(options) {
   if (SYNTHETIC_MODES.has(options.mode)) {
     if (options.testRoot) {
-      if (!path.isAbsolute(options.testRoot)) fail('KSTACK_SECRET_LINUX_TEST_ROOT_INVALID');
-      return path.resolve(options.testRoot);
+      // The synthetic modes recursively delete this root on exit, so the worker must own every
+      // byte under it. Creating it non-recursively and refusing an existing path is what makes
+      // that delete provably confined to the worker's own tree.
+      const resolved = path.resolve(options.testRoot);
+      if (!path.isAbsolute(options.testRoot) || fs.existsSync(resolved)) fail('KSTACK_SECRET_LINUX_TEST_ROOT_INVALID');
+      assertNoSymlinkComponents(resolved);
+      try { fs.mkdirSync(resolved, { mode: 0o700 }); } catch { fail('KSTACK_SECRET_LINUX_TEST_ROOT_INVALID'); }
+      return resolved;
     }
     return fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-secret-linux-'));
   }
@@ -221,7 +232,8 @@ function storeSecret(options, handleId, generation, value) {
 function lookupSecret(options, handleId, generation, { missingAllowed = false } = {}) {
   const result = secretToolInvocation(options, ['lookup', ...secretAttributes(handleId, generation)]);
   try {
-    if (missingAllowed && result.status === 1 && result.stdout.length === 0) return null;
+    // A locked collection is exit 1 with empty stdout too, and differs from a real absence only here.
+    if (missingAllowed && result.status === 1 && result.stdout.length === 0 && result.stderr.length === 0) return null;
     if (result.status !== 0 || result.stderr.length !== 0 || result.stdout.length < 2 || result.stdout.length > MAX_SECRET_BYTES + 1
       || result.stdout.at(-1) !== 0x0a) fail('KSTACK_SECRET_LINUX_LOOKUP_FAILED');
     const value = Buffer.from(result.stdout.subarray(0, result.stdout.length - 1));
@@ -237,12 +249,17 @@ function clearSecret(options, handleId, generation) {
   } finally { clear(result.stdout); clear(result.stderr); }
 }
 
+// SB-TC10 section 5 makes cleanup uncertainty block a run rather than pass quietly. This reports
+// that uncertainty instead of swallowing it, but never throws: it runs in cleanup paths where an
+// original failure is usually propagating and is the more informative error. Callers escalate an
+// UNCONFIRMED result only when the operation itself otherwise succeeded.
 function discardSecret(options, handleId, generation) {
   let found;
   try {
     found = lookupSecret(options, handleId, generation, { missingAllowed: true });
     if (found !== null) clearSecret(options, handleId, generation);
-  } catch {} finally { clear(found); }
+    return 'CONFIRMED';
+  } catch { return 'UNCONFIRMED'; } finally { clear(found); }
 }
 
 function readTtyLine(prompt, hidden) {
@@ -344,8 +361,10 @@ async function probe(options) {
   let opened;
   let stored = false;
   try {
-    storeSecret(options, handleId, 1, bytes);
+    // Pessimistic: a store that writes the item and then fails the strict no-output check, or
+    // that is killed after writing, must still be cleaned up. Set before the call, never after.
     stored = true;
+    storeSecret(options, handleId, 1, bytes);
     opened = lookupSecret(options, handleId, 1);
     if (!crypto.timingSafeEqual(bytes, opened)) fail('KSTACK_SECRET_LINUX_PROBE_MISMATCH');
     clearSecret(options, handleId, 1);
@@ -458,6 +477,8 @@ function syntheticLifecycle(options, root, handlesRoot) {
   const first = Buffer.from(`kstack-synthetic-${crypto.randomBytes(24).toString('base64url')}`, 'ascii');
   const second = Buffer.from(`kstack-rotated-${crypto.randomBytes(24).toString('base64url')}`, 'ascii');
   let opened;
+  let cleanup = 'CONFIRMED';
+  let result;
   try {
     const paths = recordPaths(handlesRoot, handleId); ensurePrivateDirectory(paths.root);
     const one = metadataFor(handleId, 'synthetic-jira-auth', 'jira-cloud-auth-v1', 'https://synthetic.atlassian.net', 1, 'active');
@@ -476,13 +497,21 @@ function syntheticLifecycle(options, root, handlesRoot) {
     let denied = false;
     try { opened = activeSecret(options, readRecord(handlesRoot, handleId)); } catch (error) { if (error.code === 'KSTACK_SECRET_LINUX_RECORD_REVOKED') denied = true; else throw error; }
     if (!denied) fail('KSTACK_SECRET_LINUX_NON_RESURRECTION_FAILED');
-    safeResult({ schemaVersion: 'kstack-secret-synthetic-lifecycle-v1', backendId: BACKEND_ID, enrollment: 'PASS', use: 'PASS', rotation: 'PASS',
-      recovery: 'PASS', revocation: 'PASS', nonResurrection: 'PASS', valueOutputBytes: 0 });
+    result = { schemaVersion: 'kstack-secret-synthetic-lifecycle-v1', backendId: BACKEND_ID, enrollment: 'PASS', use: 'PASS', rotation: 'PASS',
+      recovery: 'PASS', revocation: 'PASS', nonResurrection: 'PASS', valueOutputBytes: 0 };
   } finally {
     clear(first); clear(second); clear(opened);
-    for (const generation of [1, 2]) discardSecret(options, handleId, generation);
+    for (const generation of [1, 2]) {
+      if (discardSecret(options, handleId, generation) !== 'CONFIRMED') cleanup = 'UNCONFIRMED';
+    }
     fs.rmSync(root, { recursive: true, force: true });
   }
+  // Reached only when the lifecycle itself succeeded, so an original failure is never masked.
+  // PASS is withheld until the backend reports its own clear succeeded. It is not proof the item
+  // is gone: discardSecret does not re-read after clearing, so a clear that exits 0 without
+  // deleting still publishes PASS.
+  if (cleanup !== 'CONFIRMED') fail('KSTACK_SECRET_LINUX_CLEANUP_UNCONFIRMED');
+  safeResult(result);
 }
 
 async function syntheticJiraAdapter(options, root, handlesRoot) {
@@ -490,6 +519,8 @@ async function syntheticJiraAdapter(options, root, handlesRoot) {
   const value = Buffer.from(`kstack-synthetic-jira-${crypto.randomBytes(18).toString('base64url')}`, 'ascii');
   let opened;
   let server;
+  let cleanup = 'CONFIRMED';
+  let result;
   try {
     const paths = recordPaths(handlesRoot, handleId); ensurePrivateDirectory(paths.root);
     storeSecret(options, handleId, 1, value);
@@ -510,20 +541,26 @@ async function syntheticJiraAdapter(options, root, handlesRoot) {
       request.once('error', reject); request.end();
     });
     if (!matched || status !== 200) fail('KSTACK_SECRET_LINUX_JIRA_ADAPTER_FAILED');
-    safeResult({ schemaVersion: 'kstack-secret-synthetic-adapter-v1', backendId: BACKEND_ID, adapterId: 'jira-cloud-auth-v1', targetBinding: 'PASS',
-      authentication: 'PASS', redirectsDisabled: true, responseBodyDiscarded: true, valueOutputBytes: 0 });
+    result = { schemaVersion: 'kstack-secret-synthetic-adapter-v1', backendId: BACKEND_ID, adapterId: 'jira-cloud-auth-v1', targetBinding: 'PASS',
+      authentication: 'PASS', redirectsDisabled: true, responseBodyDiscarded: true, valueOutputBytes: 0 };
   } finally {
     if (server) await new Promise((resolve) => server.close(resolve));
     clear(value); clear(opened);
-    discardSecret(options, handleId, 1);
+    cleanup = discardSecret(options, handleId, 1);
     fs.rmSync(root, { recursive: true, force: true });
   }
+  // Reached only when the adapter trial itself succeeded, so an original failure is never masked.
+  // PASS is withheld until the backend reports its own clear succeeded. It is not proof the item
+  // is gone: discardSecret does not re-read after clearing, so a clear that exits 0 without
+  // deleting still publishes PASS.
+  if (cleanup !== 'CONFIRMED') fail('KSTACK_SECRET_LINUX_CLEANUP_UNCONFIRMED');
+  safeResult(result);
 }
 
 async function main(argv) {
   if (process.platform !== 'linux') fail('KSTACK_SECRET_LINUX_PLATFORM_UNAVAILABLE');
   const options = parseArgs(argv);
-  fail('KSTACK_SECRET_LINUX_IMPLEMENTATION_UNAVAILABLE');
+  if (!DEV_SYNTHETIC_MODES.has(options.mode)) fail('KSTACK_SECRET_LINUX_IMPLEMENTATION_UNAVAILABLE');
   if (options.mode === 'Probe') return probe(options);
   const root = stateRoot(options);
   const handlesRoot = ensureHandlesRoot(root);

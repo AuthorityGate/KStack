@@ -31,17 +31,32 @@ exact approved target operation.
 1. Run `node ../../scripts/kstack-secret-broker.mjs status` before any broker
    action. While it reports `UNAVAILABLE / IMPLEMENTATION_NONCONFORMANT`, only
    closed metadata inventory validation and content-free planning are allowed.
-   Do not invoke any Windows/Linux worker mode, enroll a value, contact a
-   backend/target, or treat a caller-supplied qualified-cell string as evidence.
+   Do not invoke any Windows or Linux worker mode directly, enroll a value,
+   contact a backend/target, or treat a caller-supplied qualified-cell string as
+   evidence. Qualification runs only through the repository's own guarded test,
+   never by spawning the protected worker from a model-facing process. The
+   `cells` section of `status` describes the cell's closed boundary at fixed
+   `evidenceLevel: "NONE"`; it authorizes nothing and is never qualification.
    Unsupported backend, platform, or adapter combinations remain unavailable.
+   The only implemented adapter is `jira-cloud-auth-v1` against
+   `https://TENANT.atlassian.net`. A credential for any other provider API
+   cannot be enrolled through this broker at all; say so plainly rather than
+   planning a migration the worker will reject.
    Do not use the broker to migrate this repository's Jira credential to
    Windows. Cross-host Jira work requires a target-bound WSL executor handoff,
    not duplicate custody.
 2. Require the exact backend cell and target adapter to pass synthetic
    qualification before a real value is enrolled.
-   Only after a later implementation item removes the global fence may Linux
-   qualification run the protected worker's `Probe`, `SyntheticLifecycle`, and
-   `SyntheticJiraAdapter` modes against the real desktop Secret Service.
+   Linux qualification exercises the protected worker's `Probe`,
+   `SyntheticLifecycle`, and `SyntheticJiraAdapter` modes against the real
+   desktop Secret Service only through the repository's guarded test, run by an
+   operator as
+   `KSTACK_LINUX_SECRET_QUALIFICATION=1 node --test tests/secret-broker.test.mjs`.
+   Never spawn the worker directly to obtain this, and never pass its
+   `--test-root` or `--test-secret-tool` arguments outside that test. Passing all
+   three modes is a prerequisite for enrollment, never by itself a
+   qualification: the exact cell still has no admitted evidence, so it stays
+   `BLOCKED_UNQUALIFIED` for real values.
    Missing `/usr/bin/secret-tool`, missing D-Bus session custody, a locked or
    failed provider, and WSL/headless operation remain
    `BLOCKED_UNQUALIFIED`; never substitute the protocol test double or the Jira

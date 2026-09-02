@@ -7,13 +7,55 @@ generic environment-injection operation.
 ## Current implementation fence
 
 The accepted design is machine-bound, but the current implementation is not
-conformant. `kstack-secret-broker.mjs status` therefore reports exactly
-`UNAVAILABLE / IMPLEMENTATION_NONCONFORMANT`. Windows and Linux worker entry
-points fail before probing custody, changing state, resolving a value, or
-contacting a target. Inventory validation and content-free planning remain
-available, but every plan item is `UNAVAILABLE`; a caller-declared qualified
-cell is explicitly non-authoritative. The fence may be narrowed only by a later
-reviewed implementation item on the accepted design set.
+conformant. `kstack-secret-broker.mjs status` therefore still reports exactly
+`UNAVAILABLE / IMPLEMENTATION_NONCONFORMANT`. That top-level state is accurate
+and not a placeholder: SB-TC10 makes the external evidence authority the only
+source of an evidence level, and neither it nor the WP04 identity/time/lease and
+WP05 audit-chain items exist yet, so no cell can hold any level above `NONE`.
+Inventory validation and content-free planning remain available, but every plan
+item is `UNAVAILABLE`; a caller-declared qualified cell is explicitly
+non-authoritative.
+
+One out-of-sequence fence narrowing on the WP13-LINUX cell, which is not a work
+package, narrows the Linux half of that fence and only that half, under this
+document's own rule that the fence may be narrowed by a later reviewed
+implementation item. It holds no position in the SB-TC12 sequence: WP13-LINUX
+depends on WP07–WP12, none of which are built, so the Linux cell has not begun
+and this work must not be cited as evidence that it has. It is a
+source-level narrowing, not a rollout-state transition: the cell has entered no
+SB-TC10 section 10 state, because any rollout advance needs a threshold-signed
+`ROLLOUT_CHANGED` event on an evidence authority that does not exist yet. The admitted set is bounded by the same
+isolated-generated-fixture principle `DEV_SYNTHETIC` describes, without claiming
+that state. The Linux worker admits exactly `Probe`, `SyntheticLifecycle`, and
+`SyntheticJiraAdapter`, which use only newly generated non-production fixtures
+and attempt to destroy them before reporting success. Only `Probe` verifies that
+destruction by re-reading; the two synthetic modes rely on the backend reporting
+its own clear succeeded, so a backend whose clear exits 0 without deleting would
+leave a fixture behind and still report a pass. Isolation there is
+by random handle rather than by namespace: `Probe` and an argument-less
+`SyntheticLifecycle` run against the operator's real login keyring, so a fixture
+they cannot confirm destroying is a fixture left in it, which is why an
+unconfirmed cleanup fails the run instead of being reported as success.
+`EnrollInteractive`, `RotateInteractive`, `Revoke`, `Inventory`, and
+`JiraAuthCheck` — every mode that can reach an owner value or the persistent
+handle root — still fail with the unchanged
+`KSTACK_SECRET_LINUX_IMPLEMENTATION_UNAVAILABLE` before probing custody,
+changing state, resolving a value, or contacting a target. The admitted set is a
+worker code constant; no file, environment variable, or caller argument can widen
+it, because a writable rollout state would be exactly the caller-selected
+authority SB-TC10 section 5 forbids. The Windows worker entry point is unchanged
+and remains fenced in full.
+
+`status` additionally reports a per-cell section carrying the cell identity, its
+single adapter, and the admitted mode set, all from source constants. It
+deliberately measures nothing about the host: present platform and session
+prerequisites are the SB-TC10 section 9 `DISCOVERED` predicate, and section 5
+forbids deriving qualification from a mutable index, so a freshly computed
+prerequisite check published here would be exactly that index. The section is
+fixed `evidenceLevel: "NONE"` and `claim: "BOUNDARY_ONLY_NOT_AUTHORITATIVE"`,
+names no rollout state, and authorizes nothing. The remaining fence may be
+narrowed only by a further reviewed implementation item on the accepted design
+set.
 
 WP02 supplies only the value-free configuration and package foundation. One
 bounded duplicate-safe reader accepts exact legacy schema 1 as human-formatted
@@ -125,14 +167,29 @@ debugger. Its Jira adapter is retired and must not be used to create a second
 Jira credential path.
 
 Linux has a separate desktop Secret Service implementation cell. It uses the
-fixed `/usr/bin/secret-tool` interface in the logged-in D-Bus session, stores
-only safe handle metadata in private Linux state, but its entry point is fenced
-`UNAVAILABLE` before backend contact. After the global implementation fence is
-replaced by reviewed controls, the cell still remains unqualified until the
-real backend lifecycle and adapter qualification run in that exact session.
-Headless Linux and WSL without an admitted Secret Service provider fail closed.
-This optional cell does not replace or migrate an already enrolled repository
-Jira source.
+fixed `/usr/bin/secret-tool` interface in the logged-in D-Bus session and stores
+only safe handle metadata in private Linux state. Under that fence narrowing its
+`Probe`,
+`SyntheticLifecycle`, and `SyntheticJiraAdapter` modes reach the backend; every
+owner-value mode stays fenced. The cell remains unqualified regardless: passing
+those three modes is a mechanism precedent, not evidence, until the exact cell
+produces admitted evidence through the SB-TC10 authority. Headless Linux and WSL
+without an admitted Secret Service provider fail closed at
+`KSTACK_SECRET_LINUX_SERVICE_UNAVAILABLE`, which is a genuine absent-backend
+result and never a qualification claim. This optional cell does not replace or
+migrate an already enrolled repository Jira source.
+
+The Linux cell serves only `jira-cloud-auth-v1` against
+`https://TENANT.atlassian.net`. Its synthetic modes accept a protocol double
+only through `--test-root` and `--test-secret-tool`, which are refused for
+`Probe` and for every fenced mode, require a root the worker creates itself so
+its own recursive cleanup can never reach a caller's existing tree, and are for
+the repository's guarded test alone. A model-facing process must never spawn
+this worker. Enrollment, stored-record validation, and the
+migration planner all reject every other adapter, so no other credential class
+can be migrated through this cell today. A credential bound to any other
+provider API needs a new reviewed SB-TC04 adapter; it is not unblocked by that
+fence change.
 
 The KStack repository's Jira credential and executor remain solely in WSL at
 the source enrolled by `.kstack/config.json`. Native Windows Jira work uses the

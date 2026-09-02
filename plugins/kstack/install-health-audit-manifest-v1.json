@@ -307,8 +307,8 @@
     {
       "path": "references/SECRET_BROKER.md",
       "executable": false,
-      "size": 11054,
-      "sha256": "67a915d51a5db40047e8eeffa3788d119419ce5b1851ea23f435d55d335a9070"
+      "size": 14935,
+      "sha256": "9df7aa8c3499192f7af0f0b505fa12c9055952539b7a50ee3a634875932cb48c"
     },
     {
       "path": "references/SKILL_SCOPE.md",
@@ -835,14 +835,14 @@
     {
       "path": "scripts/kstack-secret-broker.mjs",
       "executable": true,
-      "size": 16433,
-      "sha256": "1fab24d18d15112559cf0888445ba78a2b610f6e2b2e38d2e05b4e343023095f"
+      "size": 17596,
+      "sha256": "b399ab513e89926233171365b23fe817b40d47251f4b9a1651129baf2f1ecf20"
     },
     {
       "path": "scripts/kstack-secret-linux.mjs",
       "executable": true,
-      "size": 29284,
-      "sha256": "22a6b30627dcc916c116c4464d71a96a75302d56b79df970fa86ed6386f76c5b"
+      "size": 32013,
+      "sha256": "8ad16a79609d0fb17aec132f0b3fd428f71e7b20969978871f12af04e8f96561"
     },
     {
       "path": "scripts/kstack-staged-review.mjs",
@@ -1022,13 +1022,13 @@
       "path": "secret-broker-release-manifest-v1.json",
       "executable": false,
       "size": 6873,
-      "sha256": "580309b134fa90fae47e4372630c5855c18496af3f53551b04021968ee1b7e7d"
+      "sha256": "3408b38861aac6581858f6c642ab305b00cf648fa0b8a88a96615cb598d147a8"
     },
     {
       "path": "secret-broker-source-audit-manifest-v1.json",
       "executable": false,
       "size": 3881,
-      "sha256": "7c449002569dfbff21620382478cb0b2e6c9e78b79a07c9e30ab3534ee475c63"
+      "sha256": "7af42126b206be9a49b7b2cb537d6a4d4022b041474eb468ccf78d13fa931569"
     },
     {
       "path": "skills/kstack-design-clarify/SKILL.md",
@@ -1183,8 +1183,8 @@
     {
       "path": "skills/kstack-secrets/SKILL.md",
       "executable": false,
-      "size": 4015,
-      "sha256": "847935556b9ebdb93610ab31cd101c4239e9c176d54687317f7b0327aeb9afc5"
+      "size": 5018,
+      "sha256": "7c8e8b53781882b9e4416b4b61e630da13a1a76f3ae5ca24f3fb80058a442d87"
     },
     {
       "path": "skills/kstack-secrets/agents/openai.yaml",

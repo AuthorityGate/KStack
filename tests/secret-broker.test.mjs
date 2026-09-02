@@ -102,13 +102,18 @@ test('machine-binds the complete accepted design while keeping implementation un
   }
   const receiptBytes = fs.readFileSync(path.join(repositoryRoot, accepted.registry.closure.repoRelativePath));
   assert.equal(crypto.createHash('sha256').update(receiptBytes).digest('hex'), accepted.registry.closure.sha256);
-  assert.deepEqual(secretBrokerBaselineStatus(), {
+  const status = secretBrokerBaselineStatus();
+  const { cells, ...baseline } = status;
+  assert.deepEqual(baseline, {
     schemaVersion: 'kstack-secret-broker-baseline-status-v1',
     status: SECRET_IMPLEMENTATION_STATE,
     reason: SECRET_IMPLEMENTATION_REASON,
     acceptedItems: 13,
     acceptedDesignRegistrySha256: accepted.sha256
   });
+  assert.deepEqual(cells.map((cell) => Object.keys(cell).sort()), [[
+    'adapterId', 'admittedModes', 'backendId', 'cellId', 'claim', 'evidenceLevel'
+  ]]);
 });
 
 test('validates and deterministically digests a metadata-only inventory', () => {
@@ -334,6 +339,35 @@ test('CLI status is content-free and reports the fenced baseline', () => {
   assert.equal(output.reason, 'IMPLEMENTATION_NONCONFORMANT');
   assert.equal(output.acceptedItems, 13);
   assert.match(output.acceptedDesignRegistrySha256, /^[a-f0-9]{64}$/u);
+  assert.equal(output.cells.length, 1);
+  const [cell] = output.cells;
+  assert.equal(cell.cellId, 'linux-secret-service-v1:jira-cloud-auth-v1');
+  assert.equal(cell.evidenceLevel, 'NONE');
+  assert.equal(cell.claim, 'BOUNDARY_ONLY_NOT_AUTHORITATIVE');
+});
+
+test('the cell section publishes no rollout state and no host prerequisite index', () => {
+  const status = secretBrokerBaselineStatus();
+  const serialized = JSON.stringify(status);
+  for (const rolloutState of ['BUILT_DISABLED', 'DEV_SYNTHETIC', 'OWNER_PILOT', 'PRODUCTION_CANARY', 'PRODUCTION_BOUNDED', 'PRODUCTION_BROAD', 'DISABLED_RETAINED']) {
+    assert.ok(!serialized.includes(rolloutState), `status must not assert rollout state ${rolloutState}`);
+  }
+  for (const cell of status.cells) {
+    for (const [key, value] of Object.entries(cell)) {
+      assert.notEqual(typeof value, 'boolean', `${key} looks like a measured host prerequisite`);
+    }
+  }
+});
+
+test('the measured cell section reports no evidence level and no adapter beyond Jira', () => {
+  const status = secretBrokerBaselineStatus();
+  assert.equal(status.status, SECRET_IMPLEMENTATION_STATE);
+  assert.equal(status.reason, SECRET_IMPLEMENTATION_REASON);
+  for (const cell of status.cells) {
+    assert.equal(cell.evidenceLevel, 'NONE');
+    assert.equal(cell.adapterId, 'jira-cloud-auth-v1');
+    assert.ok(Object.isFrozen(cell));
+  }
 });
 
 test('Windows helper exposes only closed modes and no generic reveal or command parameter', () => {
@@ -389,40 +423,174 @@ test('Windows Secret Broker worker remains unavailable before conformance', { sk
   assert.equal(adapter.stderr, 'KSTACK_SECRET_WINDOWS_IMPLEMENTATION_UNAVAILABLE\r\n');
 });
 
-test('Linux Secret Broker paths remain unavailable and do not reach synthetic custody', () => {
+test('Linux real-value modes stay fenced at the same implementation code', () => {
+  const handleId = crypto.randomUUID();
+  const cases = [
+    ['EnrollInteractive', ['--handle-id', handleId, '--purpose-id', 'synthetic-purpose', '--adapter-id', 'jira-cloud-auth-v1', '--target-origin', 'https://synthetic.atlassian.net']],
+    ['RotateInteractive', ['--handle-id', handleId]],
+    ['Revoke', ['--handle-id', handleId]],
+    ['JiraAuthCheck', ['--handle-id', handleId]],
+    ['Inventory', []]
+  ];
+  for (const [mode, extra] of cases) {
+    const result = spawnSync(process.execPath, [linuxHelper, '--mode', mode, ...extra], { encoding: 'utf8', timeout: 20_000 });
+    assert.equal(result.status, 1, mode);
+    assert.equal(result.stdout, '', mode);
+    assert.equal(result.stderr, 'KSTACK_SECRET_LINUX_IMPLEMENTATION_UNAVAILABLE\n', mode);
+  }
+});
+
+test('the fenced real-value modes are exactly the modes the DEV_SYNTHETIC gate does not admit', () => {
+  const source = fs.readFileSync(linuxHelper, 'utf8');
+  const all = /const MODES = new Set\(\[([^\]]*)\]\)/u.exec(source);
+  const admitted = /const DEV_SYNTHETIC_MODES = new Set\(\[([^\]]*)\]\)/u.exec(source);
+  assert.ok(all && admitted);
+  const parse = (match) => match[1].split(',').map((item) => item.trim().replaceAll("'", ''));
+  assert.deepEqual(parse(admitted).slice().sort(), ['Probe', 'SyntheticJiraAdapter', 'SyntheticLifecycle']);
+  assert.deepEqual(parse(all).filter((mode) => !parse(admitted).includes(mode)).sort(),
+    ['EnrollInteractive', 'Inventory', 'JiraAuthCheck', 'Revoke', 'RotateInteractive']);
+  assert.match(source, /if \(!DEV_SYNTHETIC_MODES\.has\(options\.mode\)\) fail\('KSTACK_SECRET_LINUX_IMPLEMENTATION_UNAVAILABLE'\)/u);
+});
+
+test('the status cell measurement cannot drift from the worker gate it reports', () => {
+  const source = fs.readFileSync(linuxHelper, 'utf8');
+  const admitted = /const DEV_SYNTHETIC_MODES = new Set\(\[([^\]]*)\]\)/u.exec(source)[1]
+    .split(',').map((item) => item.trim().replaceAll("'", '')).sort();
+  const [cell] = secretBrokerBaselineStatus().cells;
+  assert.deepEqual([...cell.admittedModes].sort(), admitted);
+});
+
+test('the synthetic test boundary rejects an unowned root, a foreign tool, and a half-supplied pair', () => {
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-linux-boundary-'));
+  const fakeSecretTool = path.join(fixtureRoot, 'fake-secret-tool.mjs');
+  fs.copyFileSync(fakeSecretToolSource, fakeSecretTool);
+  fs.chmodSync(fakeSecretTool, 0o700);
+  const run = (args) => spawnSync(process.execPath, [linuxHelper, ...args], { encoding: 'utf8', timeout: 20_000 });
+  try {
+    // An already-existing root is refused, so the recursive cleanup can only ever delete a tree
+    // the worker itself created.
+    const occupied = path.join(fixtureRoot, 'occupied');
+    fs.mkdirSync(path.join(occupied, 'keep'), { recursive: true });
+    fs.writeFileSync(path.join(occupied, 'keep', 'evidence.txt'), 'must survive');
+    const existing = run(['--mode', 'SyntheticLifecycle', '--test-root', occupied, '--test-secret-tool', fakeSecretTool]);
+    assert.equal(existing.status, 1);
+    assert.equal(existing.stderr, 'KSTACK_SECRET_LINUX_TEST_ROOT_INVALID\n');
+    assert.equal(fs.readFileSync(path.join(occupied, 'keep', 'evidence.txt'), 'utf8'), 'must survive');
+
+    const relative = run(['--mode', 'SyntheticLifecycle', '--test-root', 'relative-root', '--test-secret-tool', fakeSecretTool]);
+    assert.equal(relative.status, 1);
+    assert.equal(relative.stderr, 'KSTACK_SECRET_LINUX_TEST_ROOT_INVALID\n');
+
+    const groupWritable = path.join(fixtureRoot, 'group-writable.mjs');
+    fs.copyFileSync(fakeSecretToolSource, groupWritable);
+    fs.chmodSync(groupWritable, 0o770);
+    const untrusted = run(['--mode', 'SyntheticLifecycle', '--test-root', path.join(fixtureRoot, 'gw'), '--test-secret-tool', groupWritable]);
+    assert.equal(untrusted.status, 1);
+    assert.equal(untrusted.stderr, 'KSTACK_SECRET_LINUX_TEST_TOOL_UNTRUSTED\n');
+
+    const notModule = path.join(fixtureRoot, 'tool.txt');
+    fs.copyFileSync(fakeSecretToolSource, notModule);
+    fs.chmodSync(notModule, 0o700);
+    const wrongExtension = run(['--mode', 'SyntheticLifecycle', '--test-root', path.join(fixtureRoot, 'ext'), '--test-secret-tool', notModule]);
+    assert.equal(wrongExtension.status, 1);
+    assert.equal(wrongExtension.stderr, 'KSTACK_SECRET_LINUX_TEST_TOOL_UNTRUSTED\n');
+
+    for (const half of [['--test-root', path.join(fixtureRoot, 'half')], ['--test-secret-tool', fakeSecretTool]]) {
+      const result = run(['--mode', 'SyntheticLifecycle', ...half]);
+      assert.equal(result.status, 1);
+      assert.equal(result.stderr, 'KSTACK_SECRET_LINUX_TEST_BOUNDARY_INVALID\n');
+    }
+
+    // Probe must never accept the double, so the real-backend canary cannot be faked.
+    const probeDouble = run(['--mode', 'Probe', '--test-root', path.join(fixtureRoot, 'probe'), '--test-secret-tool', fakeSecretTool]);
+    assert.equal(probeDouble.status, 1);
+    assert.equal(probeDouble.stderr, 'KSTACK_SECRET_LINUX_TEST_BOUNDARY_INVALID\n');
+  } finally { fs.rmSync(fixtureRoot, { recursive: true, force: true }); }
+});
+
+test('DEV_SYNTHETIC synthetic modes complete against the protocol double without emitting a value', () => {
   const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-linux-secret-test-'));
   const fakeSecretTool = path.join(fixtureRoot, 'fake-secret-tool.mjs');
   fs.copyFileSync(fakeSecretToolSource, fakeSecretTool);
   fs.chmodSync(fakeSecretTool, 0o700);
   try {
-    for (const mode of ['SyntheticLifecycle', 'SyntheticJiraAdapter']) {
-      const testRoot = path.join(fixtureRoot, `state-${mode}`);
-      const result = spawnSync(process.execPath, [linuxHelper, '--mode', mode, '--test-root', testRoot, '--test-secret-tool', fakeSecretTool], {
-        encoding: 'utf8', timeout: 20_000
-      });
-      assert.equal(result.status, 1);
-      assert.equal(result.stdout, '');
-      assert.equal(result.stderr, 'KSTACK_SECRET_LINUX_IMPLEMENTATION_UNAVAILABLE\n');
-      assert.equal(fs.existsSync(testRoot), false);
+    const lifecycle = spawnSync(process.execPath, [linuxHelper, '--mode', 'SyntheticLifecycle',
+      '--test-root', path.join(fixtureRoot, 'state-lifecycle'), '--test-secret-tool', fakeSecretTool], { encoding: 'utf8', timeout: 20_000 });
+    assert.equal(lifecycle.status, 0, lifecycle.stderr);
+    assert.equal(lifecycle.stderr, '');
+    const lifecycleResult = JSON.parse(lifecycle.stdout);
+    assert.equal(lifecycleResult.schemaVersion, 'kstack-secret-synthetic-lifecycle-v1');
+    assert.equal(lifecycleResult.valueOutputBytes, 0);
+    for (const gate of ['enrollment', 'use', 'rotation', 'recovery', 'revocation', 'nonResurrection']) {
+      assert.equal(lifecycleResult[gate], 'PASS', gate);
     }
+
+    const adapter = spawnSync(process.execPath, [linuxHelper, '--mode', 'SyntheticJiraAdapter',
+      '--test-root', path.join(fixtureRoot, 'state-adapter'), '--test-secret-tool', fakeSecretTool], { encoding: 'utf8', timeout: 20_000 });
+    assert.equal(adapter.status, 0, adapter.stderr);
+    assert.equal(adapter.stderr, '');
+    const adapterResult = JSON.parse(adapter.stdout);
+    assert.equal(adapterResult.schemaVersion, 'kstack-secret-synthetic-adapter-v1');
+    assert.equal(adapterResult.targetBinding, 'PASS');
+    assert.equal(adapterResult.authentication, 'PASS');
+    assert.equal(adapterResult.valueOutputBytes, 0);
+
+    assert.equal(fs.existsSync(path.join(fixtureRoot, 'state-lifecycle')), false);
+    assert.equal(fs.existsSync(path.join(fixtureRoot, 'state-adapter')), false);
   } finally { fs.rmSync(fixtureRoot, { recursive: true, force: true }); }
 });
 
-test('Linux probe reports implementation unavailable before backend contact', () => {
+test('an unconfirmable cleanup fails the run and publishes no PASS record', () => {
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-linux-cleanup-'));
+  const tool = path.join(fixtureRoot, 'unconfirmable-secret-tool.mjs');
+  fs.copyFileSync(path.join(repositoryRoot, 'tests', 'helpers', 'unconfirmable-secret-tool.mjs'), tool);
+  fs.chmodSync(tool, 0o700);
+  try {
+    const result = spawnSync(process.execPath, [linuxHelper, '--mode', 'SyntheticLifecycle',
+      '--test-root', path.join(fixtureRoot, 'state'), '--test-secret-tool', tool], { encoding: 'utf8', timeout: 20_000 });
+    assert.equal(result.status, 1);
+    assert.equal(result.stderr, 'KSTACK_SECRET_LINUX_CLEANUP_UNCONFIRMED\n');
+    // The whole point: a run that cannot confirm cleanup must not have already claimed PASS.
+    assert.equal(result.stdout, '');
+  } finally { fs.rmSync(fixtureRoot, { recursive: true, force: true }); }
+});
+
+test('a locked collection fails the run rather than verifying a clear that never happened', () => {
+  const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-linux-locked-'));
+  const tool = path.join(fixtureRoot, 'locked-collection-secret-tool.mjs');
+  fs.copyFileSync(path.join(repositoryRoot, 'tests', 'helpers', 'locked-collection-secret-tool.mjs'), tool);
+  fs.chmodSync(tool, 0o700);
+  try {
+    // Verified by mutation: with the stderr check removed from lookupSecret's missingAllowed
+    // return, this same run exits 0 and publishes a full PASS record. Only SyntheticLifecycle
+    // discriminates. Probe refuses --test-secret-tool by design, so its identical defect is
+    // reachable only against a real keyring and stays unpinned here; SyntheticJiraAdapter still
+    // holds its item at cleanup, so the lock branch never fires and it passes either way.
+    const result = spawnSync(process.execPath, [linuxHelper, '--mode', 'SyntheticLifecycle',
+      '--test-root', path.join(fixtureRoot, 'state'), '--test-secret-tool', tool], { encoding: 'utf8', timeout: 20_000 });
+    assert.equal(result.status, 1);
+    assert.equal(result.stderr, 'KSTACK_SECRET_LINUX_CLEANUP_UNCONFIRMED\n');
+    assert.equal(result.stdout, '');
+  } finally { fs.rmSync(fixtureRoot, { recursive: true, force: true }); }
+});
+
+test('Probe fails on the absent real backend rather than on the lifted implementation fence', {
+  skip: process.platform !== 'linux' || fs.existsSync('/usr/bin/secret-tool')
+}, () => {
   const result = spawnSync(process.execPath, [linuxHelper, '--mode', 'Probe'], { encoding: 'utf8', timeout: 5000 });
   assert.equal(result.status, 1);
   assert.equal(result.stdout, '');
-  assert.equal(result.stderr, 'KSTACK_SECRET_LINUX_IMPLEMENTATION_UNAVAILABLE\n');
+  assert.equal(result.stderr, 'KSTACK_SECRET_LINUX_SERVICE_UNAVAILABLE\n');
 });
 
-test('real Linux Secret Service cell cannot bypass the implementation fence', {
+test('real Linux Secret Service qualification runs the three DEV_SYNTHETIC modes', {
   skip: process.platform !== 'linux' || !fs.existsSync('/usr/bin/secret-tool') || !process.env.DBUS_SESSION_BUS_ADDRESS
     || process.env.KSTACK_LINUX_SECRET_QUALIFICATION !== '1'
 }, () => {
-  for (const mode of ['SyntheticLifecycle', 'SyntheticJiraAdapter']) {
+  for (const mode of ['Probe', 'SyntheticLifecycle', 'SyntheticJiraAdapter']) {
     const result = spawnSync(process.execPath, [linuxHelper, '--mode', mode], { encoding: 'utf8', timeout: 30_000 });
-    assert.equal(result.status, 1);
-    assert.equal(result.stdout, '');
-    assert.equal(result.stderr, 'KSTACK_SECRET_LINUX_IMPLEMENTATION_UNAVAILABLE\n');
+    assert.equal(result.status, 0, `${mode}: ${result.stderr}`);
+    assert.equal(result.stderr, '', mode);
+    assert.equal(JSON.parse(result.stdout).backendId, 'linux-secret-service-v1', mode);
   }
 });
