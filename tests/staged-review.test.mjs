@@ -6,8 +6,36 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { defaultConfig } from '../plugins/kstack/scripts/kstack-config.mjs';
 import { evaluateDesignGate } from '../plugins/kstack/scripts/kstack-design-gate.mjs';
-import { assertStagedReviewPlatformSupported, parseStagedReviewArgs, requiredStagedReviewNoFollowFlag, runStagedReview } from '../plugins/kstack/scripts/kstack-staged-review.mjs';
-import { sha256 } from '../plugins/kstack/scripts/kstack-review-schema.mjs';
+import { PROVIDER_ISOLATION_EVIDENCE_FILE, PROVIDER_NO_WRITE_FLAGS, PROVIDER_STATE_ISOLATION_FLAGS, assertProviderDisclosureBoundary, assertStagedReviewPlatformSupported, minimalProviderEnvironment, parseStagedReviewArgs, providerBackendIdentity, providerConfigDirectory, providerIsolationIdentity, STAGED_REVIEW_DISPATCH_LOG_FILE, dispatchedCycleFloor, highestDispatchedCycle, readDispatchLog, readFinalDispositionRecord, requiredStagedReviewNoFollowFlag, runStagedReview as runStagedReviewDirect } from '../plugins/kstack/scripts/kstack-staged-review.mjs';
+
+// Every staged dispatch now requires a recorded isolation measurement matching the active
+// backend. Fixture evidence is derived from the real identity function rather than written by
+// hand, so a change to what the measurement binds cannot silently pass here.
+async function writeFixtureIsolationEvidence(options) {
+  const projectRoot = path.resolve(options.projectRoot);
+  const configFile = options.configPath ?? path.join(projectRoot, '.kstack', 'config.json');
+  const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+  const probeDir = path.join(projectRoot, '.isolation-fixture-probe');
+  fs.mkdirSync(probeDir, { recursive: true, mode: 0o700 });
+  const measurements = [];
+  for (const providerId of config.workflow.phaseModels.design) {
+    const backend = await providerBackendIdentity(providerId, config, probeDir);
+    const identity = providerIsolationIdentity(backend);
+    if (typeof identity.probeOutputSha256 !== 'string') continue;
+    measurements.push({ providerId, ...identity, hits: 0, scannedFiles: 0, method: 'mtime-delta-token-scan-v1' });
+  }
+  fs.rmSync(probeDir, { recursive: true, force: true });
+  const evidenceFile = path.join(projectRoot, PROVIDER_ISOLATION_EVIDENCE_FILE);
+  fs.mkdirSync(path.dirname(evidenceFile), { recursive: true, mode: 0o700 });
+  fs.writeFileSync(evidenceFile, `${JSON.stringify({ schema: 'kstack-staged-review-provider-isolation-v1', measurements }, null, 2)}\n`, { mode: 0o600 });
+  return evidenceFile;
+}
+
+async function runStagedReview(options) {
+  await writeFixtureIsolationEvidence(options);
+  return runStagedReviewDirect(options);
+}
+import { FINAL_DISPOSITION_FILE, FINAL_DISPOSITION_SCHEMA, sha256 } from '../plugins/kstack/scripts/kstack-review-schema.mjs';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const fixtureProviders = {
@@ -18,7 +46,7 @@ const validDesign = fs.readFileSync(path.join(repositoryRoot, 'tests', 'fixtures
 
 function stagedFixture({ roles = ['codex', 'opus'], primaryConfidence = 97, primaryDecision = 'approve',
   finalConfidence = 96, finalDecision = 'approve', primaryMalformed = false, finalMalformed = false,
-  finalIntake = false, finalBareRevise = false, providerDelayMs = 0, primaryHang = false,
+  finalIntake = false, finalIntakeSeverity = 'medium', finalBareRevise = false, providerDelayMs = 0, primaryHang = false,
   ambiguousFamilyProvider = null, primaryObjection = null } = {}) {
   const projectRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-staged-review-'));
   fs.mkdirSync(path.join(projectRoot, '.kstack'));
@@ -26,6 +54,16 @@ function stagedFixture({ roles = ['codex', 'opus'], primaryConfidence = 97, prim
   const argvLog = path.join(projectRoot, 'argv.log');
   const promptLog = path.join(projectRoot, 'prompts.log');
   const outDirLog = path.join(projectRoot, 'outdir.log');
+  const disclosureLog = path.join(projectRoot, 'disclosure.log');
+  const peerLog = path.join(projectRoot, 'peer.log');
+  // Point both providers at fixture-local configuration directories. The runtime-surface walk
+  // reads the real ones otherwise, which would make every staged test depend on whatever the
+  // developer has installed under their home and on how large it is.
+  for (const [variable, name] of [['CODEX_HOME', 'codex'], ['CLAUDE_CONFIG_DIR', 'claude']]) {
+    const directory = path.join(projectRoot, 'provider-config', name);
+    fs.mkdirSync(directory, { recursive: true });
+    process.env[variable] = directory;
+  }
   const outDir = path.join(projectRoot, 'review');
   const config = structuredClone(defaultConfig);
   config.project.name = 'staged-review-fixture';
@@ -38,13 +76,17 @@ function stagedFixture({ roles = ['codex', 'opus'], primaryConfidence = 97, prim
       `--fixture-decision=${primary ? primaryDecision : finalDecision}`,
       `--fixture-malformed=${primary ? primaryMalformed : finalMalformed}`, `--fixture-log=${invocationLog}`,
       `--fixture-argv-log=${argvLog}`, `--fixture-prompt-log=${promptLog}`, `--fixture-outdir-log=${outDirLog}`,
+      `--fixture-disclosure-log=${disclosureLog}`,
       '--fixture-forbidden-env=KSTACK_STAGED_SECRET_FIXTURE',
       `--fixture-forbidden-env=${provider === 'codex' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'}`,
+      `--fixture-forbidden-env=${provider === 'codex' ? 'CLAUDE_CONFIG_DIR' : 'CODEX_HOME'}`,
       ...(provider === ambiguousFamilyProvider ? ['--fixture-version-output=codex-cli and Claude Code fixture'] : []),
       ...(primary && primaryObjection ? [`--fixture-objection=${primaryObjection}`] : []),
       `--fixture-delay-ms=${providerDelayMs}`, `--fixture-hang=${primary && primaryHang}`,
       `--fixture-intake=${!primary && finalIntake}`,
+      `--fixture-intake-severity=${finalIntakeSeverity}`,
       `--fixture-bare-revise=${!primary && finalBareRevise}`,
+      '--fixture-probe-peer-work=true', `--fixture-peer-log=${peerLog}`,
       ...(primary ? [] : [
         `--fixture-forbidden-file=${path.join(outDir, `${roles[0]}.json`)}`,
         `--fixture-forbidden-file=${path.join(outDir, 'manifest.json')}`
@@ -56,8 +98,9 @@ function stagedFixture({ roles = ['codex', 'opus'], primaryConfidence = 97, prim
   fs.writeFileSync(promptFile, validDesign);
   const advisoryEvidenceFile = path.join(projectRoot, 'advisory-trigger.md');
   fs.writeFileSync(advisoryEvidenceFile, 'Recorded advisory trigger evidence.\n');
-  return { projectRoot, promptFile, outDir, invocationLog, argvLog, promptLog, outDirLog, advisoryEvidenceFile,
-    firstCycle: true, configFile: path.join(projectRoot, '.kstack', 'config.json') };
+  return { projectRoot, promptFile, outDir, invocationLog, argvLog, promptLog, outDirLog, disclosureLog, peerLog,
+    advisoryEvidenceFile, firstCycle: true, threadId: 'staged-review-fixture',
+    configFile: path.join(projectRoot, '.kstack', 'config.json') };
 }
 
 test('primary must reach a clean 93 before the final agent is invoked', async () => {
@@ -155,17 +198,82 @@ test('a clean primary review unlocks one independent final review', async () => 
   assert.equal(reorderedGate.status, 'READY_FOR_USER_APPROVAL');
 });
 
+test('an accepted final carrying a high or critical security finding fails closed', async () => {
+  for (const severity of ['high', 'critical']) {
+    const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86, finalIntake: true, finalIntakeSeverity: severity });
+    const manifest = await runStagedReview({ ...fixture, round: 1 });
+    assert.equal(manifest.finalReadiness.ready, false, severity);
+    assert.equal(manifest.finalReadiness.disposition, 'return-to-primary', severity);
+    assert.equal(manifest.finalReadiness.blockingSecurityCount, 1, severity);
+    assert.equal(manifest.status, 'final-not-approved', severity);
+
+    const checksFile = path.join(fixture.projectRoot, 'checks.json');
+    fs.writeFileSync(checksFile, JSON.stringify({
+      schemaVersion: 1,
+      designDigest: sha256(fs.readFileSync(fixture.promptFile)),
+      checks: defaultConfig.workflow.designGate.requiredChecks.map((id) => ({ id, status: 'pass', evidence: `${id} fixture` }))
+    }));
+    const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
+      checksFile, configFile: fixture.configFile, round: 1 });
+    assert.equal(gate.status, 'BLOCKED', severity);
+    assert.ok(gate.reasons.some((reason) => reason.code === 'FINAL_SECURITY_FINDINGS_BLOCKING'), severity);
+  }
+});
+
 test('all rounds use primary 93 readiness and final 81 acceptance with implementation intake', async () => {
   const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86, finalIntake: true });
   const manifest = await runStagedReview({ ...fixture, round: 1 });
-  assert.equal(manifest.status, 'staged-complete');
+  assert.equal(manifest.status, 'final-disposition-required');
   assert.equal(manifest.primaryReadiness.minimumConfidence, 93);
   assert.equal(manifest.primaryReadiness.ready, true);
   assert.equal(manifest.finalReadiness.minimumConfidence, 81);
   assert.equal(manifest.finalReadiness.ready, true);
+  assert.equal(manifest.finalReadiness.disposition, 'disposition-required');
   assert.deepEqual({ security: manifest.finalReadiness.security, dissent: manifest.finalReadiness.dissent,
     questions: manifest.finalReadiness.questions }, { security: 1, dissent: 1, questions: 1 });
+  // The medium security finding still rides the intake path; only the dissent and the open
+  // question need a recorded decision.
+  assert.deepEqual(manifest.finalDispositionRecord.required,
+    ['FINAL-MATERIAL-DISSENT-1', 'FINAL-UNRESOLVED-QUESTION-1']);
+  assert.equal(manifest.finalDispositionRecord.satisfied, false);
 
+  const checksFile = path.join(fixture.projectRoot, 'checks.json');
+  fs.writeFileSync(checksFile, JSON.stringify({
+    schemaVersion: 1,
+    designDigest: sha256(fs.readFileSync(fixture.promptFile)),
+    checks: defaultConfig.workflow.designGate.requiredChecks.map((id) => ({ id, status: 'pass', evidence: `${id} fixture` }))
+  }));
+  const gateArgs = { designFile: fixture.promptFile, reviewDir: fixture.outDir,
+    checksFile, configFile: fixture.configFile, round: 1 };
+  const blocked = evaluateDesignGate(gateArgs);
+  assert.equal(blocked.status, 'BLOCKED');
+  assert.ok(blocked.reasons.some((reason) => reason.code === 'FINAL_DISPOSITION_REQUIRED'));
+
+  writeFinalDisposition(fixture, manifest, 'implementation-work');
+  const gate = evaluateDesignGate(gateArgs);
+  assert.equal(gate.status, 'READY_FOR_USER_APPROVAL');
+  assert.equal(gate.primaryMinimumConfidence, 93);
+  assert.equal(gate.finalMinimumConfidence, 81);
+  assert.deepEqual(gate.implementationIntake, manifest.bugFixIntake);
+});
+
+function writeFinalDisposition(fixture, manifest, kind, { envelopeSha256, authority } = {}) {
+  fs.writeFileSync(path.join(fixture.outDir, FINAL_DISPOSITION_FILE), JSON.stringify({
+    schema: FINAL_DISPOSITION_SCHEMA,
+    finalEnvelopeSha256: envelopeSha256 ?? manifest.finalDispositionRecord.finalEnvelopeSha256,
+    authority: authority === undefined
+      ? { role: 'owner', name: 'Fixture Owner', attestedAt: '2026-09-01T00:00:00.000Z' }
+      : authority,
+    dispositions: manifest.finalDispositionRecord.required.map((id) => ({
+      id, kind, rationale: `Fixture disposition for ${id}.`
+    }))
+  }));
+}
+
+test('a disposition record bound to a different review does not discharge these findings', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86, finalIntake: true });
+  const manifest = await runStagedReview(fixture);
+  writeFinalDisposition(fixture, manifest, 'implementation-work', { envelopeSha256: 'a'.repeat(64) });
   const checksFile = path.join(fixture.projectRoot, 'checks.json');
   fs.writeFileSync(checksFile, JSON.stringify({
     schemaVersion: 1,
@@ -174,12 +282,32 @@ test('all rounds use primary 93 readiness and final 81 acceptance with implement
   }));
   const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
     checksFile, configFile: fixture.configFile, round: 1 });
-  assert.equal(gate.status, 'READY_FOR_USER_APPROVAL');
-  assert.equal(gate.primaryMinimumConfidence, 93);
-  assert.equal(gate.finalMinimumConfidence, 81);
-  assert.equal(gate.finalDisposition, 'bugfix-only');
-  assert.equal(gate.implementationIntakeCount, 3);
-  assert.deepEqual(gate.implementationIntake, manifest.bugFixIntake);
+  assert.equal(gate.status, 'BLOCKED');
+  assert.ok(gate.reasons.some((reason) => reason.code === 'FINAL_DISPOSITION_REQUIRED'));
+});
+
+test('a finding disposed as needing a design change returns the design to the primary', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86, finalIntake: true });
+  const manifest = await runStagedReview(fixture);
+  writeFinalDisposition(fixture, manifest, 'design-change-required');
+  const checksFile = path.join(fixture.projectRoot, 'checks.json');
+  fs.writeFileSync(checksFile, JSON.stringify({
+    schemaVersion: 1,
+    designDigest: sha256(fs.readFileSync(fixture.promptFile)),
+    checks: defaultConfig.workflow.designGate.requiredChecks.map((id) => ({ id, status: 'pass', evidence: `${id} fixture` }))
+  }));
+  const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
+    checksFile, configFile: fixture.configFile, round: 1 });
+  assert.equal(gate.status, 'BLOCKED');
+  assert.ok(gate.reasons.some((reason) => reason.code === 'FINAL_DISPOSITION_REQUIRED'));
+});
+
+test('a final with nothing to dispose completes without a disposition record', async () => {
+  const manifest = await runStagedReview(stagedFixture({ primaryConfidence: 94, finalConfidence: 86 }));
+  assert.equal(manifest.status, 'staged-complete');
+  assert.deepEqual(manifest.finalDispositionRecord.required, []);
+  assert.equal(manifest.finalDispositionRecord.satisfied, true);
+  assert.equal(manifest.finalReadiness.disposition, 'clean');
 });
 
 test('Claude Opus may be primary and Codex may be independent final', async () => {
@@ -198,17 +326,13 @@ test('a non-clean primary verdict never engages the final reviewer', async () =>
   assert.deepEqual(fs.readFileSync(fixture.invocationLog, 'utf8').trim().split('\n'), ['codex']);
 });
 
-test('a final revise verdict above 81 becomes bug-fix-only intake and moves on', async () => {
+test('a final revise verdict above 81 returns to the primary instead of being accepted', async () => {
   const fixture = stagedFixture({ primaryConfidence: 93, finalConfidence: 86, finalDecision: 'revise' });
   const manifest = await runStagedReview(fixture);
-  assert.equal(manifest.status, 'staged-complete');
-  assert.equal(manifest.finalReadiness.ready, true);
+  assert.equal(manifest.status, 'final-not-approved');
+  assert.equal(manifest.finalReadiness.ready, false);
   assert.equal(manifest.finalReadiness.minimumConfidence, 81);
-  assert.equal(manifest.finalReadiness.disposition, 'bugfix-only');
-  assert.equal(manifest.finalDisposition, 'bugfix-only');
-  assert.deepEqual(manifest.bugFixIntake, [{
-    id: 'FINAL-FAILED-CHECK-1', kind: 'failed-check', detail: 'Fixture primary is not ready.'
-  }]);
+  assert.equal(manifest.finalReadiness.disposition, 'return-to-primary');
   assert.equal(manifest.providerInvocationCount, 2);
   assert.deepEqual(fs.readFileSync(fixture.invocationLog, 'utf8').trim().split('\n'), ['codex', 'opus']);
 
@@ -220,17 +344,15 @@ test('a final revise verdict above 81 becomes bug-fix-only intake and moves on',
   }));
   const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
     checksFile, configFile: fixture.configFile, round: 1 });
-  assert.equal(gate.status, 'READY_FOR_USER_APPROVAL');
-  assert.equal(gate.combinedConfidence, 86);
-  assert.equal(gate.finalDisposition, 'bugfix-only');
-  assert.deepEqual(gate.implementationIntake, manifest.bugFixIntake);
+  assert.equal(gate.status, 'BLOCKED');
+  assert.ok(gate.reasons.some((reason) => reason.code === 'FINAL_REVIEW_BLOCKED'));
 });
 
-test('a bare final revise at 81 or above always creates mandatory intake', async () => {
+test('a bare final revise at 81 or above still returns to the primary', async () => {
   const fixture = stagedFixture({ finalConfidence: 86, finalDecision: 'revise', finalBareRevise: true });
   const manifest = await runStagedReview(fixture);
-  assert.equal(manifest.status, 'staged-complete');
-  assert.equal(manifest.finalDisposition, 'bugfix-only');
+  assert.equal(manifest.status, 'final-not-approved');
+  assert.equal(manifest.finalDisposition, 'return-to-primary');
   assert.deepEqual(manifest.bugFixIntake, [{
     id: 'FINAL-REVISE-1', kind: 'review-revision', detail: 'Exercise the staged review protocol.'
   }]);
@@ -591,6 +713,10 @@ test('a dead-owner lock and crash-left provider work paths are scavenged before 
   const stale = path.join(fixture.outDir, '.provider-work-00000000-0000-4000-8000-000000000000');
   fs.mkdirSync(stale);
   fs.writeFileSync(path.join(stale, 'prompt'), 'crash-left fixture');
+  for (const scratch of ['home', 'tmp']) {
+    fs.mkdirSync(path.join(stale, scratch), { mode: 0o700 });
+    fs.writeFileSync(path.join(stale, scratch, 'residue'), 'crash-left provider scratch');
+  }
   const staleProbeFile = path.join(fixture.outDir, '.provider-probe-00000000-0000-4000-8000-000000000001');
   fs.writeFileSync(staleProbeFile, 'crash-left probe fixture');
   fs.writeFileSync(path.join(fixture.outDir, '.staged-review.lock'), JSON.stringify({ schemaVersion: 1, pid: 999999999, token: 'stale' }));
@@ -598,6 +724,33 @@ test('a dead-owner lock and crash-left provider work paths are scavenged before 
   assert.equal(fs.existsSync(stale), false);
   assert.equal(fs.existsSync(staleProbeFile), false);
   assert.equal(fs.existsSync(path.join(fixture.outDir, '.staged-review.lock')), false);
+});
+
+test('a recycled owner running the identical command no longer reads as live', async () => {
+  const fixture = stagedFixture();
+  fs.mkdirSync(fixture.outDir, { recursive: true });
+  // A live process, recorded with its real command line but a start time that cannot be its
+  // own: exactly the shape a recycled identifier presents.
+  fs.writeFileSync(path.join(fixture.outDir, '.staged-review.lock'), JSON.stringify({
+    schemaVersion: 3, pid: process.pid, token: 'recycled',
+    commandLine: fs.readFileSync(`/proc/${process.pid}/cmdline`).toString('utf8').replace(/\0+$/u, '').split('\0').join(' '),
+    startTime: '1', acquiredAt: new Date().toISOString()
+  }));
+  assert.equal((await runStagedReview(fixture)).status, 'staged-complete');
+  assert.equal(fs.existsSync(path.join(fixture.outDir, '.staged-review.lock')), false);
+});
+
+test('a live owner recorded with a matching start time still blocks a concurrent cycle', async () => {
+  const fixture = stagedFixture();
+  fs.mkdirSync(fixture.outDir, { recursive: true });
+  const stat = fs.readFileSync(`/proc/${process.pid}/stat`, 'utf8');
+  fs.writeFileSync(path.join(fixture.outDir, '.staged-review.lock'), JSON.stringify({
+    schemaVersion: 3, pid: process.pid, token: 'live',
+    commandLine: fs.readFileSync(`/proc/${process.pid}/cmdline`).toString('utf8').replace(/\0+$/u, '').split('\0').join(' '),
+    startTime: stat.slice(stat.lastIndexOf(')') + 2).split(' ')[19],
+    acquiredAt: new Date().toISOString()
+  }));
+  await assert.rejects(() => runStagedReview(fixture), /Staged review already active/u);
 });
 
 test('a hung provider times out fail-closed and releases the single-flight lock', async () => {
@@ -612,9 +765,11 @@ test('a hung provider times out fail-closed and releases the single-flight lock'
   assert.equal(fs.readdirSync(fixture.outDir).some((entry) => entry.startsWith('.provider-work-')), false);
 });
 
-function withPriorCycle(fixture, priorManifest) {
-  fs.writeFileSync(path.join(fixture.projectRoot, 'prior-manifest.json'), JSON.stringify(priorManifest, null, 2));
-  return { ...fixture, firstCycle: false, priorManifest: 'prior-manifest.json' };
+function withPriorCycle(fixture, prior, { round = 2 } = {}) {
+  fs.writeFileSync(path.join(fixture.projectRoot, 'prior-manifest.json'), JSON.stringify(prior.manifest, null, 2));
+  fs.writeFileSync(path.join(fixture.projectRoot, 'prior-brief.md'), prior.brief);
+  return { ...fixture, firstCycle: false, round,
+    priorManifest: 'prior-manifest.json', priorBrief: 'prior-brief.md' };
 }
 
 async function rejectedPriorCycle() {
@@ -622,7 +777,8 @@ async function rejectedPriorCycle() {
   const manifest = await runStagedReview(fixture);
   assert.equal(manifest.status, 'final-not-approved');
   assert.equal(manifest.priorCycle, null);
-  return manifest;
+  assert.equal(manifest.threadId, 'staged-review-fixture');
+  return { manifest, brief: fs.readFileSync(fixture.promptFile) };
 }
 
 test('a repair cycle cannot re-dispatch the brief a prior final review rejected', async () => {
@@ -652,16 +808,21 @@ test('a changed brief carrying prior final feedback dispatches a fresh staged cy
   const repair = withPriorCycle(stagedFixture(), prior);
   fs.appendFileSync(repair.promptFile,
     '\n## Prior final review feedback\n\nThe prior cycle rejected unbounded repair; the brief now binds the prior cycle digest.\n');
-  const manifest = await runStagedReview({ ...repair, round: 2 });
+  const manifest = await runStagedReview(repair);
   assert.equal(manifest.status, 'staged-complete');
   assert.equal(manifest.providerInvocationCount, 2);
   assert.equal(manifest.priorCycle.manifestSha256,
     sha256(fs.readFileSync(path.join(repair.projectRoot, 'prior-manifest.json'))));
   assert.equal(manifest.cycleBudget.cycleNumber, 2);
+  assert.equal(manifest.priorCycle.cycleNumber, 1);
+  assert.equal(manifest.priorCycle.sequenceValid, true);
+  assert.equal(manifest.priorCycle.objectiveValid, true);
+  assert.equal(manifest.priorCycle.threadBinding, 'manifest-recorded');
   const prompts = fs.readFileSync(repair.promptLog, 'utf8').trim().split('\n').map(JSON.parse);
   assert.equal(prompts.length, 2);
   for (const row of prompts) {
-    assert.match(row.prompt, /Prior final review feedback" section is required workflow content/u);
+    assert.match(row.prompt, /Prior final review feedback" section, when the brief carries one, is required workflow content/u);
+  assert.match(row.prompt, /its absence is correct and is not a defect/u);
     assert.match(row.prompt, /the brief now binds the prior cycle digest/u);
   }
   const checksFile = path.join(repair.projectRoot, 'checks.json');
@@ -690,13 +851,162 @@ test('a staged cycle must declare exactly one of a first cycle or a prior cycle 
 
 test('prior cycle evidence must be a contained staged manifest', async () => {
   const fixture = stagedFixture();
+  fs.writeFileSync(path.join(fixture.projectRoot, 'prior-brief.md'), fs.readFileSync(fixture.promptFile));
   fs.writeFileSync(path.join(fixture.projectRoot, 'prior-manifest.json'),
     JSON.stringify({ reviewProtocol: 'dual-review-v1', status: 'dual-complete', designDigest: '0'.repeat(64) }));
-  await assert.rejects(runStagedReview({ ...fixture, firstCycle: false, priorManifest: 'prior-manifest.json' }),
+  const chained = { ...fixture, firstCycle: false, priorBrief: 'prior-brief.md', round: 2 };
+  await assert.rejects(runStagedReview({ ...chained, priorManifest: 'prior-manifest.json' }),
     /KSTACK_STAGED_REVIEW_PRIOR_CYCLE_INVALID/u);
-  await assert.rejects(runStagedReview({ ...fixture, firstCycle: false, priorManifest: '../escaped-manifest.json' }),
+  await assert.rejects(runStagedReview({ ...chained, priorManifest: '../escaped-manifest.json' }),
     /KSTACK_STAGED_REVIEW_PRIOR_CYCLE_INVALID/u);
   assert.equal(fs.existsSync(fixture.invocationLog), false);
+});
+
+test('a legacy staged manifest without cycle accounting cannot be chained', async () => {
+  const prior = await rejectedPriorCycle();
+  const unbound = structuredClone(prior.manifest);
+  delete unbound.cycleBudget;
+  const repair = withPriorCycle(stagedFixture(), { manifest: unbound, brief: prior.brief });
+  await assert.rejects(runStagedReview(repair), /KSTACK_STAGED_REVIEW_PRIOR_CYCLE_INVALID/u);
+  assert.equal(fs.existsSync(repair.invocationLog), false);
+});
+
+test('the prior brief must be the exact artifact the prior manifest reviewed', async () => {
+  const prior = await rejectedPriorCycle();
+  const repair = withPriorCycle(stagedFixture(), prior);
+  fs.appendFileSync(path.join(repair.projectRoot, 'prior-brief.md'), '\nAltered after the fact.\n');
+  await assert.rejects(runStagedReview(repair), /KSTACK_STAGED_REVIEW_PRIOR_BRIEF_INVALID/u);
+  assert.equal(fs.existsSync(repair.invocationLog), false);
+});
+
+test('a prior cycle from another objective or thread cannot satisfy the chain', async () => {
+  const foreignObjective = await rejectedPriorCycle();
+  const objectiveMismatch = withPriorCycle(stagedFixture(), foreignObjective);
+  fs.writeFileSync(objectiveMismatch.promptFile,
+    validDesign.toString('utf8').replace(/^Objective-digest: .*$/mu, `Objective-digest: ${'b'.repeat(64)}`));
+  const mismatched = await runStagedReview(objectiveMismatch);
+  assert.equal(mismatched.status, 'prior-cycle-identity-mismatch');
+  assert.equal(mismatched.providerInvocationCount, 0);
+  assert.equal(mismatched.priorCycle.objectiveValid, false);
+
+  const foreignThread = await rejectedPriorCycle();
+  const threadMismatch = withPriorCycle(stagedFixture(), foreignThread);
+  const renamed = await runStagedReview({ ...threadMismatch, threadId: 'a-different-thread' });
+  assert.equal(renamed.status, 'prior-cycle-identity-mismatch');
+  assert.equal(renamed.priorCycle.threadValid, false);
+  assert.equal(fs.existsSync(threadMismatch.invocationLog), false);
+});
+
+test('a chained cycle must immediately follow its prior cycle', async () => {
+  const prior = await rejectedPriorCycle();
+  const skipped = withPriorCycle(stagedFixture(), prior, { round: 4 });
+  const manifest = await runStagedReview(skipped);
+  assert.equal(manifest.status, 'prior-cycle-sequence-invalid');
+  assert.equal(manifest.providerInvocationCount, 0);
+  assert.equal(manifest.priorCycle.cycleNumber, 1);
+  assert.equal(manifest.priorCycle.sequenceValid, false);
+  assert.equal(fs.existsSync(skipped.invocationLog), false);
+});
+
+test('a staged cycle must name the design thread it belongs to', async () => {
+  const fixture = stagedFixture();
+  const missing = await runStagedReview({ ...fixture, threadId: undefined });
+  assert.equal(missing.status, 'thread-identity-missing');
+  assert.equal(missing.providerInvocationCount, 0);
+  const malformed = await runStagedReview({ ...stagedFixture(), threadId: 'Not A Thread Id' });
+  assert.equal(malformed.status, 'thread-identity-missing');
+  assert.equal(fs.existsSync(fixture.invocationLog), false);
+});
+
+test('the design gate requires staged evidence bound to a thread and the reviewed objective', async () => {
+  const fixture = stagedFixture();
+  await runStagedReview(fixture);
+  const checksFile = path.join(fixture.projectRoot, 'checks.json');
+  fs.writeFileSync(checksFile, JSON.stringify({
+    schemaVersion: 1,
+    designDigest: sha256(fs.readFileSync(fixture.promptFile)),
+    checks: defaultConfig.workflow.designGate.requiredChecks.map((id) => ({ id, status: 'pass', evidence: `${id} fixture` }))
+  }));
+  const manifestFile = path.join(fixture.outDir, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestFile));
+  manifest.objectiveDigest = 'c'.repeat(64);
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 2));
+  const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
+    checksFile, configFile: fixture.configFile, round: 1 });
+  assert.equal(gate.status, 'BLOCKED');
+  assert.ok(gate.reasons.some((reason) => reason.code === 'THREAD_IDENTITY_INVALID'));
+});
+
+test('the final provider process exposes no primary content and no inherited handles', async () => {
+  const marker = 'PRIMARYONLYMARKER-4f2a9c7e1b3d6058-PRESENT-ONLY-IN-THE-PRIMARY-REPORT';
+  const fixture = stagedFixture({ primaryObjection: marker });
+  assert.equal((await runStagedReview(fixture)).status, 'staged-complete');
+  const rows = fs.readFileSync(fixture.disclosureLog, 'utf8').trim().split('\n').map(JSON.parse);
+  assert.equal(rows.length, 2);
+  const finalRow = rows.find((row) => row.provider === 'opus');
+  assert.ok(finalRow);
+  assert.equal(finalRow.argv.includes(marker), false);
+  assert.equal(finalRow.env.includes(marker), false);
+  assert.equal(sha256(fs.readFileSync(path.join(fixture.outDir, 'codex.md'))).length, 64);
+  assert.match(fs.readFileSync(path.join(fixture.outDir, 'codex.md'), 'utf8'), new RegExp(marker, 'u'));
+  for (const row of rows) {
+    assert.equal(row.tmpdir, path.join(row.cwd, 'tmp'));
+    assert.equal(row.home, path.join(row.cwd, 'home'));
+    assert.deepEqual(row.homeEntries, []);
+    assert.deepEqual(row.openFiles, ['prompt', 'stderr', 'stdout']);
+    const environment = new Map(row.env.split('\0').map((entry) => {
+      const index = entry.indexOf('=');
+      return [entry.slice(0, index), entry.slice(index + 1)];
+    }));
+    for (const inherited of ['TEMP', 'TMP', 'TMPDIR']) assert.equal(environment.get(inherited), path.join(row.cwd, 'tmp'));
+    assert.equal(environment.get('HOME'), path.join(row.cwd, 'home'));
+    assert.equal(environment.has('KSTACK_STAGED_SECRET_FIXTURE'), false);
+  }
+});
+
+test('each provider spawn gets a private home instead of the shared one', async () => {
+  const fixture = stagedFixture();
+  assert.equal((await runStagedReview(fixture)).status, 'staged-complete');
+  const rows = fs.readFileSync(fixture.disclosureLog, 'utf8').trim().split('\n').map(JSON.parse);
+  assert.equal(rows.length, 2);
+  const homes = rows.map((row) => row.home);
+  assert.equal(new Set(homes).size, 2);
+  for (const row of rows) {
+    assert.notEqual(row.home, os.homedir());
+    assert.equal(row.home.startsWith(fixture.outDir), true);
+    assert.deepEqual(row.homeEntries, []);
+  }
+  assert.equal(fs.readdirSync(fixture.outDir).some((entry) => entry.startsWith('.provider-work-')), false);
+});
+
+test('a provider keeps exactly its own configuration directory when the home is replaced', () => {
+  const codex = minimalProviderEnvironment('codex', { home: '/private/codex/home', tmp: '/private/codex/tmp' });
+  const opus = minimalProviderEnvironment('opus', { home: '/private/opus/home', tmp: '/private/opus/tmp' });
+  assert.equal(codex.HOME, '/private/codex/home');
+  assert.equal(opus.HOME, '/private/opus/home');
+  assert.equal(typeof codex.CODEX_HOME, 'string');
+  assert.equal(typeof opus.CLAUDE_CONFIG_DIR, 'string');
+  assert.equal(codex.CODEX_HOME.startsWith(codex.HOME), false);
+  assert.equal(opus.CLAUDE_CONFIG_DIR.startsWith(opus.HOME), false);
+  assert.equal('CLAUDE_CONFIG_DIR' in codex, false);
+  assert.equal('CODEX_HOME' in opus, false);
+  assert.equal('ANTHROPIC_API_KEY' in codex, false);
+  assert.equal('OPENAI_API_KEY' in opus, false);
+
+  assert.equal(providerConfigDirectory('codex', { HOME: '/real/home' }), path.join('/real/home', '.codex'));
+  assert.equal(providerConfigDirectory('opus', { HOME: '/real/home' }), path.join('/real/home', '.claude'));
+  assert.equal(providerConfigDirectory('codex', { CODEX_HOME: '/explicit/codex', HOME: '/real/home' }), '/explicit/codex');
+  assert.equal(providerConfigDirectory('opus', {}), null);
+});
+
+test('a final dispatch carrying primary report content fails closed before spawning', () => {
+  const report = 'x'.repeat(40) + 'the primary report body that must never reach the final provider' + 'y'.repeat(40);
+  assert.throws(() => assertProviderDisclosureBoundary(['--model', 'opus', report], {}, [report]),
+    /KSTACK_STAGED_REVIEW_PROVIDER_DISCLOSURE_BOUNDARY/u);
+  assert.throws(() => assertProviderDisclosureBoundary(['--model', 'opus'], { NOTE: report.slice(10, 120) }, [report]),
+    /KSTACK_STAGED_REVIEW_PROVIDER_DISCLOSURE_BOUNDARY/u);
+  assert.doesNotThrow(() => assertProviderDisclosureBoundary(['--model', 'opus', '--effort', 'high'],
+    { PATH: '/usr/bin', TMPDIR: '/tmp/work' }, [report]));
 });
 
 test('a staged cycle beyond the configured material-design budget dispatches nobody', async () => {
@@ -709,7 +1019,7 @@ test('a staged cycle beyond the configured material-design budget dispatches nob
   assert.equal(exhausted.providerInvocationCount, 0);
   assert.deepEqual(exhausted.cycleBudget, {
     schema: 'kstack-staged-review-cycle-budget-v1',
-    unit: 'material-design-cycle', cycleNumber: 3, maxRounds: 2, cyclesCharged: 1
+    unit: 'material-design-cycle', cycleNumber: 3, maxRounds: 2, cyclesCharged: 0
   });
   assert.equal(fs.existsSync(fixture.invocationLog), false);
 });
@@ -724,6 +1034,153 @@ test('one staged cycle charges one material-design cycle whether or not the fina
   assert.equal(dispatched.status, 'staged-complete');
   assert.equal(dispatched.providerInvocationCount, 2);
   assert.equal(dispatched.cycleBudget.cyclesCharged, 1);
+});
+
+test('a cycle blocked before the primary spawns charges no material-design cycle', async () => {
+  const contractInvalid = stagedFixture();
+  fs.writeFileSync(contractInvalid.promptFile, 'Attempt implementation and deployment in the design session.');
+  const invalid = await runStagedReview(contractInvalid);
+  assert.equal(invalid.status, 'design-contract-invalid');
+  assert.equal(invalid.providerInvocationCount, 0);
+  assert.equal(invalid.cycleBudget?.cyclesCharged ?? 0, 0);
+
+  const identityMissing = await runStagedReview({ ...stagedFixture(), threadId: undefined });
+  assert.equal(identityMissing.status, 'thread-identity-missing');
+  assert.equal(identityMissing.providerInvocationCount, 0);
+  assert.equal(identityMissing.cycleBudget?.cyclesCharged ?? 0, 0);
+});
+
+test('a dispatch with no recorded isolation measurement spawns nobody and charges nothing', async () => {
+  const fixture = stagedFixture();
+  const manifest = await runStagedReviewDirect(fixture);
+  assert.equal(manifest.status, 'provider-isolation-unmeasured');
+  assert.equal(manifest.providerInvocationCount, 0);
+  assert.equal(manifest.cycleBudget.cyclesCharged, 0);
+  assert.deepEqual(manifest.providerIsolation.unmeasured, ['codex', 'opus']);
+  assert.equal(fs.existsSync(fixture.invocationLog), false);
+});
+
+test('an isolation measurement taken against a different backend does not admit this one', async () => {
+  const fixture = stagedFixture();
+  await writeFixtureIsolationEvidence(fixture);
+  const evidenceFile = path.join(fixture.projectRoot, PROVIDER_ISOLATION_EVIDENCE_FILE);
+  const evidence = JSON.parse(fs.readFileSync(evidenceFile, 'utf8'));
+  evidence.measurements = evidence.measurements.map((entry) => entry.providerId === 'opus'
+    ? { ...entry, probeOutputSha256: 'f'.repeat(64) } : entry);
+  fs.writeFileSync(evidenceFile, JSON.stringify(evidence));
+  const manifest = await runStagedReviewDirect(fixture);
+  assert.equal(manifest.status, 'provider-isolation-unmeasured');
+  assert.equal(manifest.providerInvocationCount, 0);
+  assert.deepEqual(manifest.providerIsolation.unmeasured, ['opus']);
+  assert.equal(fs.existsSync(fixture.invocationLog), false);
+});
+
+test('an isolation measurement that observed a leak never admits a dispatch', async () => {
+  const fixture = stagedFixture();
+  await writeFixtureIsolationEvidence(fixture);
+  const evidenceFile = path.join(fixture.projectRoot, PROVIDER_ISOLATION_EVIDENCE_FILE);
+  const evidence = JSON.parse(fs.readFileSync(evidenceFile, 'utf8'));
+  evidence.measurements = evidence.measurements.map((entry) => ({ ...entry, hits: 1 }));
+  fs.writeFileSync(evidenceFile, JSON.stringify(evidence));
+  const manifest = await runStagedReviewDirect(fixture);
+  assert.equal(manifest.status, 'provider-isolation-unmeasured');
+  assert.equal(manifest.providerInvocationCount, 0);
+});
+
+test('malformed isolation evidence is treated as absent rather than trusted', async () => {
+  const fixture = stagedFixture();
+  const evidenceFile = path.join(fixture.projectRoot, PROVIDER_ISOLATION_EVIDENCE_FILE);
+  fs.mkdirSync(path.dirname(evidenceFile), { recursive: true });
+  fs.writeFileSync(evidenceFile, '{"schema":"wrong","measurements":[]}');
+  const manifest = await runStagedReviewDirect(fixture);
+  assert.equal(manifest.status, 'provider-isolation-unmeasured');
+  assert.equal(manifest.providerInvocationCount, 0);
+});
+
+test('a matched isolation measurement records its evidence digest and dispatches', async () => {
+  const manifest = await runStagedReview(stagedFixture());
+  assert.equal(manifest.status, 'staged-complete');
+  assert.deepEqual(manifest.providerIsolation.unmeasured, []);
+  assert.match(manifest.providerIsolation.evidenceSha256, /^[0-9a-f]{64}$/u);
+  assert.equal(manifest.providerIsolation.evidenceFile, PROVIDER_ISOLATION_EVIDENCE_FILE);
+});
+
+test('the design gate rejects dispatched evidence with no isolation measurement', async () => {
+  const fixture = stagedFixture();
+  await runStagedReview(fixture);
+  const checksFile = path.join(fixture.projectRoot, 'checks.json');
+  fs.writeFileSync(checksFile, JSON.stringify({
+    schemaVersion: 1,
+    designDigest: sha256(fs.readFileSync(fixture.promptFile)),
+    checks: defaultConfig.workflow.designGate.requiredChecks.map((id) => ({ id, status: 'pass', evidence: `${id} fixture` }))
+  }));
+  const manifestFile = path.join(fixture.outDir, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestFile));
+  delete manifest.providerIsolation;
+  fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 2));
+  const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
+    checksFile, configFile: fixture.configFile, round: 1 });
+  assert.equal(gate.status, 'BLOCKED');
+  assert.ok(gate.reasons.some((reason) => reason.code === 'PROVIDER_ISOLATION_UNMEASURED'));
+});
+
+test('two reviewers on the same provider family dispatch nobody and charge nothing', async () => {
+  // Two distinct declared backends -- which is all the config validator can compare -- that both
+  // probe to the same vendor. Only the runtime family check can see this, and without it the two
+  // roles would share a service-side domain.
+  const fixture = stagedFixture();
+  const config = JSON.parse(fs.readFileSync(fixture.configFile));
+  config.models.opus.args = [...config.models.opus.args, '--fixture-version-output=codex-cli fixture 1.0.0'];
+  fs.writeFileSync(fixture.configFile, JSON.stringify(config));
+  const manifest = await runStagedReview(fixture);
+  assert.equal(manifest.status, 'provider-family-not-separated');
+  assert.equal(manifest.providerInvocationCount, 0);
+  assert.equal(manifest.cycleBudget.cyclesCharged, 0);
+  assert.equal(manifest.providerFamilySeparation.distinct, false);
+  assert.equal(manifest.providerFamilySeparation.primary, manifest.providerFamilySeparation.final);
+  assert.equal(fs.existsSync(fixture.invocationLog), false);
+});
+
+test('a staged cycle records that its two reviewers are on separate provider families', async () => {
+  const manifest = await runStagedReview(stagedFixture());
+  assert.equal(manifest.status, 'staged-complete');
+  assert.equal(manifest.providerFamilySeparation.distinct, true);
+  assert.notEqual(manifest.providerFamilySeparation.primary, manifest.providerFamilySeparation.final);
+});
+
+test('the ordered protocol contract holds across roles in one cycle', async () => {
+  const fixture = stagedFixture();
+  const manifest = await runStagedReview(fixture);
+  assert.equal(manifest.status, 'staged-complete');
+
+  // Exactly one final dispatch, and the two roles are different agents.
+  const invoked = fs.readFileSync(fixture.invocationLog, 'utf8').trim().split('\n');
+  assert.deepEqual(invoked, ['codex', 'opus']);
+  assert.equal(invoked.filter((entry) => entry === manifest.orderedReviewers.final).length, 1);
+  assert.notEqual(manifest.orderedReviewers.primary, manifest.orderedReviewers.final);
+
+  // Both roles received the same design digest, and each prompt framed its own stage.
+  const prompts = fs.readFileSync(fixture.promptLog, 'utf8').trim().split('\n').map(JSON.parse);
+  const digests = prompts.map((row) => /Design SHA-256: ([0-9a-f]{64})/u.exec(row.prompt)?.[1]);
+  assert.equal(digests[0], sha256(fs.readFileSync(fixture.promptFile)));
+  assert.equal(digests[0], digests[1]);
+  assert.match(prompts[0].prompt, /Stage: primary/u);
+  assert.match(prompts[1].prompt, /Stage: final/u);
+
+  // The final's prompt carries the brief but nothing the primary reported.
+  assert.match(prompts[1].prompt, /BEGIN KSTACK-UNTRUSTED-BRIEF/u);
+  assert.equal(prompts[1].prompt.includes('This fixture does not use a real provider.'), false);
+});
+
+test('the runner refuses to spawn a provider without its cross-run state isolation flags', async () => {
+  const fixture = stagedFixture();
+  await runStagedReview(fixture);
+  const rows = fs.readFileSync(fixture.argvLog, 'utf8').trim().split('\n').map(JSON.parse);
+  const codex = rows.find((row) => row.provider === 'codex');
+  const opus = rows.find((row) => row.provider === 'opus');
+  for (const flag of PROVIDER_STATE_ISOLATION_FLAGS.codex) assert.ok(codex.argv.includes(flag), `codex ${flag}`);
+  for (const flag of PROVIDER_STATE_ISOLATION_FLAGS.opus) assert.ok(opus.argv.includes(flag), `opus ${flag}`);
+  assert.equal(codex.argv[codex.argv.indexOf('--sandbox') + 1], 'read-only');
 });
 
 test('a structurally clean primary whose prose still describes a concern is not ready', async () => {
@@ -850,8 +1307,277 @@ test('the outbound secret scan covers the wrapped reviewer prompt before any dis
 
 test('CLI argument parsing accepts the convergence options exactly once', () => {
   assert.deepEqual(parseStagedReviewArgs(['--first-cycle']), { 'first-cycle': true });
-  assert.deepEqual(parseStagedReviewArgs(['--prior-manifest', 'review/manifest.json']),
-    { 'prior-manifest': 'review/manifest.json' });
+  assert.deepEqual(parseStagedReviewArgs(['--prior-manifest', 'review/manifest.json', '--prior-brief', 'brief.md', '--thread-id', 'a-thread']),
+    { 'prior-manifest': 'review/manifest.json', 'prior-brief': 'brief.md', 'thread-id': 'a-thread' });
   assert.throws(() => parseStagedReviewArgs(['--first-cycle', '--first-cycle']), /KSTACK_STAGED_REVIEW_ARGUMENT_INVALID/u);
   assert.throws(() => parseStagedReviewArgs(['--prior-manifest']), /KSTACK_STAGED_REVIEW_ARGUMENT_INVALID/u);
+});
+
+function fixtureChecksFile(fixture) {
+  const checksFile = path.join(fixture.projectRoot, 'checks.json');
+  fs.writeFileSync(checksFile, JSON.stringify({
+    schemaVersion: 1,
+    designDigest: sha256(fs.readFileSync(fixture.promptFile)),
+    checks: defaultConfig.workflow.designGate.requiredChecks.map((id) => ({ id, status: 'pass', evidence: `${id} fixture` }))
+  }));
+  return checksFile;
+}
+
+test('the runner refuses to spawn a provider that could write', async () => {
+  const fixture = stagedFixture();
+  await runStagedReview(fixture);
+  const rows = fs.readFileSync(fixture.argvLog, 'utf8').trim().split('\n').map(JSON.parse);
+  for (const provider of ['codex', 'opus']) {
+    const argv = rows.find((row) => row.provider === provider).argv;
+    for (const sequence of PROVIDER_NO_WRITE_FLAGS[provider]) {
+      const present = argv.some((value, index) => sequence.every((expected, offset) => argv[index + offset] === expected));
+      assert.ok(present, `${provider} ${sequence.join(' ')}`);
+    }
+  }
+});
+
+test('neither reviewer can observe the other reviewer artifacts it goes looking for', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86 });
+  const manifest = await runStagedReview(fixture);
+  assert.equal(manifest.status, 'staged-complete');
+  const rows = fs.readFileSync(fixture.peerLog, 'utf8').trim().split('\n').map(JSON.parse);
+  assert.equal(rows.length, 2);
+  for (const row of rows) assert.deepEqual(row.observed, [], `${row.provider} observed peer artifacts`);
+});
+
+test('the runner never authors a disposition record of its own', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86, finalIntake: true });
+  const manifest = await runStagedReview(fixture);
+  assert.equal(manifest.status, 'final-disposition-required');
+  assert.ok(manifest.finalDispositionRecord.required.length > 0);
+  assert.equal(fs.existsSync(path.join(fixture.outDir, FINAL_DISPOSITION_FILE)), false);
+});
+
+for (const [label, authority] of [
+  ['no authority at all', undefined],
+  ['an unrecognised role', { role: 'reviewer', name: 'Fixture Owner', attestedAt: '2026-09-01T00:00:00.000Z' }],
+  ['no named person', { role: 'owner', name: '   ', attestedAt: '2026-09-01T00:00:00.000Z' }],
+  ['an agent as its author', { role: 'owner', name: 'Claude Opus', attestedAt: '2026-09-01T00:00:00.000Z' }],
+  ['no attestation time', { role: 'owner', name: 'Fixture Owner', attestedAt: 'whenever' }]
+]) {
+  test(`a disposition record with ${label} does not discharge these findings`, async () => {
+    const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86, finalIntake: true });
+    const manifest = await runStagedReview(fixture);
+    writeFinalDisposition(fixture, manifest, 'implementation-work', { authority: authority ?? null });
+    const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
+      checksFile: fixtureChecksFile(fixture), configFile: fixture.configFile, round: 1 });
+    assert.equal(gate.status, 'BLOCKED');
+    assert.ok(gate.reasons.some((reason) => reason.code === 'FINAL_DISPOSITION_REQUIRED'));
+  });
+}
+
+test('a disposition record naming a human owner discharges the findings it disposes', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86, finalIntake: true });
+  const manifest = await runStagedReview(fixture);
+  writeFinalDisposition(fixture, manifest, 'implementation-work');
+  const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
+    checksFile: fixtureChecksFile(fixture), configFile: fixture.configFile, round: 1 });
+  assert.equal(gate.reasons.some((reason) => reason.code === 'FINAL_DISPOSITION_REQUIRED'), false);
+  assert.equal(gate.status, 'READY_FOR_USER_APPROVAL');
+});
+
+test('a disposition record reached through a symbolic link out of the project is not read', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86, finalIntake: true });
+  const manifest = await runStagedReview(fixture);
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-disposition-outside-'));
+  const target = path.join(outside, 'disposition.json');
+  fs.writeFileSync(target, JSON.stringify({
+    schema: FINAL_DISPOSITION_SCHEMA,
+    finalEnvelopeSha256: manifest.finalDispositionRecord.finalEnvelopeSha256,
+    authority: { role: 'owner', name: 'Fixture Owner', attestedAt: '2026-09-01T00:00:00.000Z' },
+    dispositions: manifest.finalDispositionRecord.required.map((id) => ({
+      id, kind: 'implementation-work', rationale: `Fixture disposition for ${id}.`
+    }))
+  }));
+  fs.symlinkSync(target, path.join(fixture.outDir, FINAL_DISPOSITION_FILE));
+  assert.equal(readFinalDispositionRecord(fixture.projectRoot, fixture.outDir), null);
+  const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
+    checksFile: fixtureChecksFile(fixture), configFile: fixture.configFile, round: 1 });
+  assert.equal(gate.status, 'BLOCKED');
+  assert.ok(gate.reasons.some((reason) => reason.code === 'FINAL_DISPOSITION_REQUIRED'));
+});
+
+test('the gate names a review whose two reviewers shared one provider family', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86 });
+  const manifest = await runStagedReview(fixture);
+  assert.equal(manifest.status, 'staged-complete');
+  const manifestFile = path.join(fixture.outDir, 'manifest.json');
+  const record = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+  record.reviewerBackends.opus.providerFamily = record.reviewerBackends.codex.providerFamily;
+  fs.writeFileSync(manifestFile, JSON.stringify(record, null, 2));
+  const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: fixture.outDir,
+    checksFile: fixtureChecksFile(fixture), configFile: fixture.configFile, round: 1 });
+  assert.equal(gate.status, 'BLOCKED');
+  assert.ok(gate.reasons.some((reason) => reason.code === 'PROVIDER_FAMILY_NOT_SEPARATED'));
+});
+
+test('the runtime surface is measured for a provider that can load plugins and removed for one that cannot', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86 });
+  const manifest = await runStagedReview(fixture);
+  assert.equal(manifest.status, 'staged-complete');
+  const codex = manifest.reviewerBackends.codex.runtimeSurface;
+  const opus = manifest.reviewerBackends.opus.runtimeSurface;
+  assert.equal(codex.method, 'bounded-content-walk-v1');
+  assert.equal(codex.pluginsRemovedByConstruction, false);
+  assert.equal(opus.pluginsRemovedByConstruction, true);
+  assert.equal(opus.pluginRoot, null);
+  assert.equal(PROVIDER_STATE_ISOLATION_FLAGS.opus.includes('--safe-mode'), true);
+});
+
+test('a provider plugin directory is walked into the runtime surface and changes its digest', async () => {
+  const fixture = stagedFixture();
+  const pluginRoot = path.join(fixture.projectRoot, 'provider-config', 'codex', 'plugins');
+  fs.mkdirSync(pluginRoot, { recursive: true });
+  fs.writeFileSync(path.join(pluginRoot, 'extension.json'), '{"name":"one"}');
+  const config = JSON.parse(fs.readFileSync(fixture.configFile, 'utf8'));
+  const before = await providerBackendIdentity('codex', config, fixture.projectRoot);
+  assert.equal(before.runtimeSurface.pluginRoot, pluginRoot);
+  assert.match(before.runtimeSurface.pluginDigest, /^[0-9a-f]{64}$/u);
+  fs.writeFileSync(path.join(pluginRoot, 'extension.json'), '{"name":"two"}');
+  const after = await providerBackendIdentity('codex', config, fixture.projectRoot);
+  assert.notEqual(after.runtimeSurface.pluginDigest, before.runtimeSurface.pluginDigest);
+  // The executable did not change, so reviewer independence is unaffected by a plugin change.
+  assert.equal(after.backendDigest, before.backendDigest);
+  assert.notEqual(providerIsolationIdentity(after).runtimeSurfaceDigest,
+    providerIsolationIdentity(before).runtimeSurfaceDigest);
+});
+
+test('a symbolic link in a provider plugin directory is recorded by target and never followed', async () => {
+  const fixture = stagedFixture();
+  const pluginRoot = path.join(fixture.projectRoot, 'provider-config', 'codex', 'plugins');
+  fs.mkdirSync(pluginRoot, { recursive: true });
+  const outside = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-plugin-target-'));
+  fs.writeFileSync(path.join(outside, 'payload'), 'original');
+  fs.symlinkSync(outside, path.join(pluginRoot, 'linked'));
+  const config = JSON.parse(fs.readFileSync(fixture.configFile, 'utf8'));
+  const before = await providerBackendIdentity('codex', config, fixture.projectRoot);
+  fs.writeFileSync(path.join(outside, 'payload'), 'changed');
+  const after = await providerBackendIdentity('codex', config, fixture.projectRoot);
+  assert.equal(after.runtimeSurface.pluginDigest, before.runtimeSurface.pluginDigest);
+  assert.equal(after.runtimeSurface.fileCount, 0);
+});
+
+test('an isolation measurement taken against a different runtime surface does not admit a dispatch', async () => {
+  const fixture = stagedFixture();
+  await writeFixtureIsolationEvidence(fixture);
+  const evidenceFile = path.join(fixture.projectRoot, PROVIDER_ISOLATION_EVIDENCE_FILE);
+  const evidence = JSON.parse(fs.readFileSync(evidenceFile, 'utf8'));
+  for (const entry of evidence.measurements) entry.runtimeSurfaceDigest = 'b'.repeat(64);
+  fs.writeFileSync(evidenceFile, JSON.stringify(evidence, null, 2));
+  const manifest = await runStagedReviewDirect(fixture);
+  assert.equal(manifest.status, 'provider-isolation-unmeasured');
+  assert.equal(manifest.providerInvocationCount, 0);
+  assert.equal(manifest.cycleBudget.cyclesCharged, 0);
+});
+
+test('a cycle that dispatched cannot be re-run under its own number even with no published result', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86 });
+  const manifest = await runStagedReview(fixture);
+  assert.equal(manifest.status, 'staged-complete');
+  const log = readDispatchLog(fixture.projectRoot);
+  assert.equal(highestDispatchedCycle(log, manifest.threadId), 1);
+  // A fresh output directory is exactly how an interrupted cycle would be re-run, and is what
+  // an outDir-scoped marker would miss. The log is thread-scoped, so it still sees the charge.
+  const rerun = await runStagedReviewDirect({ ...fixture, outDir: path.join(fixture.projectRoot, 'review-retry') });
+  assert.equal(rerun.status, 'dispatched-cycle-uncharged');
+  assert.equal(rerun.providerInvocationCount, 0);
+  assert.equal(rerun.cycleBudget.cyclesCharged, 0);
+});
+
+test('the dispatch marker is written before the provider runs, so an interrupted cycle is still charged', async () => {
+  const fixture = stagedFixture({ primaryHang: true });
+  const manifest = await runStagedReview(fixture);
+  assert.notEqual(manifest.status, 'staged-complete');
+  assert.equal(highestDispatchedCycle(readDispatchLog(fixture.projectRoot), manifest.threadId), 1);
+});
+
+function setPrimaryHang(fixture, hang) {
+  const config = JSON.parse(fs.readFileSync(fixture.configFile, 'utf8'));
+  const args = config.models[config.workflow.phaseModels.design[0]].args;
+  const index = args.findIndex((argument) => argument.startsWith('--fixture-hang='));
+  assert.notEqual(index, -1);
+  args[index] = `--fixture-hang=${hang}`;
+  fs.writeFileSync(fixture.configFile, JSON.stringify(config), { mode: 0o600 });
+}
+
+test('an interrupted dispatched cycle has an admissible successor rather than deadlocking', async () => {
+  const fixture = stagedFixture({ primaryConfidence: 94, finalConfidence: 86 });
+  const first = await runStagedReview(fixture);
+  assert.equal(first.status, 'staged-complete');
+  const priorManifest = path.join(fixture.projectRoot, 'cycle-1-manifest.json');
+  fs.copyFileSync(path.join(fixture.outDir, 'manifest.json'), priorManifest);
+  const priorBrief = path.join(fixture.projectRoot, 'cycle-1-brief.md');
+  fs.copyFileSync(fixture.promptFile, priorBrief);
+  // The final reviewer's isolation probe is pinned to the fixture's default review directory. Cycle
+  // 1's evidence is already copied out, so clearing it keeps that probe measuring this cycle rather
+  // than tripping on a previous one's published report.
+  fs.rmSync(fixture.outDir, { recursive: true, force: true });
+
+  // Cycle 2 dispatches and is then interrupted: the marker is written, no manifest is published.
+  // The hang has to be switched on in the configuration the runner reads, because the fixture bakes
+  // provider arguments once at construction and cycle 1 had to complete normally.
+  fs.writeFileSync(fixture.promptFile, `${validDesign}\n\nA second cycle of this thread.\n`);
+  setPrimaryHang(fixture, true);
+  const interrupted = await runStagedReviewDirect({
+    ...fixture, round: 2, firstCycle: false, priorManifest, priorBrief,
+    outDir: path.join(fixture.projectRoot, 'review-2')
+  });
+  setPrimaryHang(fixture, false);
+  assert.notEqual(interrupted.status, 'staged-complete');
+  assert.equal(highestDispatchedCycle(readDispatchLog(fixture.projectRoot), first.threadId), 2);
+
+  // Cycle 2 is spent, so it is refused; cycle 3 is admissible even though the last published
+  // cycle is 1, which is exactly the case a published-predecessor-only rule would deadlock.
+  const reuse = await runStagedReviewDirect({
+    ...fixture, round: 2, firstCycle: false, priorManifest, priorBrief,
+    outDir: path.join(fixture.projectRoot, 'review-2-retry')
+  });
+  assert.equal(reuse.status, 'dispatched-cycle-uncharged');
+  assert.equal(reuse.providerInvocationCount, 0);
+
+  const nextOutDir = path.join(fixture.projectRoot, 'review-3');
+  const next = await runStagedReviewDirect({
+    ...fixture, round: 3, firstCycle: false, priorManifest, priorBrief, outDir: nextOutDir
+  });
+  assert.equal(next.status, 'staged-complete');
+  assert.equal(next.dispatchFloor.admissibleCycle, 3);
+  assert.equal(next.priorCycle.cycleNumber, 1);
+  assert.equal(next.priorCycle.sequenceValid, true);
+
+  // Admission is not the whole chain: the gate re-derives the same floor from the dispatch log, so
+  // a recovered cycle has to be acceptable there too or the deadlock has only moved downstream.
+  const checksFile = path.join(fixture.projectRoot, 'checks.json');
+  fs.writeFileSync(checksFile, JSON.stringify({
+    schemaVersion: 1,
+    designDigest: sha256(fs.readFileSync(fixture.promptFile)),
+    checks: defaultConfig.workflow.designGate.requiredChecks.map((id) => ({ id, status: 'pass', evidence: `${id} fixture` }))
+  }));
+  const gate = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: nextOutDir,
+    checksFile, configFile: fixture.configFile, round: 3 });
+  assert.equal(gate.status, 'READY_FOR_USER_APPROVAL');
+
+  // Without the log the same evidence has an unexplained gap, and the gate refuses it: the cycle is
+  // accepted because a charge accounts for the missing number, not because gaps are tolerated.
+  fs.rmSync(path.join(fixture.projectRoot, STAGED_REVIEW_DISPATCH_LOG_FILE));
+  const unexplained = evaluateDesignGate({ designFile: fixture.promptFile, reviewDir: nextOutDir,
+    checksFile, configFile: fixture.configFile, round: 3 });
+  assert.notEqual(unexplained.status, 'READY_FOR_USER_APPROVAL');
+  assert.ok(unexplained.reasons.some((reason) => reason.code === 'CONVERGENCE_EVIDENCE_INVALID'));
+});
+
+test('a dispatch charge is scoped to its own thread', async () => {
+  const log = { schema: 'kstack-staged-review-dispatch-log-v1', dispatches: [
+    { threadId: 'thread-a', cycleNumber: 4 }, { threadId: 'thread-b', cycleNumber: 2 }
+  ] };
+  assert.equal(highestDispatchedCycle(log, 'thread-a'), 4);
+  assert.equal(highestDispatchedCycle(log, 'thread-b'), 2);
+  // A first cycle of an unrelated thread is not charged by another thread's interruption.
+  assert.equal(highestDispatchedCycle(log, 'thread-c'), 0);
+  assert.equal(dispatchedCycleFloor(log, 'thread-a', 4), 0);
+  assert.equal(dispatchedCycleFloor(log, 'thread-a', 5), 4);
 });

@@ -1,0 +1,17 @@
+{
+  "schema": "kstack-staged-review-dispatch-log-v1",
+  "dispatches": [
+    {
+      "threadId": "staged-review-mechanism-hardening-2026-09-02",
+      "cycleNumber": 5,
+      "cycleId": "f12272f1-4471-486c-91ba-2f53661ad2ca",
+      "startedAt": "2026-09-02T04:34:40.601Z"
+    },
+    {
+      "threadId": "staged-review-mechanism-hardening-2026-09-02",
+      "cycleNumber": 6,
+      "cycleId": "19de904f-f8fc-4470-8fa2-4e05b56fadaf",
+      "startedAt": "2026-09-02T10:58:49.665Z"
+    }
+  ]
+}

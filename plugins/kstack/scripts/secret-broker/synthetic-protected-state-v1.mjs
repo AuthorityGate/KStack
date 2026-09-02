@@ -37,12 +37,10 @@ const AUDIT_WRITER_KEYS = Object.freeze(['auditNamespaceRef', 'ttlMs']);
 const ADVANCE_OPTION_KEYS = Object.freeze(['crashCut', 'acknowledgementCut']);
 const STATUS_KEYS = Object.freeze(['profileId', 'productionEligible', 'state']);
 const APPLY = Reflect.apply;
-const ARRAY_FILTER = Array.prototype.filter;
 const ARRAY_FIND = Array.prototype.find;
 const ARRAY_FIND_INDEX = Array.prototype.findIndex;
 const ARRAY_INCLUDES = Array.prototype.includes;
 const ARRAY_IS_ARRAY = Array.isArray;
-const ARRAY_MAP = Array.prototype.map;
 const ARRAY_SOME = Array.prototype.some;
 const ARRAY_SORT = Array.prototype.sort;
 const BUFFER_CONSTRUCTOR = Buffer;
@@ -65,6 +63,7 @@ const GET_OWN_PROPERTY_DESCRIPTOR = Object.getOwnPropertyDescriptor;
 const GET_PROTOTYPE_OF = Object.getPrototypeOf;
 const HAS_OWN = Object.hasOwn;
 const NUMBER_IS_SAFE_INTEGER = Number.isSafeInteger;
+const OBJECT_CREATE = Object.create;
 const OBJECT_IS = Object.is;
 const OBJECT_PROTOTYPE = Object.prototype;
 const OWN_KEYS = Reflect.ownKeys;
@@ -79,6 +78,12 @@ const ERROR_KIND = Object.freeze({
   STATE_WRITE_UNCERTAIN: 'STATE_WRITE_UNCERTAIN',
   STATE_FENCE_REQUIRED: 'STATE_FENCE_REQUIRED'
 });
+// A plain option-bag literal inherits from Object.prototype, so an absent
+// option such as `recursive` resolves through it and turns create-only into
+// create-or-adopt. A null-prototype bag has no such fallback.
+const ROOT_CREATE_OPTIONS = FREEZE(DEFINE_PROPERTY(OBJECT_CREATE(null), 'mode', {
+  value: 0o700, enumerable: true, configurable: false, writable: false
+}));
 const SNAPSHOT_STATUS_ERROR_CODES = new Set([
   'KSTACK_SECRET_PROTECTED_ROOT_UNAVAILABLE',
   'KSTACK_SECRET_PROTECTED_ROOT_UNTRUSTED',
@@ -93,19 +98,33 @@ const SNAPSHOT_STATUS_ERROR_CODES = new Set([
 ]);
 
 function arrayIncludes(values, value) { return APPLY(ARRAY_INCLUDES, values, [value]); }
-function arrayFilter(values, predicate) { return APPLY(ARRAY_FILTER, values, [predicate]); }
 function arrayFind(values, predicate) { return APPLY(ARRAY_FIND, values, [predicate]); }
 function arrayFindIndex(values, predicate) { return APPLY(ARRAY_FIND_INDEX, values, [predicate]); }
-function arrayMap(values, predicate) { return APPLY(ARRAY_MAP, values, [predicate]); }
 function arraySome(values, predicate) { return APPLY(ARRAY_SOME, values, [predicate]); }
 function arraySort(values, predicate) { return APPLY(ARRAY_SORT, values, [predicate]); }
-// Ordinary indexed assignment consults inherited numeric accessors whenever the
-// index has no own property yet, so an attacker-installed Array.prototype or
-// Object.prototype index setter could replace a validated head mid-copy. Every
-// index created here is an own data property, and every read back is
-// descriptor-based.
+// Two distinct hazards are closed here. Ordinary indexed assignment consults
+// inherited numeric accessors when the index has no own property yet, so every
+// index created here is an own data property and every descriptor or element
+// read goes through an own-property check, so a missing key fails closed
+// instead of resolving through `Object.prototype`. Separately, `map`/`filter` allocate their result through
+// ArraySpeciesCreate, which resolves `Array.prototype.constructor` and
+// `@@species` and so lets an attacker supply the container that receives the
+// validated elements. `listMap`/`listFilter` allocate the container locally
+// instead, so an authority-bearing list is only ever one this file built.
+// ToPropertyDescriptor probes `get`/`set` with HasProperty, so a descriptor
+// literal inherits them from a polluted Object.prototype and throws instead of
+// describing a data property. A null-prototype descriptor cannot.
+function dataDescriptor(value, enumerable) {
+  const descriptor = OBJECT_CREATE(null);
+  descriptor.value = value;
+  descriptor.enumerable = enumerable;
+  descriptor.configurable = true;
+  descriptor.writable = true;
+  return descriptor;
+}
+
 function listDefine(list, index, value) {
-  DEFINE_PROPERTY(list, `${index}`, { value, writable: true, enumerable: true, configurable: true });
+  DEFINE_PROPERTY(list, `${index}`, dataDescriptor(value, true));
   const descriptor = GET_OWN_PROPERTY_DESCRIPTOR(list, `${index}`);
   if (!descriptor || !HAS_OWN(descriptor, 'value') || !OBJECT_IS(descriptor.value, value)) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
   return list;
@@ -117,20 +136,43 @@ function listRead(list, index) {
 }
 function arrayCopy(values) {
   const copy = [];
-  for (let index = 0; index < values.length; index += 1) listDefine(copy, index, listRead(values, index));
-  if (copy.length !== values.length) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  const length = values.length;
+  for (let index = 0; index < length; index += 1) listDefine(copy, index, listRead(values, index));
+  if (copy.length !== length) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
   return copy;
 }
 function arrayAppend(values, value) {
   const copy = arrayCopy(values);
   return listDefine(copy, copy.length, value);
 }
+function listMap(values, transform) {
+  const output = [];
+  const length = values.length;
+  for (let index = 0; index < length; index += 1) listDefine(output, index, transform(listRead(values, index)));
+  if (output.length !== length) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  return output;
+}
+function listFilter(values, predicate) {
+  const output = [];
+  const length = values.length;
+  for (let index = 0; index < length; index += 1) {
+    const value = listRead(values, index);
+    if (predicate(value)) listDefine(output, output.length, value);
+  }
+  return output;
+}
+function assertListClosure(actual, expected, revalidate) {
+  if (actual.length !== expected.length) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  for (let index = 0; index < expected.length; index += 1) {
+    if (!exactBytes(revalidate(listRead(actual, index)), listRead(expected, index))) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  }
+}
 
 function defineError(error, name, code, kind) {
   DEFINE_PROPERTIES(error, {
-    name: { value: name, enumerable: true, configurable: true, writable: true },
-    message: { value: code, enumerable: false, configurable: true, writable: true },
-    code: { value: code, enumerable: true, configurable: true, writable: true }
+    name: dataDescriptor(name, true),
+    message: dataDescriptor(code, false),
+    code: dataDescriptor(code, true)
   });
   if (kind) APPLY(WEAK_MAP_SET, INTERNAL_ERROR_RECORDS, [error, { kind, code }]);
 }
@@ -175,7 +217,8 @@ function plain(value) {
       && GET_PROTOTYPE_OF(value) === OBJECT_PROTOTYPE;
   } catch { return false; }
 }
-function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
+function snapshotRecord(value, keys, code, options) {
+  const requireAll = options === undefined || !HAS_OWN(options, 'requireAll') ? true : options.requireAll;
   let descriptors;
   let actual;
   try {
@@ -189,10 +232,8 @@ function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
   for (let index = 0; index < actual.length; index += 1) {
     const key = actual[index];
     const descriptor = descriptors[key];
-    if (!descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail(code);
-    DEFINE_PROPERTY(snapshot, key, {
-      value: descriptor.value, enumerable: true, configurable: true, writable: true
-    });
+    if (!descriptor || !descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail(code);
+    DEFINE_PROPERTY(snapshot, key, dataDescriptor(descriptor.value, true));
   }
   return snapshot;
 }
@@ -208,8 +249,9 @@ function clone(value) { return parseSecretCanonicalJson(secretCanonicalBytes(val
 function frozen(value) {
   if (ARRAY_IS_ARRAY(value)) {
     const output = [];
-    for (let index = 0; index < value.length; index += 1) listDefine(output, index, frozen(listRead(value, index)));
-    if (output.length !== value.length) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+    const length = value.length;
+    for (let index = 0; index < length; index += 1) listDefine(output, index, frozen(listRead(value, index)));
+    if (output.length !== length) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
     return FREEZE(output);
   }
   if (plain(value)) {
@@ -218,9 +260,11 @@ function frozen(value) {
     const output = {};
     for (let index = 0; index < keys.length; index += 1) {
       const key = keys[index];
-      DEFINE_PROPERTY(output, key, {
-        value: frozen(descriptors[key].value), enumerable: true, configurable: true, writable: true
-      });
+      // An accessor descriptor carries no own `value`, so reading `.value` off
+      // one resolves through Object.prototype.
+      const descriptor = descriptors[key];
+      if (!descriptor || !descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+      DEFINE_PROPERTY(output, key, dataDescriptor(frozen(descriptor.value), true));
     }
     return FREEZE(output);
   }
@@ -239,8 +283,9 @@ function validateIdentity(value) {
 }
 
 function validateSortedUnique(values, selector, code) {
-  for (let index = 1; index < values.length; index += 1) {
-    if (compare(selector(values[index - 1]), selector(values[index])) >= 0) fail(code);
+  const length = values.length;
+  for (let index = 1; index < length; index += 1) {
+    if (compare(selector(listRead(values, index - 1)), selector(listRead(values, index))) >= 0) fail(code);
   }
 }
 
@@ -255,36 +300,53 @@ function validateState(value, identity) {
       || checkedValue.issuedUpdateIds.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS
       || checkedValue.retiredUpdateIds.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS
       || checkedValue.retiredWriterLeaseRefs.length > SYNTHETIC_PROTECTED_STATE_MAX_RETIRED_IDS) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  const authorityHeads = arrayMap(checkedValue.authorityHeads, (entry) => validateAuthorityHeadValue(entry));
-  const auditHeads = arrayMap(checkedValue.auditHeads, (entry) => validateAuditHeadValue(entry));
-  const updateIdSets = [checkedValue.issuedUpdateIds, checkedValue.retiredUpdateIds];
+  // Every list is copied into a locally allocated container before anything
+  // validates, orders, or encodes it, so no later step can read a container the
+  // caller still controls.
+  const authorityHeads = listMap(checkedValue.authorityHeads, (entry) => validateAuthorityHeadValue(entry));
+  const auditHeads = listMap(checkedValue.auditHeads, (entry) => validateAuditHeadValue(entry));
+  const issuedUpdateIds = arrayCopy(checkedValue.issuedUpdateIds);
+  const retiredUpdateIds = arrayCopy(checkedValue.retiredUpdateIds);
+  const retiredWriterLeaseRefs = arrayCopy(checkedValue.retiredWriterLeaseRefs);
+  const updateIdSets = [issuedUpdateIds, retiredUpdateIds];
   for (let setIndex = 0; setIndex < updateIdSets.length; setIndex += 1) {
     const ids = updateIdSets[setIndex];
     for (let index = 0; index < ids.length; index += 1) {
-      try { validateSecretUpdateId(ids[index]); } catch { fail('KSTACK_SECRET_PROTECTED_STATE_INVALID'); }
+      try { validateSecretUpdateId(listRead(ids, index)); } catch { fail('KSTACK_SECRET_PROTECTED_STATE_INVALID'); }
     }
   }
-  for (let index = 0; index < checkedValue.retiredWriterLeaseRefs.length; index += 1) {
-    opaque(checkedValue.retiredWriterLeaseRefs[index], 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  for (let index = 0; index < retiredWriterLeaseRefs.length; index += 1) {
+    opaque(listRead(retiredWriterLeaseRefs, index), 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   }
   validateSortedUnique(authorityHeads, (entry) => entry.authorityNamespaceRef, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   validateSortedUnique(auditHeads, (entry) => entry.auditNamespaceRef, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  validateSortedUnique(checkedValue.issuedUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  validateSortedUnique(checkedValue.retiredUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  validateSortedUnique(checkedValue.retiredWriterLeaseRefs, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  if (arraySome(checkedValue.issuedUpdateIds, (id) => arrayIncludes(checkedValue.retiredUpdateIds, id))) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  const source = { ...checkedValue, authorityHeads, auditHeads };
+  validateSortedUnique(issuedUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  validateSortedUnique(retiredUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  validateSortedUnique(retiredWriterLeaseRefs, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  if (arraySome(issuedUpdateIds, (id) => arrayIncludes(retiredUpdateIds, id))) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  const source = {
+    ...checkedValue, authorityHeads, auditHeads, issuedUpdateIds, retiredUpdateIds, retiredWriterLeaseRefs
+  };
   const checked = frozen(source);
-  if (!exactBytes(checked, source)) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  if (secretCanonicalBytes(checked).length > SYNTHETIC_PROTECTED_STATE_MAX_BYTES) fail('KSTACK_SECRET_PROTECTED_STATE_BYTES_EXCEEDED');
+  // Redundancy over provenance, not a substitute for it: the lists above are
+  // already allocated here and populated only through `listDefine`, which is
+  // what actually prevents container substitution. This re-checks that the
+  // frozen copy still holds those exact validated elements.
+  assertListClosure(checked.authorityHeads, authorityHeads, validateAuthorityHeadValue);
+  assertListClosure(checked.auditHeads, auditHeads, validateAuditHeadValue);
+  const bytes = secretCanonicalBytes(checked);
+  if (!APPLY(BUFFER_EQUALS, bytes, [secretCanonicalBytes(source)])) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  if (bytes.length > SYNTHETIC_PROTECTED_STATE_MAX_BYTES) fail('KSTACK_SECRET_PROTECTED_STATE_BYTES_EXCEEDED');
   return checked;
 }
 
 function assertPrivateDirectory(root) {
   let stat;
   try { stat = fs.lstatSync(root); } catch { fail('KSTACK_SECRET_PROTECTED_ROOT_UNAVAILABLE'); }
+  // Where this host has no own `getuid`, an ordinary read reaches an inherited
+  // one, and this call site has no enclosing handler to code the throw.
   if (!stat.isDirectory() || stat.isSymbolicLink() || (stat.mode & 0o077) !== 0
-      || (typeof process.getuid === 'function' && stat.uid !== process.getuid())) fail('KSTACK_SECRET_PROTECTED_ROOT_UNTRUSTED');
+      || (HAS_OWN(process, 'getuid') && stat.uid !== process.getuid())) fail('KSTACK_SECRET_PROTECTED_ROOT_UNTRUSTED');
   let real;
   try { real = fs.realpathSync.native(root); } catch { fail('KSTACK_SECRET_PROTECTED_ROOT_UNTRUSTED'); }
   if (real !== path.resolve(root)) fail('KSTACK_SECRET_PROTECTED_ROOT_UNTRUSTED');
@@ -379,6 +441,11 @@ function releaseLock(paths, owner) {
     fs.unlinkSync(paths.lock);
     syncDirectory(paths.root);
   } catch { throw new PossiblyCommittedError(); }
+}
+
+function advanceCut(options, key) {
+  const descriptor = GET_OWN_PROPERTY_DESCRIPTOR(options, key);
+  return descriptor && HAS_OWN(descriptor, 'value') ? descriptor.value : undefined;
 }
 
 function validateAdvanceOptions(options) {
@@ -478,7 +545,7 @@ export class SyntheticProtectedStateAdapter {
     const checked = validateOpenOptions(options, 'KSTACK_SECRET_PROTECTED_CREATE_OPTIONS_INVALID');
     const paths = pathsFor(checked.root);
     const clock = validateClock(checked.clock);
-    try { fs.mkdirSync(paths.root, { mode: 0o700 }); } catch { fail('KSTACK_SECRET_PROTECTED_ROOT_CREATE_FAILED'); }
+    try { fs.mkdirSync(paths.root, ROOT_CREATE_OPTIONS); } catch { fail('KSTACK_SECRET_PROTECTED_ROOT_CREATE_FAILED'); }
     assertPrivateDirectory(paths.root);
     const identity = validateIdentity({
       schemaVersion: SYNTHETIC_PROTECTED_STATE_IDENTITY_VERSION,
@@ -584,7 +651,7 @@ export class SyntheticProtectedStateAdapter {
     if (!arrayIncludes(state.issuedUpdateIds, updateId)) fail('KSTACK_SECRET_PROTECTED_UPDATE_ID_NOT_ISSUED');
     return {
       ...state,
-      issuedUpdateIds: arrayFilter(state.issuedUpdateIds, (id) => id !== updateId),
+      issuedUpdateIds: listFilter(state.issuedUpdateIds, (id) => id !== updateId),
       retiredUpdateIds: arraySort(arrayAppend(state.retiredUpdateIds, updateId), compare)
     };
   }
@@ -631,13 +698,15 @@ export class SyntheticProtectedStateAdapter {
     const checkedExpected = checkedAuthorityHead(expected);
     const successor = authoritySuccessor(checkedExpected, updateId);
     const checkedOptions = validateAdvanceOptions(options);
+    const crashCut = advanceCut(checkedOptions, 'crashCut');
+    const acknowledgementCut = advanceCut(checkedOptions, 'acknowledgementCut');
     return this.#mutation((state) => {
       const attempted = this.#retireAttempt(state, updateId);
       this.#writeState(attempted);
       const index = arrayFindIndex(state.authorityHeads, (entry) => entry.authorityNamespaceRef === checkedExpected.authorityNamespaceRef);
       if (index < 0) fail('KSTACK_SECRET_AUTHORITY_UNAVAILABLE');
       if (!exactBytes(state.authorityHeads[index], checkedExpected)) return frozen({ result: 'EXPECTATION_MISMATCH' });
-      if (checkedOptions.crashCut === 'BEFORE_COMMIT') {
+      if (crashCut === 'BEFORE_COMMIT') {
         fail('KSTACK_SECRET_PROTECTED_CRASH_BEFORE_COMMIT');
       }
       const authorityHeads = listDefine(arrayCopy(state.authorityHeads), index, successor);
@@ -645,8 +714,8 @@ export class SyntheticProtectedStateAdapter {
         fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
       }
       this.#writeState({ ...attempted, authorityHeads });
-      if (checkedOptions.crashCut === 'AFTER_COMMIT') throw new PossiblyCommittedError();
-      if (checkedOptions.acknowledgementCut === 'AFTER_COMMIT') return frozen({ result: 'ACKNOWLEDGEMENT_UNKNOWN' });
+      if (crashCut === 'AFTER_COMMIT') throw new PossiblyCommittedError();
+      if (acknowledgementCut === 'AFTER_COMMIT') return frozen({ result: 'ACKNOWLEDGEMENT_UNKNOWN' });
       return frozen({ result: 'ADVANCED', head: successor });
     });
   }
@@ -700,6 +769,8 @@ export class SyntheticProtectedStateAdapter {
     const checkedExpected = checkedAuditHead(expected);
     const successor = auditSuccessor(checkedExpected, eventDigest, updateId);
     const checkedOptions = validateAdvanceOptions(options);
+    const crashCut = advanceCut(checkedOptions, 'crashCut');
+    const acknowledgementCut = advanceCut(checkedOptions, 'acknowledgementCut');
     return this.#mutation((state) => {
       const attempted = this.#retireAttempt(state, updateId);
       this.#writeState(attempted);
@@ -708,7 +779,7 @@ export class SyntheticProtectedStateAdapter {
       const current = state.auditHeads[index];
       if (!exactBytes(current, checkedExpected)) return frozen({ result: 'EXPECTATION_MISMATCH' });
       if (APPLY(DATE_PARSE, DATE_CONSTRUCTOR, [current.writerLeaseDeadline]) <= this.#now()) throw new StateFenceRequiredError();
-      if (checkedOptions.crashCut === 'BEFORE_COMMIT') {
+      if (crashCut === 'BEFORE_COMMIT') {
         fail('KSTACK_SECRET_PROTECTED_CRASH_BEFORE_COMMIT');
       }
       const auditHeads = listDefine(arrayCopy(state.auditHeads), index, successor);
@@ -716,8 +787,8 @@ export class SyntheticProtectedStateAdapter {
         fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
       }
       this.#writeState({ ...attempted, auditHeads });
-      if (checkedOptions.crashCut === 'AFTER_COMMIT') throw new PossiblyCommittedError();
-      if (checkedOptions.acknowledgementCut === 'AFTER_COMMIT') return frozen({ result: 'ACKNOWLEDGEMENT_UNKNOWN' });
+      if (crashCut === 'AFTER_COMMIT') throw new PossiblyCommittedError();
+      if (acknowledgementCut === 'AFTER_COMMIT') return frozen({ result: 'ACKNOWLEDGEMENT_UNKNOWN' });
       return frozen({ result: 'ADVANCED', head: successor });
     });
   }

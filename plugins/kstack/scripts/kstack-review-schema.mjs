@@ -176,6 +176,116 @@ export function proseRoutingSignal(review) {
   });
 }
 
+// A design may not leave the review loop carrying an unresolved high or critical security
+// finding, even from an accepted final review. Lower severities remain bug-fix intake. The
+// runner and the independent gate both read this so their acceptance rules cannot diverge.
+export const BLOCKING_SECURITY_SEVERITIES = Object.freeze(['high', 'critical']);
+
+export function blockingSecurityFindings(review) {
+  return Object.freeze((review?.securityFindings ?? [])
+    .filter((finding) => BLOCKING_SECURITY_SEVERITIES.includes(finding?.severity)));
+}
+
+// Only an explicit approval releases a design. A final that says "revise" is asking for change,
+// so treating it as acceptance because it merely was not a hard block would let the loop exit on
+// the reviewer's weakest affirmative.
+export const FINAL_ACCEPTANCE_DECISIONS = Object.freeze(['approve']);
+
+export function finalDecisionAccepted(review) {
+  return FINAL_ACCEPTANCE_DECISIONS.includes(review?.decision);
+}
+
+// Failed checks, material dissent, and open questions can each describe an unresolved design or
+// authority defect rather than implementation work, so an accepted final does not get to route
+// them onward silently. Each needs a typed, reasoned disposition recorded against that exact
+// review. Lower-severity security findings keep the existing bug-fix intake path; high and
+// critical ones never reach here because they block acceptance outright.
+export const FINAL_DISPOSITION_KINDS = Object.freeze(['implementation-work', 'accepted-residual', 'design-change-required']);
+export const FINAL_DISPOSITION_SCHEMA = 'kstack-staged-review-final-disposition-v1';
+// The record sits beside the review it discharges, so the runner and the gate resolve it from
+// the review directory alone and cannot be pointed at different files.
+export const FINAL_DISPOSITION_FILE = 'final-disposition.json';
+
+// A disposition is an authority act, not a review output: it decides that a named finding may
+// stand without a further design cycle. Only a human role may take it. The mechanism enforces
+// that the record names such a role and is bound to the exact review it discharges; it cannot
+// prove which keyboard produced the bytes, for the same same-uid reason the local evidence set
+// is unsigned. See the decision record's disposition authority entry for the accepted limit.
+export const FINAL_DISPOSITION_AUTHORITY_ROLES = Object.freeze(['owner']);
+// A tripwire, not a proof: it catches a record that openly attributes itself to an agent.
+// Bare "ai" is deliberately absent -- this project's own human owner identity contains it,
+// so admitting it would reject the very human this check exists to insist on.
+const AGENT_AUTHORED_IDENTITY = /\b(?:claude|codex|opus|sonnet|haiku|fable|gpt|chatgpt|copilot|gemini|llm|assistant|agent|bot)\b/iu;
+
+export function finalDispositionAuthorityErrors(authority) {
+  if (!authority || typeof authority !== 'object' || Array.isArray(authority)) return ['disposition record names no authority'];
+  const errors = [];
+  if (!FINAL_DISPOSITION_AUTHORITY_ROLES.includes(authority.role)) errors.push('disposition authority names no recognised human role');
+  const name = typeof authority.name === 'string' ? authority.name.trim() : '';
+  if (name.length === 0) errors.push('disposition authority names no person');
+  else if (AGENT_AUTHORED_IDENTITY.test(name)) errors.push('disposition authority identifies itself as an agent');
+  const attestedAt = typeof authority.attestedAt === 'string' ? Date.parse(authority.attestedAt) : Number.NaN;
+  if (!Number.isFinite(attestedAt)) errors.push('disposition authority records no attestation time');
+  return errors;
+}
+
+export function requiredFinalDispositions(review) {
+  return Object.freeze(finalBugFixIntake(review)
+    .filter((item) => ['failed-check', 'material-dissent', 'unresolved-question', 'review-revision'].includes(item.kind))
+    .map((item) => item.id));
+}
+
+// The one place the final-acceptance rule lives. The runner reports it and the independent gate
+// reproduces it from the same envelope, so neither can drift into accepting what the other blocks.
+export function finalAcceptanceState(review, minimumConfidence) {
+  const accepted = finalDecisionAccepted(review) && review.confidence >= minimumConfidence;
+  const blocking = blockingSecurityFindings(review);
+  const required = requiredFinalDispositions(review);
+  const intake = finalBugFixIntake(review);
+  return Object.freeze({
+    accepted,
+    blockingSecurityCount: blocking.length,
+    required,
+    intakeCount: intake.length,
+    disposition: accepted
+      ? blocking.length > 0 ? 'return-to-primary'
+        : required.length > 0 ? 'disposition-required'
+          : intake.length === 0 ? 'clean' : 'bugfix-only'
+      : 'return-to-primary'
+  });
+}
+
+export function evaluateFinalDisposition(review, finalEnvelopeSha256, record) {
+  const required = requiredFinalDispositions(review);
+  if (required.length === 0) return Object.freeze({ required, satisfied: true, errors: Object.freeze([]) });
+  const errors = [];
+  if (record === null || record === undefined) errors.push('no disposition record is present');
+  else {
+    if (record.schema !== FINAL_DISPOSITION_SCHEMA) errors.push('disposition record schema is not recognised');
+    // Binding the record to the final envelope digest stops a disposition written for one
+    // review from silently discharging the findings of a different one.
+    if (record.finalEnvelopeSha256 !== finalEnvelopeSha256) errors.push('disposition record is not bound to this final review');
+    for (const error of finalDispositionAuthorityErrors(record.authority)) errors.push(error);
+    const entries = Array.isArray(record.dispositions) ? record.dispositions : null;
+    if (entries === null) errors.push('disposition record carries no disposition list');
+    else {
+      const seen = new Map();
+      for (const entry of entries) {
+        if (!required.includes(entry?.id)) { errors.push(`disposition ${entry?.id ?? '(unnamed)'} does not match a finding of this review`); continue; }
+        if (seen.has(entry.id)) { errors.push(`finding ${entry.id} is disposed more than once`); continue; }
+        if (!FINAL_DISPOSITION_KINDS.includes(entry?.kind)) { errors.push(`finding ${entry.id} has no valid disposition kind`); continue; }
+        if (typeof entry?.rationale !== 'string' || entry.rationale.trim().length === 0) { errors.push(`finding ${entry.id} has no recorded rationale`); continue; }
+        seen.set(entry.id, entry.kind);
+      }
+      for (const id of required) if (!seen.has(id)) errors.push(`finding ${id} has no disposition`);
+      for (const [id, kind] of seen) {
+        if (kind === 'design-change-required') errors.push(`finding ${id} is disposed as requiring a design change, so the design returns to the primary`);
+      }
+    }
+  }
+  return Object.freeze({ required, satisfied: errors.length === 0, errors: Object.freeze(errors) });
+}
+
 export function finalBugFixIntake(review) {
   const items = [];
   review.failedChecks.forEach((value, index) => items.push(Object.freeze({

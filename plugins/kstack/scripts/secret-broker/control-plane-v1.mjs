@@ -46,12 +46,12 @@ const HAS_OWN = Object.hasOwn;
 const JSON_PARSE = JSON.parse;
 const JSON_STRINGIFY = JSON.stringify;
 const JSON_OBJECT = JSON;
+const OBJECT_CREATE = Object.create;
 const OBJECT_PROTOTYPE = Object.prototype;
 const OBJECT_IS = Object.is;
 const OWN_KEYS = Reflect.ownKeys;
 const NUMBER_IS_SAFE_INTEGER = Number.isSafeInteger;
 const REGEXP_EXEC = RegExp.prototype.exec;
-const REGEXP_TEST = RegExp.prototype.test;
 const SET_HAS = Set.prototype.has;
 const SET_ADD = Set.prototype.add;
 const SET_DELETE = Set.prototype.delete;
@@ -80,7 +80,7 @@ const HASH_DIGEST = HASH_PROTOTYPE.digest;
 function arrayIncludes(values, value) { return APPLY(ARRAY_INCLUDES, values, [value]); }
 function arraySome(values, predicate) { return APPLY(ARRAY_SOME, values, [predicate]); }
 function bufferEquals(left, right) { return APPLY(BUFFER_EQUALS, left, [right]); }
-function regexpTest(pattern, value) { return APPLY(REGEXP_TEST, pattern, [value]); }
+function regexpTest(pattern, value) { return APPLY(REGEXP_EXEC, pattern, [value]) !== null; }
 
 function validateCanonicalString(value) {
   if (typeof value !== 'string' || !APPLY(STRING_IS_WELL_FORMED, value, [])) fail('KSTACK_SECRET_CANONICAL_STRING_INVALID');
@@ -106,10 +106,24 @@ function validateCanonicalString(value) {
 // Ordinary indexed assignment consults inherited numeric accessors whenever the
 // index has no own property yet, so an attacker-installed Array.prototype or
 // Object.prototype index setter could drop or replace canonical keys. Every
-// index created here is therefore an own data property, and every read
-// back is descriptor-based.
+// index created here is therefore an own data property, and every descriptor
+// or element read goes through an own-property check (`listRead`,
+// `ownDescriptor`) so a missing key fails closed instead of resolving through
+// `Object.prototype`.
+// ToPropertyDescriptor probes `get`/`set` with HasProperty, so a descriptor
+// literal inherits them from a polluted Object.prototype and throws instead of
+// describing a data property. A null-prototype descriptor cannot.
+function dataDescriptor(value, enumerable) {
+  const descriptor = OBJECT_CREATE(null);
+  descriptor.value = value;
+  descriptor.enumerable = enumerable;
+  descriptor.configurable = true;
+  descriptor.writable = true;
+  return descriptor;
+}
+
 function listDefine(list, index, value) {
-  DEFINE_PROPERTY(list, `${index}`, { value, writable: true, enumerable: true, configurable: true });
+  DEFINE_PROPERTY(list, `${index}`, dataDescriptor(value, true));
   const descriptor = GET_OWN_PROPERTY_DESCRIPTOR(list, `${index}`);
   if (!descriptor || !HAS_OWN(descriptor, 'value') || !OBJECT_IS(descriptor.value, value)) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
   return list;
@@ -119,6 +133,17 @@ function listRead(list, index) {
   const descriptor = GET_OWN_PROPERTY_DESCRIPTOR(list, `${index}`);
   if (!descriptor || !HAS_OWN(descriptor, 'value')) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
   return descriptor.value;
+}
+
+// A descriptor map produced by getOwnPropertyDescriptors inherits from
+// Object.prototype, so an ordinary get for an absent key resolves through it. A
+// sparse array whose hole is offset by a non-index own property satisfies the
+// arity guard above, which is what makes that fallback reachable.
+function ownDescriptor(descriptors, key) {
+  if (!HAS_OWN(descriptors, key)) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
+  const descriptor = descriptors[key];
+  if (!descriptor || !descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
+  return descriptor;
 }
 
 function sortedStrings(values) {
@@ -155,9 +180,7 @@ function canonicalValue(value, depth, ancestors) {
       }
       let output = '[';
       for (let index = 0; index < value.length; index += 1) {
-        const key = `${index}`;
-        const descriptor = descriptors[key];
-        if (!descriptor || !descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
+        const descriptor = ownDescriptor(descriptors, `${index}`);
         if (index !== 0) output += ',';
         output += canonicalValue(descriptor.value, depth + 1, ancestors);
       }
@@ -169,8 +192,8 @@ function canonicalValue(value, depth, ancestors) {
     const stringKeys = [];
     for (let index = 0; index < keys.length; index += 1) {
       const key = keys[index];
-      const descriptor = descriptors[key];
-      if (typeof key !== 'string' || !descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
+      if (typeof key !== 'string') fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
+      ownDescriptor(descriptors, key);
       validateCanonicalString(key);
       listDefine(stringKeys, stringKeys.length, key);
     }
@@ -180,7 +203,7 @@ function canonicalValue(value, depth, ancestors) {
     for (let index = 0; index < ordered.length; index += 1) {
       const key = listRead(ordered, index);
       if (index !== 0) output += ',';
-      output += `${APPLY(JSON_STRINGIFY, JSON_OBJECT, [key])}:${canonicalValue(descriptors[key].value, depth + 1, ancestors)}`;
+      output += `${APPLY(JSON_STRINGIFY, JSON_OBJECT, [key])}:${canonicalValue(ownDescriptor(descriptors, key).value, depth + 1, ancestors)}`;
     }
     return `${output}}`;
   } finally {
@@ -263,15 +286,16 @@ export class SecretControlPlaneError extends Error {
   constructor(code) {
     super();
     DEFINE_PROPERTIES(this, {
-      name: { value: 'SecretControlPlaneError', enumerable: true, configurable: true, writable: true },
-      message: { value: code, enumerable: false, configurable: true, writable: true },
-      code: { value: code, enumerable: true, configurable: true, writable: true }
+      name: dataDescriptor('SecretControlPlaneError', true),
+      message: dataDescriptor(code, false),
+      code: dataDescriptor(code, true)
     });
   }
 }
 
 function fail(code) { throw new SecretControlPlaneError(code); }
-function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
+function snapshotRecord(value, keys, code, options) {
+  const requireAll = options === undefined || !HAS_OWN(options, 'requireAll') ? true : options.requireAll;
   let prototype;
   let descriptors;
   let actual;
@@ -288,10 +312,8 @@ function snapshotRecord(value, keys, code, { requireAll = true } = {}) {
   for (let index = 0; index < actual.length; index += 1) {
     const key = actual[index];
     const descriptor = descriptors[key];
-    if (!descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail(code);
-    DEFINE_PROPERTY(snapshot, key, {
-      value: descriptor.value, enumerable: true, configurable: true, writable: true
-    });
+    if (!descriptor || !descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail(code);
+    DEFINE_PROPERTY(snapshot, key, dataDescriptor(descriptor.value, true));
   }
   return snapshot;
 }
@@ -319,7 +341,7 @@ export function validateSecretUpdateId(value, options = {}) {
   const allowOrigin = HAS_OWN(selected, 'allowOrigin') ? selected.allowOrigin : false;
   const code = HAS_OWN(selected, 'code') ? selected.code : 'KSTACK_SECRET_UPDATE_ID_INVALID';
   if (allowOrigin && value === 'epoch-origin') return value;
-  if (typeof value !== 'string' || !APPLY(REGEXP_TEST, UPDATE_ID, [value])) fail(code);
+  if (typeof value !== 'string' || !regexpTest(UPDATE_ID, value)) fail(code);
   const encoded = APPLY(STRING_SLICE, value, [5]);
   let decoded;
   try { decoded = APPLY(BUFFER_FROM, BUFFER_CONSTRUCTOR, [encoded, 'base64url']); } catch { fail(code); }

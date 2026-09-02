@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findConfig, readKStackConfig } from './kstack-config.mjs';
-import { finalBugFixIntake, proseRoutingSignal, sha256, validateReview } from './kstack-review-schema.mjs';
+import { FINAL_DISPOSITION_FILE, blockingSecurityFindings, evaluateFinalDisposition, finalAcceptanceState, finalBugFixIntake, proseRoutingSignal, sha256, validateReview } from './kstack-review-schema.mjs';
 import { buildDecisionPacket, evaluateGroundingOverlay, frameDecisionPacket, verifyDecisionPacket } from './kstack-citation-grounding.mjs';
 import {
   canonicalSecondaryReviewValue,
@@ -12,7 +12,8 @@ import {
   resolveSecondaryReviewPolicy,
   verifySecondaryReviewDecision
 } from './kstack-secondary-review-policy.mjs';
-import { validateTenThousandFootDesign } from './kstack-workflow-contract.mjs';
+import { objectiveDigestOf, validateTenThousandFootDesign } from './kstack-workflow-contract.mjs';
+import { admissibleChainedCycle, dispatchedCycleFloor, readDispatchLog } from './kstack-staged-review.mjs';
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -105,7 +106,12 @@ export function evaluateDesignGate({ designFile, reviewDir, checksFile, configFi
   }
   if (manifest.designDigest !== designDigest) addReason(reasons, 'DESIGN_DIGEST_MISMATCH', 'Review manifest is not bound to this design.');
   if (stagedConfigured && !stagedReview) addReason(reasons, 'REVIEW_PROTOCOL_INVALID', 'Configured staged review cannot be satisfied by legacy dual-review evidence.');
-  if (manifest.status !== (stagedReview ? 'staged-complete' : 'dual-complete')) addReason(reasons, 'REVIEW_INCOMPLETE', `Review status is ${manifest.status}.`);
+  // A cycle whose final review needed dispositions publishes its manifest before the operator
+  // records them, so its status stays 'final-disposition-required' forever. That status is
+  // complete evidence of the review; whether the dispositions were then recorded is judged
+  // separately below, against the disposition record itself.
+  const completeStatuses = stagedReview ? ['staged-complete', 'final-disposition-required'] : ['dual-complete'];
+  if (!completeStatuses.includes(manifest.status)) addReason(reasons, 'REVIEW_INCOMPLETE', `Review status is ${manifest.status}.`);
   if (stagedReview) {
     const expectedRoles = config.workflow.phaseModels.design;
     if (manifest.orderedReviewers?.primary !== expectedRoles[0] || manifest.orderedReviewers?.final !== expectedRoles[1]
@@ -153,12 +159,40 @@ export function evaluateDesignGate({ designFile, reviewDir, checksFile, configFi
     confidences.push(envelope.review.confidence);
     const finalReviewer = stagedReview && reviewer === manifest.orderedReviewers?.final;
     const reviewerMinimumConfidence = finalReviewer ? finalMinimumConfidence : primaryMinimumConfidence;
-    if ((!finalReviewer && envelope.review.decision !== 'approve') || (finalReviewer && envelope.review.decision === 'block')) {
+    if (envelope.review.decision !== 'approve') {
       addReason(reasons, finalReviewer ? 'FINAL_REVIEW_BLOCKED' : 'REVIEW_NOT_APPROVED', `${reviewer} decision is ${envelope.review.decision}.`);
     }
     if (envelope.review.confidence < reviewerMinimumConfidence) addReason(reasons, 'CONFIDENCE_BELOW_THRESHOLD', `${reviewer} confidence ${envelope.review.confidence} is below ${reviewerMinimumConfidence}.`);
     if (!finalReviewer && envelope.review.failedChecks.length) addReason(reasons, 'REVIEW_FAILED_CHECKS', `${reviewer} reported failed checks.`);
     if (!finalReviewer && policy.requireZeroSecurityFindings && envelope.review.securityFindings.length) addReason(reasons, 'SECURITY_FINDINGS', `${reviewer} reported security findings.`);
+    if (finalReviewer) {
+      const blocking = blockingSecurityFindings(envelope.review);
+      if (blocking.length) {
+        addReason(reasons, 'FINAL_SECURITY_FINDINGS_BLOCKING',
+          `${reviewer} reported ${blocking.length} unresolved high or critical security finding(s); each needs explicit disposition before approval and cannot route to bug-fix intake.`);
+      }
+      let dispositionRecord = null;
+      // Opened without following a link, and only if it is the regular file it appears to be, so
+      // the gate refuses exactly the records the runner refuses rather than admitting a redirect
+      // the runner would have rejected.
+      const dispositionFile = path.join(reviewDir, FINAL_DISPOSITION_FILE);
+      let dispositionDescriptor;
+      try {
+        const linked = fs.lstatSync(dispositionFile);
+        dispositionDescriptor = fs.openSync(dispositionFile, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
+        const opened = fs.fstatSync(dispositionDescriptor);
+        if (!linked.isFile() || linked.isSymbolicLink() || !opened.isFile()
+            || linked.dev !== opened.dev || linked.ino !== opened.ino) throw new Error('untrusted disposition record');
+        dispositionRecord = JSON.parse(fs.readFileSync(dispositionDescriptor, 'utf8'));
+      } catch { dispositionRecord = null; } finally {
+        if (dispositionDescriptor !== undefined) fs.closeSync(dispositionDescriptor);
+      }
+      const disposition = evaluateFinalDisposition(envelope.review, manifest.providers?.[reviewer]?.envelopeSha256, dispositionRecord);
+      if (!disposition.satisfied) {
+        addReason(reasons, 'FINAL_DISPOSITION_REQUIRED',
+          `${reviewer} reported findings needing explicit disposition: ${disposition.errors.join('; ')}.`);
+      }
+    }
     if (!finalReviewer && policy.requireZeroMaterialDissent && envelope.review.materialDissent.length) addReason(reasons, 'MATERIAL_DISSENT', `${reviewer} reported material dissent.`);
     if (!finalReviewer && envelope.review.unresolvedQuestions.length) addReason(reasons, 'UNRESOLVED_QUESTIONS', `${reviewer} reported unresolved questions.`);
   }
@@ -181,14 +215,50 @@ export function evaluateDesignGate({ designFile, reviewDir, checksFile, configFi
       addReason(reasons, 'PRIMARY_PROSE_ROUTING_UNRESOLVED', 'The primary report describes an unresolved concern in prose that is absent from its structured findings.');
     }
     const priorCycle = manifest.priorCycle;
+    // An interrupted cycle publishes no manifest, so a valid chain can present a prior that is more
+    // than one number back. The gap is only admissible if the dispatch log accounts for it, so this
+    // reads the log directly and recomputes the number the cycle had to carry rather than believing
+    // the manifest's own sequenceValid. The cycle records its own dispatch before running, so its
+    // entry is excluded to recover the floor it was admitted against.
+    const cycleNumber = manifest.cycleBudget?.cycleNumber;
+    const dispatchedBefore = Number.isSafeInteger(cycleNumber)
+      ? dispatchedCycleFloor(readDispatchLog(path.dirname(path.dirname(path.resolve(configFile)))), manifest.threadId, cycleNumber)
+      : 0;
     const priorCycleValid = Object.hasOwn(manifest, 'priorCycle') && (priorCycle === null
       || (priorCycle && typeof priorCycle === 'object' && !Array.isArray(priorCycle)
         && typeof priorCycle.status === 'string'
         && /^[0-9a-f]{64}$/u.test(priorCycle.designDigest ?? '')
         && /^[0-9a-f]{64}$/u.test(priorCycle.manifestSha256 ?? '')
+        && priorCycle.objectiveValid === true && priorCycle.threadValid === true
+        && priorCycle.sequenceValid === true
+        && cycleNumber === admissibleChainedCycle(priorCycle.cycleNumber, dispatchedBefore)
         && !(priorCycle.status === 'final-not-approved' && priorCycle.designDigest === designDigest)));
     if (!priorCycleValid) {
-      addReason(reasons, 'CONVERGENCE_EVIDENCE_INVALID', 'Staged evidence does not record a first cycle or a prior cycle whose brief actually changed.');
+      addReason(reasons, 'CONVERGENCE_EVIDENCE_INVALID', 'Staged evidence does not record a first cycle or a verified immediately preceding cycle of the same thread.');
+    }
+    if (!/^[a-z0-9][a-z0-9-]{0,63}$/u.test(manifest.threadId ?? '')
+        || manifest.objectiveDigest !== objectiveDigestOf(design)) {
+      addReason(reasons, 'THREAD_IDENTITY_INVALID', 'Staged evidence is not bound to a named design thread and the objective of the design under review.');
+    }
+    if (manifest.cycleBudget?.cyclesCharged !== (manifest.providerInvocationCount > 0 ? 1 : 0)) {
+      addReason(reasons, 'CYCLE_BUDGET_ACCOUNTING_INVALID', 'Staged evidence charges a number of design cycles that does not match the provider capacity it actually consumed.');
+    }
+    if (manifest.providerInvocationCount > 0
+        && (manifest.providerIsolation?.schema !== 'kstack-staged-review-provider-isolation-check-v1'
+          || !Array.isArray(manifest.providerIsolation.unmeasured)
+          || manifest.providerIsolation.unmeasured.length !== 0
+          || !/^[0-9a-f]{64}$/u.test(manifest.providerIsolation.evidenceSha256 ?? ''))) {
+      addReason(reasons, 'PROVIDER_ISOLATION_UNMEASURED', 'Staged evidence does not record that every dispatched provider matched a cross-run isolation measurement taken against that exact backend.');
+    }
+    // Reproduced here on its own rather than only inside the secondary-review reproduction below,
+    // so a dispatch that ran both reviewers on one vendor names that as the reason. Unknown or
+    // ambiguous families never reach this comparison: they leave the backend unavailable.
+    if (manifest.providerInvocationCount > 0) {
+      const primaryFamily = manifest.reviewerBackends?.[manifest.orderedReviewers?.primary]?.providerFamily;
+      const finalFamily = manifest.reviewerBackends?.[manifest.orderedReviewers?.final]?.providerFamily;
+      if (typeof primaryFamily !== 'string' || primaryFamily.length === 0 || primaryFamily === finalFamily) {
+        addReason(reasons, 'PROVIDER_FAMILY_NOT_SEPARATED', 'The primary and the independent final review did not run on separately identified provider families.');
+      }
     }
     try {
       const normalizedRound = normalizeReviewRound(round) ?? 1;
@@ -202,7 +272,7 @@ export function evaluateDesignGate({ designFile, reviewDir, checksFile, configFi
         classification: configuredSecondaryPolicy.materialDesignRiskClass,
         workUnitDigest: designDigest
       };
-      const backendKeys = ['available', 'backendDigest', 'configurationDigest', 'configuredArgs', 'model', 'providerFamily', 'providerFamilyEvidence', 'requestedCommand'].sort();
+      const backendKeys = ['available', 'backendDigest', 'configurationDigest', 'configuredArgs', 'model', 'providerFamily', 'providerFamilyEvidence', 'requestedCommand', 'runtimeSurface'].sort();
       for (const reviewer of [manifest.orderedReviewers?.primary, manifest.orderedReviewers?.final]) {
         const backend = manifest.reviewerBackends?.[reviewer];
         const familyEvidence = backend?.providerFamilyEvidence;
@@ -217,6 +287,17 @@ export function evaluateDesignGate({ designFile, reviewDir, checksFile, configFi
             || familyEvidence.providerFamily !== backend.providerFamily
             || !/^[0-9a-f]{64}$/u.test(familyEvidence.probeOutputSha256)) {
           throw new Error('backend evidence invalid');
+        }
+        // The surface digests are bound into backendDigest, so the gate checks that the
+        // dispatched backend actually recorded a surface of the declared shape rather than
+        // reproducing a walk whose subject may have changed since the review ran.
+        const surface = backend.runtimeSurface;
+        if (!surface || surface.method !== 'bounded-content-walk-v1'
+            || typeof surface.pluginsRemovedByConstruction !== 'boolean'
+            || (surface.installationDigest !== null && !/^[0-9a-f]{64}$/u.test(surface.installationDigest))
+            || (surface.pluginDigest !== null && !/^[0-9a-f]{64}$/u.test(surface.pluginDigest))
+            || (!surface.pluginsRemovedByConstruction && surface.pluginRoot !== null && surface.pluginDigest === null)) {
+          throw new Error('runtime surface evidence invalid');
         }
       }
       const primaryBackend = manifest.reviewerBackends[manifest.orderedReviewers.primary];
@@ -310,8 +391,9 @@ export function evaluateDesignGate({ designFile, reviewDir, checksFile, configFi
     const finalReview = reviews[finalReviewer];
     const finalReadiness = manifest.finalReadiness;
     const expectedBugFixIntake = finalReview ? finalBugFixIntake(finalReview) : [];
-    const finalAccepted = finalReview && finalReview.decision !== 'block' && finalReview.confidence >= finalMinimumConfidence;
-    const expectedDisposition = finalAccepted ? expectedBugFixIntake.length === 0 ? 'clean' : 'bugfix-only' : 'return-to-primary';
+    const acceptance = finalReview ? finalAcceptanceState(finalReview, finalMinimumConfidence) : null;
+    const finalAccepted = Boolean(acceptance?.accepted) && acceptance.blockingSecurityCount === 0;
+    const expectedDisposition = acceptance?.disposition ?? 'return-to-primary';
     if (!finalAccepted || finalReadiness?.ready !== true || finalReadiness.minimumConfidence !== finalMinimumConfidence
         || finalReadiness.decision !== finalReview?.decision || finalReadiness.confidence !== finalReview?.confidence
         || finalReadiness?.disposition !== expectedDisposition

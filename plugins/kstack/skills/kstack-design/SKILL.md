@@ -84,13 +84,38 @@ or deployment plan in this phase.
    and record the cycle number and cumulative provider invocations. Track
    cycles, not wall-clock timing. Either way the cycle costs exactly one of
    `maxRounds`; a `not-dispatched` final changes the invocation count, not the
-   budget charge. Do not start a cycle that
+   budget charge. A cycle blocked before the primary spawns costs nothing at
+   all, including a cycle refused because no cross-run isolation measurement
+   matches the active provider build — after a Codex or Claude upgrade, re-run
+   `--measure-provider-isolation` for each provider before the next cycle, and
+   also after any change to a measured plugin directory, since the runtime
+   surface binds the measurement. A cycle interrupted after dispatch publishes no
+   result and is re-run at the **next** cycle number, not its own: the runner
+   logged the dispatch before spawning, so the charge is automatic and re-using
+   the interrupted number returns `dispatched-cycle-uncharged`. The successor
+   chains to the last *published* manifest, which after an interruption is more
+   than one number back; the gate re-derives that from the dispatch log and still
+   refuses a gap the log does not account for. Only a final decision
+   of exactly `approve` is acceptance — a `revise` final returns to the primary —
+   and a final carrying an unresolved high or critical security finding is never
+   accepted whatever its confidence. Failed checks, material dissent, and open
+   questions on an accepted final each need an explicit typed disposition
+   recorded in the review directory before the gate will pass. A disposition is
+   a human authority act: the record must carry `authority` naming the `owner`
+   role, a person, and an attestation time. Never write one yourself — draft the
+   text for the owner to review and sign if that helps, but the record that
+   takes effect is theirs. Do not start a
+   cycle that
    would exceed `maxRounds`. Return `USER_DECISION_REQUIRED` so the owner can
    narrow scope, accept a residual, change the design, or explicitly amend the
    configuration; never silently extend the loop.
-   Pass `--first-cycle` on the opening cycle of a thread and
-   `--prior-manifest <prior-review-dir>/manifest.json` on every later one; the
-   runner refuses to dispatch without exactly one of them. After a
+   Name the thread with `--thread-id` on every cycle. Pass `--first-cycle` on
+   the opening cycle of a thread, and on every later one pass
+   `--prior-manifest <prior-review-dir>/manifest.json` together with
+   `--prior-brief <the exact brief that manifest reviewed>`; the runner refuses
+   to dispatch without exactly one of those two forms, and a chained cycle must
+   share the prior cycle's objective and thread and follow it immediately in
+   cycle number. After a
    `final-not-approved` cycle the repaired brief must both differ from the
    rejected brief and carry a `## Prior final review feedback` section stating
    what that review found and how the design now answers it. That section is the

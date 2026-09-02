@@ -44,6 +44,53 @@ if (logFile) fs.appendFileSync(logFile, `${provider}\n`);
 if (forbiddenFiles.some((file) => fs.existsSync(file))) process.exit(7);
 if (forbiddenEnv.some((name) => process.env[name] !== undefined)) process.exit(8);
 if (outDirLog) fs.appendFileSync(outDirLog, `${JSON.stringify({ provider, entries: fs.readdirSync(path.resolve(process.cwd(), '..')).sort() })}\n`);
+// Adversarial sweep: a reviewer actively hunting for the other reviewer's traces. The primary's
+// working directory carries a random name, so this discovers it by listing the review directory
+// rather than being handed a path, then attempts an actual read of every artifact inside it and
+// of the sibling per-role files. Exits 11 if any read succeeds. This demonstrates absence at the
+// moment this process runs; denial of reads to a real provider rests on PROVIDER_NO_WRITE_FLAGS,
+// which a Node fixture cannot exercise.
+if (option('fixture-probe-peer-work', 'false') === 'true') {
+  const reviewDir = path.resolve(process.cwd(), '..');
+  const own = path.basename(process.cwd());
+  const observed = [];
+  let entries = [];
+  try { entries = fs.readdirSync(reviewDir); } catch { entries = []; }
+  for (const entry of entries) {
+    if (!entry.startsWith('.provider-work-') || entry === own) continue;
+    for (const artifact of ['stdout', 'stderr', 'prompt', 'last-message', 'schema.json']) {
+      try { fs.readFileSync(path.join(reviewDir, entry, artifact)); observed.push(`${entry}/${artifact}`); } catch { /* absent or unreadable */ }
+    }
+  }
+  for (const role of ['codex', 'opus']) {
+    for (const artifact of [`${role}.json`, `${role}.md`, `${role}.stderr.log`]) {
+      try { fs.readFileSync(path.join(reviewDir, artifact)); observed.push(artifact); } catch { /* absent or unreadable */ }
+    }
+  }
+  const peerLog = option('fixture-peer-log');
+  if (peerLog) fs.appendFileSync(peerLog, `${JSON.stringify({ provider, observed })}\n`);
+  if (observed.length > 0) process.exit(11);
+}
+const disclosureLog = option('fixture-disclosure-log');
+if (disclosureLog) {
+  const openFiles = [];
+  for (const entry of fs.readdirSync('/proc/self/fd')) {
+    let target;
+    try { target = fs.readlinkSync(`/proc/self/fd/${entry}`); } catch { continue; }
+    if (target.startsWith('/') && !/^\/(?:proc|dev|sys)\//u.test(target)) openFiles.push(path.basename(target));
+  }
+  const home = process.env.HOME ?? null;
+  fs.appendFileSync(disclosureLog, `${JSON.stringify({
+    provider,
+    argv: process.argv.join('\0'),
+    env: Object.entries(process.env).map(([key, value]) => `${key}=${value}`).join('\0'),
+    tmpdir: process.env.TMPDIR ?? null,
+    home,
+    homeEntries: home && fs.existsSync(home) ? fs.readdirSync(home).sort() : null,
+    cwd: process.cwd(),
+    openFiles: openFiles.sort()
+  })}\n`);
+}
 if (argvLog) fs.appendFileSync(argvLog, `${JSON.stringify({ provider, argv: process.argv.slice(2), cwd: process.cwd() })}\n`);
 if (promptLog) fs.appendFileSync(promptLog, `${JSON.stringify({ provider, prompt: fs.readFileSync(0, 'utf8') })}\n`);
 if (Number.isSafeInteger(delayMs) && delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -52,7 +99,7 @@ const review = {
   decision,
   confidence,
   failedChecks: decision === 'approve' || (decision === 'revise' && bareRevise) ? [] : ['Fixture primary is not ready.'],
-  securityFindings: intake ? [{ id: 'SEC-INTAKE', severity: 'medium', summary: 'Fix during implementation.' }] : [],
+  securityFindings: intake ? [{ id: 'SEC-INTAKE', severity: option('fixture-intake-severity', 'medium'), summary: 'Fix during implementation.' }] : [],
   materialDissent: intake ? ['Carry the alternative into implementation acceptance tests.'] : [],
   recommendation: 'Exercise the staged review protocol.',
   strongestObjection: option('fixture-objection', 'This fixture does not use a real provider.'),

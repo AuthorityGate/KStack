@@ -142,6 +142,16 @@ export function validateTenThousandFootDesign(bytes) {
   return { schemaVersion: 1, contract: 'kstack-design-10k-v1', status: errors.length ? 'invalid' : 'valid', errors, blocks };
 }
 
+export function objectiveDigestOf(bytes) {
+  const lines = (Buffer.isBuffer(bytes) ? bytes.toString('utf8') : String(bytes)).replace(/\r\n?/gu, '\n').split('\n');
+  const end = lines.findIndex((line) => line.startsWith('## '));
+  for (const line of lines.slice(1, end < 0 ? lines.length : end)) {
+    const match = /^Objective-digest:\s*([0-9a-f]{64})\s*$/u.exec(line);
+    if (match) return match[1];
+  }
+  return null;
+}
+
 export function validateDeliveryBacklog({ designBytes, backlog, jiraRequired = false }) {
   const design = validateTenThousandFootDesign(designBytes);
   const errors = [...design.errors.map((item) => error('BACKLOG_DESIGN_INVALID', `${item.code}: ${item.detail}`))];

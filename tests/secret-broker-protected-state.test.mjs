@@ -18,6 +18,9 @@ import {
   parseAuthorityHead,
   reconcileAuditAdvance,
   reconcileAuthorityAdvance,
+  secretCanonicalBytes,
+  validateSecretDigest,
+  validateSecretOpaqueRef,
   validateSecretUpdateId,
   validateAuditHeadValue,
   validateAuthorityHeadValue
@@ -1203,4 +1206,292 @@ test('protected-state copying stays available and exact while inherited numeric 
       } finally { fs.rmSync(state.parent, { recursive: true, force: true }); }
     }
   }
+});
+
+// `map`/`filter` allocate their result through ArraySpeciesCreate, which
+// resolves `Array.prototype.constructor` and `@@species`. A constructor
+// returning a Proxy whose `defineProperty` trap swallows writes therefore
+// substitutes the container that was supposed to receive validated elements.
+// `makeTarget` returns null to let a call allocate normally, so unrelated
+// runtime internals keep working while the substitution is installed.
+function withSpeciesSubstitution(makeTarget, action) {
+  const previous = Object.getOwnPropertyDescriptor(Array.prototype, 'constructor');
+  let call = 0;
+  function Substitute(length) {
+    const target = makeTarget(length, call += 1);
+    if (target === null) return new Array(length);
+    return new Proxy(target, { defineProperty() { return true; } });
+  }
+  Object.defineProperty(Substitute, Symbol.species, { get() { return Substitute; } });
+  Object.defineProperty(Array.prototype, 'constructor', { configurable: true, writable: true, value: Substitute });
+  try { return action(); }
+  finally { Object.defineProperty(Array.prototype, 'constructor', previous); }
+}
+
+function persistedState(root) {
+  return JSON.parse(fs.readFileSync(path.join(root, 'state-v1.json'), 'utf8'));
+}
+
+function forgedAuthorityHead(epoch) {
+  return {
+    schemaVersion: 'kstack-secret-authority-head-v1',
+    authorityNamespaceRef: REF_A,
+    authorityEpoch: epoch,
+    priorAuthorityDigest: `sha256:${'a'.repeat(64)}`,
+    lastUpdateId: UPDATE_4
+  };
+}
+
+test('authority and audit heads cannot be replaced through @@species container substitution', () => {
+  const state = fixture();
+  try {
+    const origin = state.adapter.initializeAuthority(REF_A).head;
+    const advanced = state.adapter.compareAndAdvanceAuthority(origin, issue(state.adapter));
+    assert.equal(advanced.head.authorityEpoch, 2);
+
+    // A mismatched CAS must neither commit nor mutate, even when the head
+    // container is substituted mid-validation.
+    const staleUpdateId = issue(state.adapter);
+    const mismatched = withSpeciesSubstitution(
+      (length, call) => (call === 1 && length === 1 ? [forgedAuthorityHead(999)] : null),
+      () => state.adapter.compareAndAdvanceAuthority(origin, staleUpdateId)
+    );
+    assert.equal(mismatched.result, 'EXPECTATION_MISMATCH');
+    assert.equal(persistedState(state.root).authorityHeads[0].authorityEpoch, 2);
+
+    // A benign operation that touches no head must not rewrite one either.
+    const issued = withSpeciesSubstitution(
+      (length, call) => (call === 1 && length === 1 ? [forgedAuthorityHead(999)] : null),
+      () => state.adapter.issueUpdateId()
+    );
+    assert.equal(issued.result, 'ISSUED');
+    assert.equal(persistedState(state.root).authorityHeads[0].authorityEpoch, 2);
+
+    // The forgery must not survive pollution removal, reopen, or read-back.
+    const reopened = SyntheticProtectedStateAdapter.open({ root: state.root, clock: state.clock });
+    assert.equal(reopened.readAuthorityHead(REF_A).authorityEpoch, 2);
+    assert.equal(reopened.verifyAuthoritySnapshot(advanced.head), 'READY');
+
+    // Legitimate advances still succeed while the substitution is installed.
+    const legitimate = withSpeciesSubstitution(
+      () => null,
+      () => state.adapter.compareAndAdvanceAuthority(advanced.head, issue(state.adapter))
+    );
+    assert.equal(legitimate.result, 'ADVANCED');
+    assert.equal(legitimate.head.authorityEpoch, 3);
+    assert.equal(state.adapter.readAuthorityHead(REF_A).authorityEpoch, 3);
+    assert.equal(Array.prototype.constructor, Array, 'species substitution leaked');
+  } finally { fs.rmSync(state.parent, { recursive: true, force: true }); }
+});
+
+test('audit chain heads cannot be forged through @@species container substitution', () => {
+  const state = fixture();
+  try {
+    state.adapter.initializeAuthority(REF_A);
+    const auditHead = state.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 60_000 }).head;
+    assert.equal(auditHead.ordinal, 0);
+    const forgedAudit = { ...auditHead, ordinal: 4242, eventDigest: EVENT_B, lastUpdateId: UPDATE_4 };
+
+    // The auditHeads copy is the second authority-bearing list built per state
+    // validation, so target that call specifically.
+    const issued = withSpeciesSubstitution(
+      (length, call) => (call === 2 && length === 1 ? [forgedAudit] : null),
+      () => state.adapter.issueUpdateId()
+    );
+    assert.equal(issued.result, 'ISSUED');
+    assert.equal(persistedState(state.root).auditHeads[0].ordinal, 0);
+
+    const advanced = withSpeciesSubstitution(
+      () => null,
+      () => state.adapter.compareAndAdvanceAudit(auditHead, EVENT_A, issue(state.adapter))
+    );
+    assert.equal(advanced.result, 'ADVANCED');
+    assert.equal(advanced.head.ordinal, 1);
+    assert.equal(state.adapter.readAuditHead(REF_B).ordinal, 1);
+    assert.equal(persistedState(state.root).auditHeads[0].ordinal, 1);
+    // Mirror the reviewer's durability method: pollution removed, adapter
+    // reopened on a clean prototype, head re-read from disk.
+    const reopened = SyntheticProtectedStateAdapter.open({ root: state.root, clock: state.clock });
+    assert.equal(reopened.readAuditHead(REF_B).ordinal, 1);
+    assert.equal(reopened.verifyAuditSnapshot(advanced.head), 'READY');
+    assert.equal(Array.prototype.constructor, Array, 'species substitution leaked');
+  } finally { fs.rmSync(state.parent, { recursive: true, force: true }); }
+});
+
+test('advance-option control flow cannot be steered by inherited string keys', () => {
+  const pollutions = [['crashCut', 'BEFORE_COMMIT'], ['crashCut', 'AFTER_COMMIT'], ['acknowledgementCut', 'AFTER_COMMIT']];
+  for (const [key, value] of pollutions) {
+    const label = `Object.prototype.${key}=${value}`;
+    const state = fixture();
+    try {
+      const origin = state.adapter.initializeAuthority(REF_A).head;
+      const auditHead = state.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 60_000 }).head;
+      const authorityUpdateId = issue(state.adapter);
+      const auditUpdateId = issue(state.adapter);
+      const previous = Object.getOwnPropertyDescriptor(Object.prototype, key);
+      Object.defineProperty(Object.prototype, key, { configurable: true, writable: true, value });
+      let outcome;
+      try {
+        const capture = (action) => {
+          try { return action(); } catch (error) { return { result: `THREW:${error?.code ?? error?.message}` }; }
+        };
+        outcome = {
+          authority: capture(() => state.adapter.compareAndAdvanceAuthority(origin, authorityUpdateId)),
+          audit: capture(() => state.adapter.compareAndAdvanceAudit(auditHead, EVENT_A, auditUpdateId))
+        };
+      } finally {
+        delete Object.prototype[key];
+        if (previous) Object.defineProperty(Object.prototype, key, previous);
+      }
+      assert.equal(outcome.authority.result, 'ADVANCED', label);
+      assert.equal(outcome.authority.head.authorityEpoch, 2, label);
+      assert.equal(outcome.audit.result, 'ADVANCED', label);
+      assert.equal(outcome.audit.head.ordinal, 1, label);
+      assert.equal(state.adapter.readAuthorityHead(REF_A).authorityEpoch, 2, label);
+      assert.equal(state.adapter.readAuditHead(REF_B).ordinal, 1, label);
+      assert.equal(Object.getOwnPropertyDescriptor(Object.prototype, key), previous, `${label} pollution leaked`);
+    } finally { fs.rmSync(state.parent, { recursive: true, force: true }); }
+  }
+});
+
+test('control-plane validators do not dispatch through a replaceable RegExp.prototype.exec', () => {
+  const validDigest = EVENT_A;
+  const validRef = REF_C;
+  const previous = Object.getOwnPropertyDescriptor(RegExp.prototype, 'exec');
+  let seen;
+  try {
+    // RegExp.prototype.test performs a dynamic Get(R, "exec") at call time.
+    Object.defineProperty(RegExp.prototype, 'exec', {
+      configurable: true, writable: true, value() { return ['forged']; }
+    });
+    const capture = (action) => {
+      try { return action(); } catch (error) { return `REJECTED:${error?.code}`; }
+    };
+    seen = {
+      badDigest: capture(() => validateSecretDigest('NOT-A-DIGEST')),
+      badRef: capture(() => validateSecretOpaqueRef('NOT-AN-OPAQUE-REF')),
+      badUpdateId: capture(() => validateSecretUpdateId('NOT-AN-UPDATE-ID')),
+      goodDigest: capture(() => validateSecretDigest(validDigest)),
+      goodRef: capture(() => validateSecretOpaqueRef(validRef))
+    };
+  } finally { Object.defineProperty(RegExp.prototype, 'exec', previous); }
+  assert.equal(seen.badDigest, 'REJECTED:KSTACK_SECRET_DIGEST_INVALID');
+  assert.equal(seen.badRef, 'REJECTED:KSTACK_SECRET_OPAQUE_REF_INVALID');
+  assert.equal(seen.badUpdateId, 'REJECTED:KSTACK_SECRET_UPDATE_ID_INVALID');
+  assert.equal(seen.goodDigest, validDigest);
+  assert.equal(seen.goodRef, validRef);
+});
+
+function withOwnPollution(target, entries, action) {
+  const restore = [];
+  for (const [key, value] of entries) {
+    restore.push([key, Object.getOwnPropertyDescriptor(target, key)]);
+    Object.defineProperty(target, key, { configurable: true, writable: true, value });
+  }
+  try { return action(); }
+  finally {
+    for (const [key, previous] of restore) {
+      delete target[key];
+      if (previous) Object.defineProperty(target, key, previous);
+    }
+  }
+}
+
+test('the canonical encoder rejects a hole rather than resolving the index through Object.prototype', () => {
+  // A hole offset by a non-index own property satisfies the encoder's arity
+  // guard, which is what makes an inherited descriptor-shaped value reachable.
+  const sparse = ['kept'];
+  sparse.length = 2;
+  Object.defineProperty(sparse, 'decoy', { value: 1, enumerable: true, configurable: true });
+  const dense = ['kept', 'second'];
+  const seen = withOwnPollution(Object.prototype, [['1', { enumerable: true, value: 'FORGED' }]], () => {
+    const capture = (action) => {
+      try { return action(); } catch (error) { return `REJECTED:${error?.code}`; }
+    };
+    return {
+      sparse: capture(() => secretCanonicalBytes(sparse).toString('utf8')),
+      dense: capture(() => secretCanonicalBytes(dense).toString('utf8'))
+    };
+  });
+  assert.equal(seen.sparse, 'REJECTED:KSTACK_SECRET_CANONICAL_VALUE_INVALID');
+  assert.equal(seen.dense, '["kept","second"]');
+  assert.equal(Object.getOwnPropertyDescriptor(Object.prototype, '1'), undefined);
+});
+
+test('record arity validation cannot be disabled through an inherited requireAll', () => {
+  const partialAuthority = {
+    schemaVersion: 'kstack-secret-authority-head-v1',
+    authorityNamespaceRef: REF_A,
+    authorityEpoch: 1,
+    priorAuthorityDigest: 'GENESIS'
+  };
+  const partialAudit = {
+    schemaVersion: 'kstack-secret-audit-head-v1',
+    auditNamespaceRef: REF_B,
+    auditEpoch: 1,
+    ordinal: 0,
+    eventDigest: 'epoch-origin',
+    writerLeaseRef: REF_C
+  };
+  // requireAll alone yields no forge because every key is value-checked; the
+  // forge appears when the absent key is itself supplied by the prototype.
+  const seen = withOwnPollution(Object.prototype, [
+    ['requireAll', false],
+    ['lastUpdateId', 'epoch-origin'],
+    ['writerLeaseDeadline', '2026-09-01T00:00:00.000Z']
+  ], () => {
+    const capture = (action) => {
+      try { return action(); } catch (error) { return `REJECTED:${error?.code}`; }
+    };
+    return {
+      authority: capture(() => JSON.stringify(validateAuthorityHeadValue(partialAuthority))),
+      audit: capture(() => JSON.stringify(validateAuditHeadValue(partialAudit))),
+      goodAuthority: capture(() => validateAuthorityHeadValue(authorityOrigin(REF_A)).authorityEpoch)
+    };
+  });
+  assert.equal(seen.authority, 'REJECTED:KSTACK_SECRET_AUTHORITY_HEAD_INVALID');
+  assert.equal(seen.audit, 'REJECTED:KSTACK_SECRET_AUDIT_HEAD_INVALID');
+  assert.equal(seen.goodAuthority, 1);
+  assert.equal(Object.getOwnPropertyDescriptor(Object.prototype, 'requireAll'), undefined);
+});
+
+test('store creation stays create-only under an inherited recursive option', () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'kstack-secret-protected-state-'));
+  const root = path.join(parent, 'external-state');
+  fs.mkdirSync(root, { mode: 0o700 });
+  try {
+    const seen = withOwnPollution(Object.prototype, [['recursive', true]], () => {
+      try {
+        SyntheticProtectedStateAdapter.create({ root, clock: () => Date.parse('2026-09-01T00:00:00.000Z') });
+        return 'ADOPTED';
+      } catch (error) { return `REJECTED:${error?.code}`; }
+    });
+    assert.equal(seen, 'REJECTED:KSTACK_SECRET_PROTECTED_ROOT_CREATE_FAILED');
+    assert.equal(Object.getOwnPropertyDescriptor(Object.prototype, 'recursive'), undefined);
+  } finally { fs.rmSync(parent, { recursive: true, force: true }); }
+});
+
+test('an inherited accessor cannot stall a descriptor write in either module', () => {
+  // ToPropertyDescriptor probes `get`/`set` with HasProperty, so a descriptor
+  // literal inherits them and throws. Every runtime descriptor here is built
+  // with a null prototype, which has no such fallback to reach.
+  const state = fixture();
+  try {
+    const head = state.adapter.initializeAuthority(REF_A).head;
+    for (const key of ['get', 'set']) {
+      const seen = withOwnPollution(Object.prototype, [[key, () => undefined]], () => {
+        const capture = (action) => {
+          try { return action(); }
+          catch (error) { return `${error?.constructor?.name}:${error?.code}`; }
+        };
+        return {
+          controlPlane: capture(() => validateAuthorityHeadValue(head).authorityEpoch),
+          synthetic: capture(() => state.adapter.status().state)
+        };
+      });
+      assert.equal(seen.controlPlane, 1, `Object.prototype.${key}`);
+      assert.equal(seen.synthetic, 'SYNTHETIC_READY', `Object.prototype.${key}`);
+      assert.equal(Object.getOwnPropertyDescriptor(Object.prototype, key), undefined);
+    }
+  } finally { fs.rmSync(state.parent, { recursive: true, force: true }); }
 });

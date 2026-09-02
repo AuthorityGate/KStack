@@ -37,15 +37,39 @@ Codex or Claude Opus; the other configured agent becomes the final reviewer.
    mandatory backlog/implementation fixes. Only a final `block` or score below
    81 returns the work to the primary for another solo repair cycle, which again
    requires a fresh clean primary readiness result before final review.
-7a. Every cycle declares its position in the repair chain: exactly one of
-   `--first-cycle` or `--prior-manifest <prior staged manifest>`, resolved
-   inside the project root. Neither or both is `prior-cycle-evidence-missing`
-   at zero provider invocations. The declared position is recorded as
-   `priorCycle` in the manifest and independently checked by the design gate.
-   Because the gate now requires that record, staged evidence produced before
-   this change is not gate-admissible. The only such evidence in this repository
-   is cycle 1 of this thread, which was `staged-complete` and would previously
-   have gated ready; it was owner-rejected, so nothing admissible is lost.
+7a. Every cycle names its design thread with `--thread-id` and declares its
+   position in that thread's chain: exactly one of `--first-cycle` or
+   `--prior-manifest <prior staged manifest>` paired with `--prior-brief <the
+   exact brief that manifest reviewed>`, all resolved inside the project root.
+   A missing or malformed thread name is `thread-identity-missing`; a missing,
+   doubled, or unpaired declaration is `prior-cycle-evidence-missing`. The
+   declared position is recorded as `priorCycle` and independently checked by
+   the design gate. Because the gate now requires that record, staged evidence
+   produced before this change is not gate-admissible. The only such evidence in
+   this repository is cycle 1 of this thread, which was `staged-complete` and
+   would previously have gated ready; it was owner-rejected, so nothing
+   admissible is lost.
+7a-i. A chained cycle must be checked against this chain, not merely against
+   some manifest whose brief differs. `--thread-id` is required unconditionally
+   on every staged cycle; a missing or malformed one blocks before dispatch. The
+   separate allowance is on the *prior* side only: a prior manifest that records
+   no `threadId` is still chainable, because manifests written before thread
+   recording existed cannot have one, and those cycles bind through the
+   objective instead. That allowance never applies to the current cycle. Three
+   conditions hold before any
+   provider starts, each a `prior-cycle-identity-mismatch` or
+   `prior-cycle-sequence-invalid` at zero provider invocations. Same objective:
+   the prior brief must hash to the prior manifest's recorded design digest,
+   which binds that manifest to exactly one artifact, and that artifact's
+   `Objective-digest` must equal the current brief's. Same thread: a prior
+   manifest that records a `threadId` must match the current one, and one that
+   does not is bound by the objective instead and recorded as
+   `threadBinding: 'brief-derived'`. Immediately preceding: the prior manifest's
+   recorded cycle number must be exactly one less than this cycle's, and a prior
+   manifest with no cycle accounting cannot be chained at all. Binding the
+   objective through the brief rather than through a second operator-supplied
+   identifier makes objective identity a property of the design that both
+   reviewers see, not an operator assertion.
 7b. After a `final-not-approved` prior cycle the repaired decision brief must
    differ from the brief that was rejected. An equal design digest is
    `convergence-blocked` at zero provider invocations. A stateless final
@@ -159,6 +183,17 @@ Codex or Claude Opus; the other configured agent becomes the final reviewer.
 
 ## Deterministic evidence
 
+- Full repository suite after the cross-run isolation, budget-charge, and
+  scavenge repairs: `npm test` completed with 1104 tests, 1102 passed, zero
+  failed, zero cancelled, and two Windows-only synthetic tests skipped on Linux.
+  The staged suite reached 67 cases, adding the enforced provider state
+  isolation flag set for both providers, zero-charge accounting for cycles
+  blocked before dispatch, and crash-left private home and temporary
+  directories in the scavenge fixture. Beyond the deterministic suite, the
+  provider state isolation claim was measured directly rather than assumed: a
+  probe token carried in a real dispatched brief appears in the delivered
+  prompt and in the provider's own review, and zero times anywhere under the
+  real provider configuration directory afterwards.
 - Focused workflow suite:
   `node --test tests/config.test.mjs tests/design-gate.test.mjs tests/dual-review.test.mjs tests/staged-review.test.mjs`
   passed all four test files with no failure.
@@ -170,6 +205,24 @@ Codex or Claude Opus; the other configured agent becomes the final reviewer.
 - Full repository suite after the trigger-policy, independent-review, and
   isolation repairs and closure hardening: a serialized full run completed with 975 tests, 974 passed, zero
   failed, zero cancelled, and one Windows-only synthetic test skipped on Linux.
+- Full repository suite after the private-home isolation repair: `npm test`
+  completed with 1102 tests, 1100 passed, zero failed, zero cancelled, and two
+  Windows-only synthetic tests skipped on Linux. The staged suite reached 65
+  cases, adding a distinct private home per provider spawn asserted from inside
+  each provider process, and the per-provider configuration-directory
+  resolution including its no-home fallback. Beyond the deterministic suite,
+  both real provider backends were run through the runner itself under the
+  private home: the primary completed at exit 0 through a first-cycle dispatch,
+  and the final reviewer completed at exit 0 through an advisory dispatch, so
+  the isolation is known not to break provider authentication.
+- Full repository suite after the chain-identity and disclosure-boundary
+  repairs: `npm test` completed with 1096 tests, 1094 passed, zero failed, zero
+  cancelled, and two Windows-only synthetic tests skipped on Linux. The staged
+  suite reached 63 cases, adding a legacy manifest without cycle accounting, an
+  altered prior brief, a foreign objective, a foreign thread, a skipped cycle
+  number, a missing and a malformed thread name, the gate's thread/objective
+  binding, the final provider's own argv/environment/open-descriptor view, and
+  the disclosure-boundary predicate itself.
 - Full repository suite after the convergence, feedback-path, budget, platform,
   prose-routing, credential-scoping, isolation, and lock-liveness repairs:
   `npm test` completed with 1088 tests, 1086 passed, zero failed, zero
@@ -212,6 +265,47 @@ Codex or Claude Opus; the other configured agent becomes the final reviewer.
   features. Claude uses `--no-session-persistence`, safe and restricted modes,
   plan permission mode, no tools or MCP servers, and disabled slash commands.
   Review does not authorize repository or external-state mutation.
+- Cross-invocation state isolation is a runner control, not an incidental
+  argument list. Each provider keeps its real configuration directory —
+  `CODEX_HOME` and `CLAUDE_CONFIG_DIR` are not relocated, because relocating
+  them would mean either duplicating a live credential per invocation or
+  linking across filesystems, and this repository's configuration directory and
+  output directory are on different filesystems. The channel is instead closed
+  at the provider: `PROVIDER_STATE_ISOLATION_FLAGS` names the flags that
+  suppress persistence, and `providerArgs` refuses to return an argument vector
+  that omits any of them, so a future edit that silently drops `--ephemeral`
+  fails closed rather than degrading quietly. A test pins the full set for both
+  providers.
+- That the flags actually work is established by measurement, not by reading
+  the vendors' documentation. A brief carrying a unique probe token was
+  dispatched through the runner to the real primary; the token is present in the
+  delivered prompt and the provider demonstrably reviewed that text, and it
+  occurs zero times anywhere under the real configuration directory afterwards,
+  including the thread-history, state, and log stores and the shell-history
+  file. Review content therefore does not persist into shared provider state.
+  The scope of that claim is exact: it covers review content, not every byte the
+  provider writes. The provider still touches its own caches and lock files
+  during a run. The result is bound to the provider versions tested and must be
+  re-measured when either provider is upgraded, because it depends on their
+  behaviour rather than on a property this runner can enforce alone.
+- A material-design cycle is charged when it consumes provider capacity, not
+  when it is attempted. `cyclesCharged` is derived at manifest-write time from
+  the invocation count, so every outcome blocked before the primary spawns —
+  an invalid design contract, a missing thread identity, absent or mismatched
+  convergence evidence, an exhausted budget — costs zero, and any cycle that
+  reaches a provider costs exactly one whether or not the final is dispatched.
+  Deriving it in one place keeps the rule correct for statuses added later. The
+  gate recomputes the same relation from the manifest and rejects evidence that
+  charges a count its own invocation record does not support. An interruption
+  after the primary spawns writes no manifest at all; that cycle consumed
+  capacity and the operator charges it manually.
+- The trust boundary for evidence is one operator's working copy. Everything in
+  the evidence set is runner-computed from non-secret material, so it proves
+  internal consistency, not authenticity: it is sound exactly while the output
+  directory is writable only by the operator whose review it records. It is not
+  portable authority. A reader who obtains this evidence from another working
+  copy is consuming a claim, not a proof, and nothing here is intended to
+  survive transport to a party who did not produce it.
 - Each provider starts in a unique mode-`0700` work directory containing only
   its mode-`0600` prompt/schema/output files. It receives a minimal allowlisted
   process environment needed for locale, transport, certificate, and provider
@@ -246,19 +340,63 @@ Codex or Claude Opus; the other configured agent becomes the final reviewer.
   only the single-flight lock, the consumption receipt, and that provider's own
   work directory. Any prior `manifest.json` is removed before primary dispatch,
   so stale readiness is also unavailable to the final provider.
-- Each provider child receives only its own provider credential. The allowlist
-  adds `CODEX_HOME` and `OPENAI_API_KEY` for Codex and `CLAUDE_CONFIG_DIR` and
-  `ANTHROPIC_API_KEY` for Claude, never both, and a test asserts each child
-  fails if it can see the other's variable. `HOME` is shared, so a file-based
-  credential under a provider's own home directory is not scoped by this
-  control; the read-only sandbox and the no-tool invocation are what bound it.
+- The review directory is not the only disclosure channel, so the others are
+  bounded explicitly. Before the final provider is spawned the runner scans its
+  argument list and every environment value for any 64-byte window of the
+  primary's raw output or envelope and fails closed on a match; the prompt
+  travels on standard input from a file inside the provider's own private work
+  directory and never in argv, because `/proc/<pid>/cmdline` and a process
+  environment are readable by the same user. The parent's temporary directory is
+  not inherited: `TMPDIR`, `TEMP`, and `TMP` are set to the provider's own work
+  directory, so provider scratch files are removed with it in the same `finally`
+  block. Node opens files with `O_CLOEXEC`, so no descriptor beyond the child's
+  own standard streams is inherited; a test asserts from inside each provider
+  process that its only open real files are its own prompt, stdout, and stderr.
+  The home directory is not shared either. Each provider spawn receives a
+  private, empty `HOME` inside its own work directory, created mode `0700` and
+  removed with it, so neither provider can read or leave anything for the other
+  through a home directory. A provider still reaches its own credentials
+  because its configuration directory is resolved explicitly and passed as its
+  own provider-specific variable: Codex receives only `CODEX_HOME` and Claude
+  only `CLAUDE_CONFIG_DIR`, each naming exactly one real directory outside the
+  private home. The broad shared surface is replaced by one narrow per-provider
+  path, and this is a runner control rather than a provider flag. Both real
+  provider backends were verified to authenticate and complete under the
+  private home through the runner itself before this was adopted.
+- One channel stays outside the runner's boundary and is named rather than
+  claimed: whatever a provider transmits to its own service, and whatever that
+  service retains, is outside this model entirely. The runner bounds what leaves
+  the host, not what a provider does with it.
+- Each provider child receives only its own provider credential, by both
+  variable and path. The allowlist adds `CODEX_HOME` and `OPENAI_API_KEY` for
+  Codex and `CLAUDE_CONFIG_DIR` and `ANTHROPIC_API_KEY` for Claude, never both,
+  and a test asserts each child fails if it can see either of the other's. With
+  the home directory now private per invocation, a file-based credential under
+  the operator's real home is no longer reachable through `HOME` either: the
+  only real path a child is given is its own configuration directory.
 - The evidence set is unsigned, and this is an accepted, disclosed limit rather
   than an implied guarantee. Every digest, invocation ID, and receipt is
   computed by the runner with no protected key material, so anything with write
-  access to the output directory can forge a self-consistent set. The gate
-  detects tampering with part of the evidence, never wholesale replacement of
-  all of it; expanding the threat model to that requires a separately protected
-  external ledger.
+  access to the output directory can forge a self-consistent set. This applies
+  to the repair chain too: presenting a prior manifest together with the brief
+  it recorded proves those two artifacts are internally consistent, not that
+  either is the authentic predecessor. The chain is therefore stated as
+  consistency-checked, never as unforgeable. The gate detects tampering with
+  part of the evidence, never wholesale replacement of all of it.
+- Owner decision on closing that gap: not now, and not by signing. Two reasons,
+  the second decisive. First, in the single-operator model this workflow
+  actually runs in there is no adversary with write access who is not already
+  the operator, which is how Fable resolved the analogous citation-grounding
+  hash-chain question elsewhere in this repository. Second, and the reason this
+  is out of scope rather than merely deferred: if this project is ever used by
+  other people, a signing mechanism tied to the maintainer's own code-signing
+  certificate must not end up signing or attesting *their* local evidence. That
+  is an identity and ownership problem, not a cryptography problem, and this
+  project does not yet have a good answer to it. Local evidence therefore proves
+  internal consistency, not cryptographic authenticity. Closing that would
+  require a signing-identity model this project does not have; until it does,
+  the honest position is the disclosure above rather than a mechanism that
+  attributes one party's evidence to another party's identity.
 - The reviewed brief is explicitly framed as untrusted data, never
   instructions. Embedded verdicts, confidence values, schema directives, or
   role reassignment are ignored and reported as failed checks. A unique
@@ -353,6 +491,17 @@ implementation interrogation and the >=95 QC review inspect the implemented
 diff, not the design reasoning. That is the deliberate cost of the protocol,
 accepted for the invocation saving, and it is the reason the final reviewer sees
 the same neutral brief from scratch rather than a synthesis.
+
+Stating the cost precisely also means stating what it does not touch, so the
+tradeoff is not read as broader than it is. What is given up is cross-model
+coverage during the improvement cycles, and only that. The authority gates
+around this workflow are unchanged: owner clarification is still required where
+it was required before, implementation interrogation still runs against the
+implemented diff, and the >=95 QC review still gates completion. No gate is
+relaxed, no threshold is lowered, and no approval that previously needed two
+perspectives now needs one — the final review remains a distinct agent with
+authority to reject. The narrowing is confined to how many perspectives examine
+the design while it is still being repaired.
 
 Two changes proposed by the prior final review are declined rather than
 deferred. Making the dispatch predicate severity-aware — blocking on medium and

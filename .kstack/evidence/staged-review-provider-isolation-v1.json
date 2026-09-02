@@ -1,0 +1,55 @@
+{
+  "schema": "kstack-staged-review-provider-isolation-v1",
+  "measurements": [
+    {
+      "providerId": "codex",
+      "dispatched": true,
+      "backendDigest": "24568013b53f2d247568c716f9d532a5e140f5d92a3f1ecd7ad4a2b824c4fd4a",
+      "probeOutputSha256": "f17002f25f3dd6b3784062bebd0bed69ca0f3800d0b31db4e1d98ab8a0556cfd",
+      "configDirectory": "/home/lr427/.codex",
+      "method": "mtime-delta-token-scan-v1",
+      "scannedFiles": 17,
+      "hits": 0,
+      "manifestStatus": "primary-not-ready",
+      "measuredAt": "2026-09-02T02:02:11.359Z"
+    },
+    {
+      "providerId": "opus",
+      "dispatched": true,
+      "backendDigest": "37459bd0d580f8283d5e71249940550a89a63906d7b3ef7e0080f95a0e18e4f0",
+      "probeOutputSha256": "4cd98c33b580eb2c5e817e7a575d87d5856e3fc972b957053aec5f1358f551b6",
+      "configDirectory": "/home/lr427/.claude",
+      "method": "mtime-delta-token-scan-v1",
+      "scannedFiles": 3,
+      "hits": 0,
+      "manifestStatus": "advisory-complete",
+      "measuredAt": "2026-09-02T02:05:31.616Z"
+    },
+    {
+      "providerId": "codex",
+      "dispatched": true,
+      "backendDigest": "24568013b53f2d247568c716f9d532a5e140f5d92a3f1ecd7ad4a2b824c4fd4a",
+      "probeOutputSha256": "f17002f25f3dd6b3784062bebd0bed69ca0f3800d0b31db4e1d98ab8a0556cfd",
+      "runtimeSurfaceDigest": "6727ce2886e3e62f6b49fbc4559f6adfcbc98fd4ba4b98af7ccd594148a83bc2",
+      "configDirectory": "/home/lr427/.codex",
+      "method": "mtime-delta-token-scan-v1",
+      "scannedFiles": 16,
+      "hits": 0,
+      "manifestStatus": "primary-not-ready",
+      "measuredAt": "2026-09-02T04:30:43.440Z"
+    },
+    {
+      "providerId": "opus",
+      "dispatched": true,
+      "backendDigest": "37459bd0d580f8283d5e71249940550a89a63906d7b3ef7e0080f95a0e18e4f0",
+      "probeOutputSha256": "4cd98c33b580eb2c5e817e7a575d87d5856e3fc972b957053aec5f1358f551b6",
+      "runtimeSurfaceDigest": "adacbcb42c116a028733481fb12449acc433504539973207ba304ccbbaa1038a",
+      "configDirectory": "/home/lr427/.claude",
+      "method": "mtime-delta-token-scan-v1",
+      "scannedFiles": 13,
+      "hits": 0,
+      "manifestStatus": "advisory-complete",
+      "measuredAt": "2026-09-02T04:34:29.145Z"
+    }
+  ]
+}
