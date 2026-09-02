@@ -147,6 +147,35 @@ export function projectReviewText(value) {
   return null;
 }
 
+const PROSE_CONCERN_TERMS = Object.freeze([
+  'concern', 'concerns', 'caveat', 'caveats', 'limitation', 'limitations',
+  'shortcoming', 'shortcomings', 'weakness', 'weaknesses', 'deficiency', 'deficiencies',
+  'insufficient', 'inadequate', 'unresolved', 'unverified', 'unaddressed', 'unclear',
+  'ambiguous', 'gap', 'gaps', 'missing', 'incomplete', 'not verified',
+  'cannot be verified', 'residual risk'
+]);
+
+// A structurally clean report can still describe a defect in prose only, which the
+// counter-based readiness predicate cannot see. This bounded lexicon is a
+// fail-closed heuristic, not a guarantee: it can fire on a negated mention.
+export function proseRoutingSignal(review) {
+  const applicable = review.decision === 'approve'
+    && ['failedChecks', 'securityFindings', 'materialDissent', 'unresolvedQuestions']
+      .every((field) => review[field].length === 0);
+  const text = ['recommendation', 'strongestObjection']
+    .map((field) => projectReviewText(review[field]) ?? '').join('\n');
+  const matched = applicable
+    ? PROSE_CONCERN_TERMS.filter((term) => new RegExp(`\\b${term}\\b`, 'iu').test(text))
+    : [];
+  return Object.freeze({
+    method: 'structured-prose-consistency-v1',
+    scannedFields: Object.freeze(['recommendation', 'strongestObjection']),
+    applicable,
+    matchedTerms: Object.freeze(matched),
+    clean: matched.length === 0
+  });
+}
+
 export function finalBugFixIntake(review) {
   const items = [];
   review.failedChecks.forEach((value, index) => items.push(Object.freeze({

@@ -39,6 +39,7 @@ const CRYPTO_RANDOM_BYTES = crypto.randomBytes;
 const DEFINE_PROPERTY = Object.defineProperty;
 const DEFINE_PROPERTIES = Object.defineProperties;
 const FREEZE = Object.freeze;
+const GET_OWN_PROPERTY_DESCRIPTOR = Object.getOwnPropertyDescriptor;
 const GET_OWN_PROPERTY_DESCRIPTORS = Object.getOwnPropertyDescriptors;
 const GET_PROTOTYPE_OF = Object.getPrototypeOf;
 const HAS_OWN = Object.hasOwn;
@@ -102,17 +103,36 @@ function validateCanonicalString(value) {
   return value;
 }
 
+// Ordinary indexed assignment consults inherited numeric accessors whenever the
+// index has no own property yet, so an attacker-installed Array.prototype or
+// Object.prototype index setter could drop or replace canonical keys. Every
+// index created here is therefore an own data property, and every read
+// back is descriptor-based.
+function listDefine(list, index, value) {
+  DEFINE_PROPERTY(list, `${index}`, { value, writable: true, enumerable: true, configurable: true });
+  const descriptor = GET_OWN_PROPERTY_DESCRIPTOR(list, `${index}`);
+  if (!descriptor || !HAS_OWN(descriptor, 'value') || !OBJECT_IS(descriptor.value, value)) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
+  return list;
+}
+
+function listRead(list, index) {
+  const descriptor = GET_OWN_PROPERTY_DESCRIPTOR(list, `${index}`);
+  if (!descriptor || !HAS_OWN(descriptor, 'value')) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
+  return descriptor.value;
+}
+
 function sortedStrings(values) {
   const output = [];
   for (let index = 0; index < values.length; index += 1) {
-    const value = values[index];
+    const value = listRead(values, index);
     let insertion = output.length;
-    while (insertion > 0 && output[insertion - 1] > value) {
-      output[insertion] = output[insertion - 1];
+    while (insertion > 0 && listRead(output, insertion - 1) > value) {
+      listDefine(output, insertion, listRead(output, insertion - 1));
       insertion -= 1;
     }
-    output[insertion] = value;
+    listDefine(output, insertion, value);
   }
+  if (output.length !== values.length) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
   return output;
 }
 
@@ -152,12 +172,13 @@ function canonicalValue(value, depth, ancestors) {
       const descriptor = descriptors[key];
       if (typeof key !== 'string' || !descriptor.enumerable || !HAS_OWN(descriptor, 'value')) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
       validateCanonicalString(key);
-      stringKeys[stringKeys.length] = key;
+      listDefine(stringKeys, stringKeys.length, key);
     }
+    if (stringKeys.length !== keys.length) fail('KSTACK_SECRET_CANONICAL_VALUE_INVALID');
     const ordered = sortedStrings(stringKeys);
     let output = '{';
     for (let index = 0; index < ordered.length; index += 1) {
-      const key = ordered[index];
+      const key = listRead(ordered, index);
       if (index !== 0) output += ',';
       output += `${APPLY(JSON_STRINGIFY, JSON_OBJECT, [key])}:${canonicalValue(descriptors[key].value, depth + 1, ancestors)}`;
     }

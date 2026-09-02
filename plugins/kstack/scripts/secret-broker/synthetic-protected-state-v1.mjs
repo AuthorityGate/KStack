@@ -65,6 +65,7 @@ const GET_OWN_PROPERTY_DESCRIPTOR = Object.getOwnPropertyDescriptor;
 const GET_PROTOTYPE_OF = Object.getPrototypeOf;
 const HAS_OWN = Object.hasOwn;
 const NUMBER_IS_SAFE_INTEGER = Number.isSafeInteger;
+const OBJECT_IS = Object.is;
 const OBJECT_PROTOTYPE = Object.prototype;
 const OWN_KEYS = Reflect.ownKeys;
 const WEAK_MAP_GET = WeakMap.prototype.get;
@@ -98,15 +99,31 @@ function arrayFindIndex(values, predicate) { return APPLY(ARRAY_FIND_INDEX, valu
 function arrayMap(values, predicate) { return APPLY(ARRAY_MAP, values, [predicate]); }
 function arraySome(values, predicate) { return APPLY(ARRAY_SOME, values, [predicate]); }
 function arraySort(values, predicate) { return APPLY(ARRAY_SORT, values, [predicate]); }
+// Ordinary indexed assignment consults inherited numeric accessors whenever the
+// index has no own property yet, so an attacker-installed Array.prototype or
+// Object.prototype index setter could replace a validated head mid-copy. Every
+// index created here is an own data property, and every read back is
+// descriptor-based.
+function listDefine(list, index, value) {
+  DEFINE_PROPERTY(list, `${index}`, { value, writable: true, enumerable: true, configurable: true });
+  const descriptor = GET_OWN_PROPERTY_DESCRIPTOR(list, `${index}`);
+  if (!descriptor || !HAS_OWN(descriptor, 'value') || !OBJECT_IS(descriptor.value, value)) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  return list;
+}
+function listRead(list, index) {
+  const descriptor = GET_OWN_PROPERTY_DESCRIPTOR(list, `${index}`);
+  if (!descriptor || !HAS_OWN(descriptor, 'value')) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+  return descriptor.value;
+}
 function arrayCopy(values) {
   const copy = [];
-  for (let index = 0; index < values.length; index += 1) copy[index] = values[index];
+  for (let index = 0; index < values.length; index += 1) listDefine(copy, index, listRead(values, index));
+  if (copy.length !== values.length) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
   return copy;
 }
 function arrayAppend(values, value) {
   const copy = arrayCopy(values);
-  copy[copy.length] = value;
-  return copy;
+  return listDefine(copy, copy.length, value);
 }
 
 function defineError(error, name, code, kind) {
@@ -191,7 +208,8 @@ function clone(value) { return parseSecretCanonicalJson(secretCanonicalBytes(val
 function frozen(value) {
   if (ARRAY_IS_ARRAY(value)) {
     const output = [];
-    for (let index = 0; index < value.length; index += 1) output[index] = frozen(value[index]);
+    for (let index = 0; index < value.length; index += 1) listDefine(output, index, frozen(listRead(value, index)));
+    if (output.length !== value.length) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
     return FREEZE(output);
   }
   if (plain(value)) {
@@ -255,7 +273,9 @@ function validateState(value, identity) {
   validateSortedUnique(checkedValue.retiredUpdateIds, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   validateSortedUnique(checkedValue.retiredWriterLeaseRefs, (entry) => entry, 'KSTACK_SECRET_PROTECTED_STATE_INVALID');
   if (arraySome(checkedValue.issuedUpdateIds, (id) => arrayIncludes(checkedValue.retiredUpdateIds, id))) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
-  const checked = frozen({ ...checkedValue, authorityHeads, auditHeads });
+  const source = { ...checkedValue, authorityHeads, auditHeads };
+  const checked = frozen(source);
+  if (!exactBytes(checked, source)) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
   if (secretCanonicalBytes(checked).length > SYNTHETIC_PROTECTED_STATE_MAX_BYTES) fail('KSTACK_SECRET_PROTECTED_STATE_BYTES_EXCEEDED');
   return checked;
 }
@@ -591,6 +611,8 @@ export class SyntheticProtectedStateAdapter {
       if (state.authorityHeads.length !== 0) fail('KSTACK_SECRET_AUTHORITY_ALREADY_INITIALIZED');
       const head = authorityOrigin(authorityNamespaceRef);
       const authorityHeads = arraySort(arrayAppend(state.authorityHeads, head), (left, right) => compare(left.authorityNamespaceRef, right.authorityNamespaceRef));
+      const placed = arrayFind(authorityHeads, (entry) => entry.authorityNamespaceRef === authorityNamespaceRef);
+      if (!placed || !exactBytes(placed, head) || authorityHeads.length !== state.authorityHeads.length + 1) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
       this.#writeState({ ...state, authorityHeads });
       return frozen({ result: 'INITIALIZED', head });
     });
@@ -618,8 +640,10 @@ export class SyntheticProtectedStateAdapter {
       if (checkedOptions.crashCut === 'BEFORE_COMMIT') {
         fail('KSTACK_SECRET_PROTECTED_CRASH_BEFORE_COMMIT');
       }
-      const authorityHeads = arrayCopy(state.authorityHeads);
-      authorityHeads[index] = successor;
+      const authorityHeads = listDefine(arrayCopy(state.authorityHeads), index, successor);
+      if (authorityHeads.length !== state.authorityHeads.length || !exactBytes(listRead(authorityHeads, index), successor)) {
+        fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+      }
       this.#writeState({ ...attempted, authorityHeads });
       if (checkedOptions.crashCut === 'AFTER_COMMIT') throw new PossiblyCommittedError();
       if (checkedOptions.acknowledgementCut === 'AFTER_COMMIT') return frozen({ result: 'ACKNOWLEDGEMENT_UNKNOWN' });
@@ -653,8 +677,10 @@ export class SyntheticProtectedStateAdapter {
         ? auditOrigin(auditNamespaceRef, 1, writerLeaseRef, writerLeaseDeadline)
         : validateAuditHeadValue({ ...state.auditHeads[index], writerLeaseRef, writerLeaseDeadline });
       const auditHeads = arrayCopy(state.auditHeads);
-      if (index < 0) auditHeads[auditHeads.length] = head; else auditHeads[index] = head;
+      listDefine(auditHeads, index < 0 ? auditHeads.length : index, head);
       arraySort(auditHeads, (left, right) => compare(left.auditNamespaceRef, right.auditNamespaceRef));
+      const acquired = arrayFind(auditHeads, (entry) => entry.auditNamespaceRef === auditNamespaceRef);
+      if (!acquired || !exactBytes(acquired, head)) fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
       const retiredWriterLeaseRefs = arraySort(arrayAppend(state.retiredWriterLeaseRefs, writerLeaseRef), compare);
       this.#writeState({ ...state, auditHeads, retiredWriterLeaseRefs });
       return frozen({ result: 'ACQUIRED', head });
@@ -685,8 +711,10 @@ export class SyntheticProtectedStateAdapter {
       if (checkedOptions.crashCut === 'BEFORE_COMMIT') {
         fail('KSTACK_SECRET_PROTECTED_CRASH_BEFORE_COMMIT');
       }
-      const auditHeads = arrayCopy(state.auditHeads);
-      auditHeads[index] = successor;
+      const auditHeads = listDefine(arrayCopy(state.auditHeads), index, successor);
+      if (auditHeads.length !== state.auditHeads.length || !exactBytes(listRead(auditHeads, index), successor)) {
+        fail('KSTACK_SECRET_PROTECTED_STATE_INVALID');
+      }
       this.#writeState({ ...attempted, auditHeads });
       if (checkedOptions.crashCut === 'AFTER_COMMIT') throw new PossiblyCommittedError();
       if (checkedOptions.acknowledgementCut === 'AFTER_COMMIT') return frozen({ result: 'ACKNOWLEDGEMENT_UNKNOWN' });

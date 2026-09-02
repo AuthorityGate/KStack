@@ -82,10 +82,20 @@ or deployment plan in this phase.
    default of up to 42 cycles), state that a pre-threshold cycle spends one primary
    invocation and a readiness-passing cycle adds one final-review invocation,
    and record the cycle number and cumulative provider invocations. Track
-   cycles, not wall-clock timing. Do not start a cycle that
+   cycles, not wall-clock timing. Either way the cycle costs exactly one of
+   `maxRounds`; a `not-dispatched` final changes the invocation count, not the
+   budget charge. Do not start a cycle that
    would exceed `maxRounds`. Return `USER_DECISION_REQUIRED` so the owner can
    narrow scope, accept a residual, change the design, or explicitly amend the
    configuration; never silently extend the loop.
+   Pass `--first-cycle` on the opening cycle of a thread and
+   `--prior-manifest <prior-review-dir>/manifest.json` on every later one; the
+   runner refuses to dispatch without exactly one of them. After a
+   `final-not-approved` cycle the repaired brief must both differ from the
+   rejected brief and carry a `## Prior final review feedback` section stating
+   what that review found and how the design now answers it. That section is the
+   whole feedback path back to the primary: copy the findings as brief content,
+   and never paste the rejected reviewer's report, confidence, or verdict.
    Create `.kstack/decisions/<thread-id>-design-lineage.json` before cycle 1
    with `kstack-design-lineage.mjs init`. Before every later full-design cycle,
    write a proposal containing a testable `hypothesis`, exact

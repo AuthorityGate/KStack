@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findConfig, readKStackConfig } from './kstack-config.mjs';
-import { finalBugFixIntake, sha256, validateReview } from './kstack-review-schema.mjs';
+import { finalBugFixIntake, proseRoutingSignal, sha256, validateReview } from './kstack-review-schema.mjs';
 import { buildDecisionPacket, evaluateGroundingOverlay, frameDecisionPacket, verifyDecisionPacket } from './kstack-citation-grounding.mjs';
 import {
   canonicalSecondaryReviewValue,
@@ -175,6 +175,20 @@ export function evaluateDesignGate({ designFile, reviewDir, checksFile, configFi
         || readiness.decision !== primary?.decision || readiness.confidence !== primary?.confidence
         || ['failed', 'security', 'dissent', 'questions'].some((field) => readiness?.[field] !== 0)) {
       addReason(reasons, 'PRIMARY_READINESS_INVALID', 'The independent final review was not preceded by a reproducible clean primary readiness result.');
+    }
+    const primaryProse = primary ? proseRoutingSignal(primary) : null;
+    if (!primaryProse?.clean || !same(readiness?.proseRouting, primaryProse)) {
+      addReason(reasons, 'PRIMARY_PROSE_ROUTING_UNRESOLVED', 'The primary report describes an unresolved concern in prose that is absent from its structured findings.');
+    }
+    const priorCycle = manifest.priorCycle;
+    const priorCycleValid = Object.hasOwn(manifest, 'priorCycle') && (priorCycle === null
+      || (priorCycle && typeof priorCycle === 'object' && !Array.isArray(priorCycle)
+        && typeof priorCycle.status === 'string'
+        && /^[0-9a-f]{64}$/u.test(priorCycle.designDigest ?? '')
+        && /^[0-9a-f]{64}$/u.test(priorCycle.manifestSha256 ?? '')
+        && !(priorCycle.status === 'final-not-approved' && priorCycle.designDigest === designDigest)));
+    if (!priorCycleValid) {
+      addReason(reasons, 'CONVERGENCE_EVIDENCE_INVALID', 'Staged evidence does not record a first cycle or a prior cycle whose brief actually changed.');
     }
     try {
       const normalizedRound = normalizeReviewRound(round) ?? 1;

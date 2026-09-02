@@ -1025,3 +1025,182 @@ test('every public read, status, open, and snapshot surface fails closed on comp
     assert.equal(injected, true, name);
   }
 });
+
+const POLLUTION_TARGETS = [['Array.prototype', Array.prototype], ['Object.prototype', Object.prototype]];
+const POLLUTION_INDEXES = ['0', '1', '3'];
+
+function withNumericPollution(target, index, descriptor, action) {
+  const previous = Object.getOwnPropertyDescriptor(target, index);
+  Object.defineProperty(target, index, { configurable: true, ...descriptor });
+  try { return action(); }
+  finally {
+    delete target[index];
+    if (previous) Object.defineProperty(target, index, previous);
+  }
+}
+
+function headShaped(value) {
+  return value !== null && typeof value === 'object'
+    && (Object.prototype.hasOwnProperty.call(value, 'authorityEpoch')
+      || Object.prototype.hasOwnProperty.call(value, 'auditEpoch'));
+}
+
+// A faithful observer preserves ordinary assignment semantics so unrelated
+// runtime internals keep working while the accessor is installed; only writes
+// that carry a control-plane head are counted or substituted.
+function headInterceptor(index, forged) {
+  const observation = { writes: 0, headWrites: 0 };
+  return {
+    observation,
+    descriptor: {
+      get() { return undefined; },
+      set(value) {
+        observation.writes += 1;
+        const intercepted = headShaped(value);
+        if (intercepted) observation.headWrites += 1;
+        Object.defineProperty(this, index, {
+          value: intercepted && forged ? forged : value, writable: true, enumerable: true, configurable: true
+        });
+      }
+    }
+  };
+}
+
+test('canonical encoding and authority reconciliation resist inherited numeric prototype accessors', () => {
+  const headA = authorityOrigin(REF_A);
+  const headB = authorityOrigin(REF_B);
+  const successor = authoritySuccessor(headA, UPDATE_1);
+  const baselineA = canonicalAuthorityHeadBytes(headA).toString('utf8');
+  const baselineB = canonicalAuthorityHeadBytes(headB).toString('utf8');
+  const baselineSuccessor = canonicalAuthorityHeadBytes(successor).toString('utf8');
+  assert.notEqual(baselineA, '{}');
+  assert.notEqual(baselineA, baselineB);
+
+  const auditHead = auditOrigin(REF_B, 1, REF_C, '2026-09-01T00:00:00.000Z');
+  const auditNext = auditSuccessor(auditHead, EVENT_A, UPDATE_2);
+  const baselineAudit = canonicalAuditHeadBytes(auditHead).toString('utf8');
+  assert.notEqual(baselineAudit, '{}');
+
+  const accessors = [
+    ['noop-setter', () => ({ get() { return undefined; }, set() {} })],
+    ['substituting-setter', (index) => ({
+      get() { return undefined; },
+      set() {
+        Object.defineProperty(this, index, {
+          value: 'KSTACK_TEST_SUBSTITUTED', writable: true, enumerable: true, configurable: true
+        });
+      }
+    })],
+    ['throwing-getter', () => ({ get() { throw new Error('KSTACK_TEST_PROTOTYPE_GETTER'); } })]
+  ];
+
+  for (const [targetName, target] of POLLUTION_TARGETS) {
+    for (const index of POLLUTION_INDEXES) {
+      for (const [accessorName, factory] of accessors) {
+        const label = `${targetName}[${index}]:${accessorName}`;
+        const seen = withNumericPollution(target, index, factory(index), () => {
+          const capture = (action) => {
+            try { return action(); } catch (error) { return `THREW:${error?.code ?? error?.message}`; }
+          };
+          return {
+            encodedA: capture(() => canonicalAuthorityHeadBytes(headA).toString('utf8')),
+            encodedB: capture(() => canonicalAuthorityHeadBytes(headB).toString('utf8')),
+            committed: capture(() => reconcileAuthorityAdvance(headA, UPDATE_1, successor)),
+            uncommitted: capture(() => reconcileAuthorityAdvance(headA, UPDATE_1, headA)),
+            foreign: capture(() => reconcileAuthorityAdvance(headA, UPDATE_1, headB)),
+            encodedAudit: capture(() => canonicalAuditHeadBytes(auditHead).toString('utf8')),
+            auditCommitted: capture(() => reconcileAuditAdvance(auditHead, EVENT_A, UPDATE_2, auditNext)),
+            auditUncommitted: capture(() => reconcileAuditAdvance(auditHead, EVENT_A, UPDATE_2, auditHead)),
+            auditForeign: capture(() => reconcileAuditAdvance(auditHead, EVENT_A, UPDATE_2, auditSuccessor(auditHead, EVENT_B, UPDATE_1)))
+          };
+        });
+        assert.equal(seen.encodedA, baselineA, `${label} authority encoding drifted`);
+        assert.equal(seen.encodedB, baselineB, `${label} foreign authority encoding drifted`);
+        assert.notEqual(seen.encodedA, seen.encodedB, `${label} distinct heads collapsed`);
+        assert.equal(baselineSuccessor.includes('"authorityEpoch":2'), true, label);
+        assert.equal(seen.committed, 'COMMITTED', `${label} successor reconciliation drifted`);
+        assert.equal(seen.uncommitted, 'UNCOMMITTED', `${label} retained-head reconciliation drifted`);
+        assert.equal(seen.foreign, 'UNCERTAIN', `${label} foreign head reconciled as a known outcome`);
+        assert.equal(seen.encodedAudit, baselineAudit, `${label} audit encoding drifted`);
+        assert.equal(seen.auditCommitted, 'COMMITTED', `${label} audit successor reconciliation drifted`);
+        assert.equal(seen.auditUncommitted, 'UNCOMMITTED', `${label} retained audit reconciliation drifted`);
+        assert.equal(seen.auditForeign, 'UNCERTAIN', `${label} foreign audit head reconciled as a known outcome`);
+      }
+    }
+  }
+  for (const [targetName, target] of POLLUTION_TARGETS) {
+    for (const index of POLLUTION_INDEXES) {
+      assert.equal(Object.getOwnPropertyDescriptor(target, index), undefined, `${targetName}[${index}] pollution leaked`);
+    }
+  }
+});
+
+test('a mismatched authority CAS cannot mutate the protected head through inherited numeric accessors', () => {
+  const forged = {
+    schemaVersion: 'kstack-secret-authority-head-v1',
+    authorityNamespaceRef: REF_A,
+    authorityEpoch: 999,
+    priorAuthorityDigest: `sha256:${'a'.repeat(64)}`,
+    lastUpdateId: UPDATE_4
+  };
+  for (const [targetName, target] of POLLUTION_TARGETS) {
+    for (const index of ['0', '1']) {
+      const label = `${targetName}[${index}]`;
+      const state = fixture();
+      try {
+        const origin = state.adapter.initializeAuthority(REF_A).head;
+        const advanced = state.adapter.compareAndAdvanceAuthority(origin, issue(state.adapter));
+        assert.equal(advanced.result, 'ADVANCED', label);
+        assert.equal(advanced.head.authorityEpoch, 2, label);
+        const staleUpdateId = issue(state.adapter);
+        const { observation, descriptor } = headInterceptor(index, forged);
+        // `origin` is stale: the persisted head is already at epoch 2.
+        const mismatched = withNumericPollution(target, index, descriptor, () => {
+          try { return state.adapter.compareAndAdvanceAuthority(origin, staleUpdateId); }
+          catch (error) { return { result: `THREW:${error?.code ?? error?.message}` }; }
+        });
+        assert.equal(mismatched.result, 'EXPECTATION_MISMATCH', label);
+        assert.equal(observation.headWrites, 0, `${label} a control-plane head reached an inherited setter`);
+        const persisted = JSON.parse(fs.readFileSync(path.join(state.root, 'state-v1.json'), 'utf8'));
+        assert.equal(persisted.authorityHeads.length, 1, label);
+        assert.equal(persisted.authorityHeads[0].authorityEpoch, 2, `${label} persisted authority epoch changed on a rejected CAS`);
+        assert.equal(state.adapter.readAuthorityHead(REF_A).authorityEpoch, 2, label);
+        assert.equal(state.adapter.verifyAuthoritySnapshot(advanced.head), 'READY', label);
+      } finally { fs.rmSync(state.parent, { recursive: true, force: true }); }
+    }
+  }
+});
+
+test('protected-state copying stays available and exact while inherited numeric accessors are installed', () => {
+  for (const [targetName, target] of POLLUTION_TARGETS) {
+    for (const index of ['0', '1']) {
+      const label = `${targetName}[${index}]`;
+      const state = fixture();
+      try {
+        const origin = state.adapter.initializeAuthority(REF_A).head;
+        const auditHead = state.adapter.acquireAuditWriter({ auditNamespaceRef: REF_B, ttlMs: 60_000 }).head;
+        const authorityUpdateId = issue(state.adapter);
+        const auditUpdateId = issue(state.adapter);
+        const { observation, descriptor } = headInterceptor(index, null);
+        const outcome = withNumericPollution(target, index, descriptor, () => {
+          const capture = (action) => {
+            try { return action(); } catch (error) { return { result: `THREW:${error?.code ?? error?.message}` }; }
+          };
+          return {
+            authority: capture(() => state.adapter.compareAndAdvanceAuthority(origin, authorityUpdateId)),
+            audit: capture(() => state.adapter.compareAndAdvanceAudit(auditHead, EVENT_A, auditUpdateId))
+          };
+        });
+        assert.equal(outcome.authority.result, 'ADVANCED', label);
+        assert.equal(outcome.authority.head.authorityEpoch, 2, label);
+        assert.equal(outcome.audit.result, 'ADVANCED', label);
+        assert.equal(outcome.audit.head.ordinal, 1, label);
+        assert.equal(observation.headWrites, 0, `${label} a control-plane head reached an inherited setter`);
+        assert.equal(state.adapter.readAuthorityHead(REF_A).authorityEpoch, 2, label);
+        assert.equal(state.adapter.readAuditHead(REF_B).ordinal, 1, label);
+        assert.equal(state.adapter.verifyAuditSnapshot(outcome.audit.head), 'READY', label);
+        assert.equal(canonicalAuditHeadBytes(state.adapter.readAuditHead(REF_B)).equals(canonicalAuditHeadBytes(outcome.audit.head)), true, label);
+      } finally { fs.rmSync(state.parent, { recursive: true, force: true }); }
+    }
+  }
+});

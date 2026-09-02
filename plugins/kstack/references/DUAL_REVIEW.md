@@ -98,6 +98,21 @@ the `reviewSequence` compatibility copy must match or configuration is invalid.
 The two blocks must be supplied together or both omitted for explicit legacy
 dual-review compatibility; a single-block configuration fails validation.
 
+Enabling `reviewSequence` makes existing dual-review evidence non-admissible
+from that moment, so a repository with design threads already between review and
+implementation needs a cutover pass, not just a configuration edit. Before
+enabling it, list every review directory whose `manifest.json` has status
+`dual-complete`, and for each one decide whether its thread is still in flight —
+its design has been reviewed but the work it authorizes is not yet implemented
+and gate-approved. A thread that is not in flight needs nothing; its evidence is
+historical. A thread that is in flight is re-reviewed under the staged protocol
+against its current brief, as `--first-cycle` in a new output directory, before
+implementation continues. Record the enumeration and each disposition in the
+cutover decision record so the non-admissibility of the old evidence is a
+decision, not a surprise. The temporary fallback remains a configuration that
+omits both `reviewSequence` and `secondaryReview`; use it only to finish a
+single in-flight thread already mid-implementation, and record that use.
+
 Before secondary dispatch, the staged runner exclusively creates a durable
 consumption receipt in that output directory. Any later process using the same
 directory fails with `KSTACK_SECONDARY_REVIEW_DECISION_REPLAYED`; a crash after
@@ -166,11 +181,48 @@ returns the work to the primary. After repair, the primary must establish a
 fresh clean readiness result for the new design digest before final review runs
 again. Do not turn the final reviewer into an every-cycle co-author.
 
+Every staged cycle must declare its position in the repair chain: exactly one of
+`--first-cycle` or `--prior-manifest <prior staged manifest>`, resolved inside
+the project root. After a `final-not-approved` prior cycle the runner enforces
+two convergence conditions before any provider starts, and records
+`priorCycle` in the manifest either way:
+
+- The decision brief must change. A brief whose digest equals the digest the
+  prior cycle did not approve returns `convergence-blocked` at zero provider
+  invocations. A stateless final reviewer handed byte-identical input returns
+  the same objection, so the loop would burn the budget without converging.
+- The revised brief must carry a `## Prior final review feedback` section
+  recording what the rejected final review found and how the design changed.
+  Its absence returns `prior-feedback-missing` at zero provider invocations.
+  This is the only defined path from a rejected final review back to the
+  primary: the findings travel as brief content that both roles see, and no raw
+  cross-provider artifact, confidence value, or verdict is carried across.
+
+A re-invoked final reviewer is stateless with respect to its own prior review;
+it sees only the revised brief.
+
 Before primary dispatch, enforce `workflow.designGate.reviewBudget.maxRounds`
 and report the cycle and cumulative invocation count. Track cycles, not
-wall-clock timing. Legacy configuration uses up to 42 cycles. Budget exhaustion
-returns `USER_DECISION_REQUIRED`; it never lowers the gate, suppresses dissent,
-or silently starts another cycle.
+wall-clock timing. Legacy configuration uses up to 42 cycles. One staged cycle
+costs exactly one material-design cycle whether the final reviewer was
+dispatched or recorded `not-dispatched`; the budget counts cycles, and the one
+or two provider invocations a cycle spends are reported separately as
+`providerInvocationCount`. The runner records this as `cycleBudget` and returns
+`review-budget-exhausted` at zero provider invocations when the declared cycle
+exceeds `maxRounds`. Budget exhaustion returns `USER_DECISION_REQUIRED`; it
+never lowers the gate, suppresses dissent, or silently starts another cycle.
+
+The readiness predicate reads structured fields, so a report can be
+structurally clean while its prose describes a defect. When the primary reports
+`approve` with all four arrays empty, the runner also scans `recommendation`
+and `strongestObjection` for a bounded lexicon of concern terms and routes a
+match to `primary-not-ready` with the matched terms in
+`primaryReadiness.proseRouting`; the design gate reproduces the same check. This
+is a fail-closed heuristic, not a guarantee: it can fire on a negated mention,
+and it cannot detect a concern expressed in words outside the lexicon. The
+remedy for a false positive is to restate the objection without asserting an
+unresolved defect; the remedy for a true positive is to put the concern in the
+structured array where the gate can see it.
 
 After a `revise` or `block` outcome, a redesign request, or a cycle whose
 synthesis surfaces residual findings, scope the next round by interaction risk,
@@ -389,6 +441,51 @@ terminates the isolated process group on POSIX and records a fail-closed provide
 status. If the host dies before `finally` cleanup, the dead-owner lock and
 strictly named private work directory are scavenged before the next dispatch;
 a live owner is never cleaned by another cycle.
+
+The staged runner is POSIX-only and says so before it does anything: it refuses
+a non-POSIX host, and a host without native `O_NOFOLLOW`, before the output
+directory lock is taken and before any provider is spawned. Its confidentiality
+and containment properties are POSIX semantics — mode `0700`/`0600` at rest,
+termination of the negative process group, `O_NOFOLLOW` reopen, reparse-free
+path checks, directory `fsync`. Windows has no supported equivalent here and no
+weaker guarantee is offered: the runner does not start there. Deterministic
+evidence for these properties is Linux-only, matching the supported platform.
+
+Mode bits are not what isolates the final provider from the primary report.
+Both providers run as the same OS user, and POSIX permissions do not separate
+same-uid processes. The load-bearing controls are ordering and tool
+disablement: the primary envelope and raw output stay in runner memory, the
+primary's work directory including its stdout and stderr is removed in a
+`finally` block before the final provider is spawned, and the final provider
+runs with no filesystem read primitive. A regression test lists the review
+directory from inside the final provider process and asserts it holds only the
+single-flight lock, the consumption receipt, and the provider's own work
+directory.
+
+Lock liveness is a recorded process ID plus a random owner token plus, from
+schema version 2, the owner's command line. A live PID whose observable command
+line differs from the recorded one is treated as a reused PID and reclaimed. A
+host that cannot observe the command line stays conservative and treats the
+owner as live. To recover a lock wedged that way, confirm the recorded PID is
+not a staged review (`ps -p <pid> -o args=`) and delete
+`<out-dir>/.staged-review.lock`.
+
+Outbound scanning covers exactly the fully wrapped reviewer prompt — the stage
+instructions, the rules, and the framed decision brief — as one byte string, and
+throws before the provider work directory is created. The response schema is a
+source constant and is not scanned; the version probe sends no prompt. The
+matcher set is the shared `MatcherSetV1` list in `kstack-safety-matchers.mjs`.
+It is a pattern matcher with a real false-negative surface: it catches only the
+shapes that list names, and it is a last-line control, not a substitute for
+keeping protected values out of a decision brief.
+
+The evidence set is unsigned. The manifest, design digest, raw-output digests,
+envelope digests, invocation IDs, and consumption receipt are all computed by
+the runner with no protected key material, so anything with write access to the
+output directory can forge a self-consistent set. This is an accepted and
+disclosed limit, not a guarantee: the gate detects tampering with part of the
+evidence, never wholesale replacement of all of it. Expanding the threat model
+to wholesale replacement requires a separately protected external ledger.
 The reviewed brief is enclosed in a unique invocation-derived BEGIN/END frame;
 the prompt explicitly treats every byte inside that frame as untrusted data.
 
@@ -407,6 +504,7 @@ node <kstack-plugin-root>/scripts/kstack-staged-review.mjs \
   --prompt-file <decision-brief.md> \
   --project-root <repository-root> \
   --out-dir <review-output-directory> \
+  (--first-cycle | --prior-manifest <prior-review-dir>/manifest.json) \
   [--round <round-number>] \
   [--skill-class]
 ```
