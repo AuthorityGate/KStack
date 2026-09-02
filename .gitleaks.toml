@@ -60,6 +60,13 @@ paths = ['^tests/opencode-candidate\.test\.mjs$']
 targetRules = ["sourcegraph-access-token"]
 
 [[allowlists]]
+description = "Secret Broker use-site digest recomputation in the exact DEV_SYNTHETIC gate commit"
+condition = "AND"
+commits = ["77996d0a884414af931dae64ac096a265df8e4b2"]
+paths = ['^tests/reflexion-architecture-gate\.mjs$']
+targetRules = ["generic-api-key"]
+
+[[allowlists]]
 description = "Synthetic tokenizer fixtures in the exact runtime-expansion commit"
 condition = "AND"
 commits = ["30a9ec8a507166d08d3d9bab20db7dc844e1cb2a"]
