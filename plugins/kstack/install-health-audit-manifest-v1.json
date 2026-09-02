@@ -631,8 +631,8 @@
     {
       "path": "scripts/kstack-jira-tracking.mjs",
       "executable": true,
-      "size": 66069,
-      "sha256": "4c82d015c4939aa7802c21be612a92063df43b7cdc935bde142a7c438790f571"
+      "size": 65475,
+      "sha256": "dd090abe91584e6aed6e21767150e5330ead9c4f200bd18c0f0caa18c4894908"
     },
     {
       "path": "scripts/kstack-jira-wsl-config.mjs",

@@ -309,7 +309,7 @@ const CAPABILITY_USE_SITE_MANIFEST = new Map([
   ['kstack-install-health.mjs','8f717810f7c0c88581f5471cf5ab1071f057266b7b3fd9853bf0364000ab172e'],
   ['kstack-invoke-role.mjs','9b116af71293ca87f43c32187b35d672ca01d5583febed489a720251bf561973'],
   ['kstack-jira-bootstrap.mjs','3021fd0061e71503a238f3e68c0a80020c8fa23f8b7d0e08f86a5215dc7d0781'],
-  ['kstack-jira-tracking.mjs','969d27dc2e9c9b4d07609a3669da427c6f9263d3e7ada01f7528611955901a1a'],
+  ['kstack-jira-tracking.mjs','d36cd11e3eaf9d2adce742fdd367bab76cce0fcd7de492f36042e85e98439867'],
   ['kstack-jira-wsl-config.mjs','fb70d2b525518ab58602200b43757d462bd1fb0cb4933b75a0f57323f0e97935'],
   ['kstack-jira.mjs','8848d87744d777ae52a556c3d86d666c55cbec457bb8dc3c850a9c110e55ca11'],
   ['kstack-kcrp-byte-benchmark.mjs','b0647889cd68034441e1351894e124d66b92f52a7e74b72c0dd50bde5461a2f8'],
