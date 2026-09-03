@@ -523,8 +523,8 @@
     {
       "path": "scripts/kstack-host-contract.mjs",
       "executable": true,
-      "size": 77296,
-      "sha256": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1"
+      "size": 122054,
+      "sha256": "0ccf5a675c0904c3363b8dd579c04b9c17019d07ef18b48345c65055da326d6a"
     },
     {
       "path": "scripts/kstack-host-eligibility.mjs",

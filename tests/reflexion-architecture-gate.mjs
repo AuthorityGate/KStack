@@ -249,6 +249,7 @@ const IMPORT_META_MANIFEST = new Map([
   ['kstack-config.mjs',1], ['kstack-design-gate.mjs',1], ['kstack-design-lineage.mjs',1], ['kstack-dual-review.mjs',1],
   ['kstack-domain-pack-candidates.mjs',2],
   ['kstack-experience.mjs',1],
+  ['kstack-host-contract.mjs',1],
   ['kstack-invoke-role.mjs',1], ['kstack-jira-bootstrap.mjs',1], ['kstack-jira-tracking.mjs',1], ['kstack-jira-wsl-config.mjs',1], ['kstack-jira.mjs',1], ['kstack-memory.mjs',1],
   ['kstack-linux-observation-admit.mjs',1], ['kstack-linux-qualification-bundle.mjs',1],
   ['kstack-panel-personas.mjs',1], ['kstack-panel.mjs',1],
