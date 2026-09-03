@@ -6,7 +6,7 @@
     "hostImplementationEvidenceDigest": "00ae912aebbca8feb76f8541ae5893bedb732bf546bbcaef52a300474666ad5d",
     "openCodeEvidenceDigest": "8af39cb7ccc1821eaab5dd1168ae52cd950695156864b2e3c90693ea3ab5551f",
     "gooseEvidenceDigest": "4b14bddf46e0cf52a1e93d057b79542affbc4fdec2653698a9507ceae3f0bb7f",
-    "installManifestDigest": "ca007a05bc9931626832266c58b82bcf57479e5cf2f1796dd7978d10a1850971",
+    "installManifestDigest": "42806189f3302480e2f57e32b97a113af6c261faab933a23cbe9041441e9194b",
     "integratedImplementationDigest": "694644a1879652eb083bc330400066d90e75f50a2c6304bb130a97c0cfac926b"
   },
   "integratedImplementationInventory": [
@@ -815,7 +815,7 @@
       "schema": "kstack-source-scan-receipt-v1",
       "scanId": "generic-host-contract-host-branch-v1",
       "relativePath": "plugins/kstack/scripts/kstack-host-contract.mjs",
-      "subjectDigest": "8b07293b048c5b39172757024ac35ede12d7520d1c1a095931b02a04bf86efa1",
+      "subjectDigest": "0ccf5a675c0904c3363b8dd579c04b9c17019d07ef18b48345c65055da326d6a",
       "forbiddenTokens": [
         "opencode",
         "goose",
@@ -824,7 +824,7 @@
       ],
       "findings": [],
       "passed": true,
-      "receiptDigest": "3294741f6444f3483a44678840a6e91cf958b7dac26766911deac8789424c1ef"
+      "receiptDigest": "1ee5bdb98019bfc01de5a16e391384755b6a8a2b043a06604f3472392e6b3886"
     },
     "forbiddenFieldScan": {
       "schema": "kstack-forbidden-field-scan-receipt-v1",
@@ -2008,7 +2008,7 @@
         }
       ],
       "genericSourceHostBranchScanPassed": true,
-      "genericSourceHostBranchScanReceiptDigest": "3294741f6444f3483a44678840a6e91cf958b7dac26766911deac8789424c1ef",
+      "genericSourceHostBranchScanReceiptDigest": "1ee5bdb98019bfc01de5a16e391384755b6a8a2b043a06604f3472392e6b3886",
       "forbiddenFieldScanPassed": true,
       "forbiddenFieldScanReceiptDigest": "fe76a9aba6e7b3a83f04d664161257d6cdde84a77d462c500975230791136027"
     },
@@ -2409,11 +2409,11 @@
     "proofId": "opencode-goose-advisory-public-read-v1",
     "profileId": "advisory-public-read-v1",
     "profileDigest": "66be4e4facd50378bd6d83b72db5bf3783c37a53bcb7d8fd45547545bb18d353",
-    "evidenceDigest": "664c4bf761d0e0648b482dcfded5e5f311de4dbe2fc1b883cc5ef5a818052cbf",
+    "evidenceDigest": "9205fe4901a2ab7e74d2d7d4e4b2ddf89eeea44faf9dd5c2b480f6f109e01807",
     "reasonCodes": [
       "KSTACK_SECOND_HOST_OPEN_DEFECT"
     ],
     "provenHosts": []
   },
-  "evidenceDigest": "c50364e9677cd2caa66ab2f30cb4b8d14727f901d9fc6f441afbabdbc754c5f4"
+  "evidenceDigest": "10436fd17144943115d58c4014da99ff1d4fb19d4972be70ce4220adebe03520"
 }
