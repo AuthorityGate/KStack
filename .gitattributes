@@ -1,1 +1,6 @@
 *.md whitespace=-blank-at-eol
+
+# Invariant implementation digests hash Function.prototype.toString output of
+# functions in *.mjs sources. The digest normalizes CRLF to LF before hashing,
+# and this pins the checkout side so the two defenses agree.
+*.mjs text eol=lf
